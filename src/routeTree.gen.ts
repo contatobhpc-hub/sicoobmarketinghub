@@ -25,6 +25,7 @@ import { Route as CalendarioRouteImport } from './routes/calendario'
 import { Route as BrindesRouteImport } from './routes/brindes'
 import { Route as AnalyticsRouteImport } from './routes/analytics'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as CampanhasIdRouteImport } from './routes/campanhas.$id'
 
 const ProjetosRoute = ProjetosRouteImport.update({
   id: '/projetos',
@@ -106,13 +107,18 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const CampanhasIdRoute = CampanhasIdRouteImport.update({
+  id: '/$id',
+  path: '/$id',
+  getParentRoute: () => CampanhasRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/analytics': typeof AnalyticsRoute
   '/brindes': typeof BrindesRoute
   '/calendario': typeof CalendarioRoute
-  '/campanhas': typeof CampanhasRoute
+  '/campanhas': typeof CampanhasRouteWithChildren
   '/configuracoes': typeof ConfiguracoesRoute
   '/conteudos': typeof ConteudosRoute
   '/contratos': typeof ContratosRoute
@@ -124,13 +130,14 @@ export interface FileRoutesByFullPath {
   '/patrocinios': typeof PatrociniosRoute
   '/prioridades': typeof PrioridadesRoute
   '/projetos': typeof ProjetosRoute
+  '/campanhas/$id': typeof CampanhasIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/analytics': typeof AnalyticsRoute
   '/brindes': typeof BrindesRoute
   '/calendario': typeof CalendarioRoute
-  '/campanhas': typeof CampanhasRoute
+  '/campanhas': typeof CampanhasRouteWithChildren
   '/configuracoes': typeof ConfiguracoesRoute
   '/conteudos': typeof ConteudosRoute
   '/contratos': typeof ContratosRoute
@@ -142,6 +149,7 @@ export interface FileRoutesByTo {
   '/patrocinios': typeof PatrociniosRoute
   '/prioridades': typeof PrioridadesRoute
   '/projetos': typeof ProjetosRoute
+  '/campanhas/$id': typeof CampanhasIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -149,7 +157,7 @@ export interface FileRoutesById {
   '/analytics': typeof AnalyticsRoute
   '/brindes': typeof BrindesRoute
   '/calendario': typeof CalendarioRoute
-  '/campanhas': typeof CampanhasRoute
+  '/campanhas': typeof CampanhasRouteWithChildren
   '/configuracoes': typeof ConfiguracoesRoute
   '/conteudos': typeof ConteudosRoute
   '/contratos': typeof ContratosRoute
@@ -161,6 +169,7 @@ export interface FileRoutesById {
   '/patrocinios': typeof PatrociniosRoute
   '/prioridades': typeof PrioridadesRoute
   '/projetos': typeof ProjetosRoute
+  '/campanhas/$id': typeof CampanhasIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -181,6 +190,7 @@ export interface FileRouteTypes {
     | '/patrocinios'
     | '/prioridades'
     | '/projetos'
+    | '/campanhas/$id'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -199,6 +209,7 @@ export interface FileRouteTypes {
     | '/patrocinios'
     | '/prioridades'
     | '/projetos'
+    | '/campanhas/$id'
   id:
     | '__root__'
     | '/'
@@ -217,6 +228,7 @@ export interface FileRouteTypes {
     | '/patrocinios'
     | '/prioridades'
     | '/projetos'
+    | '/campanhas/$id'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -224,7 +236,7 @@ export interface RootRouteChildren {
   AnalyticsRoute: typeof AnalyticsRoute
   BrindesRoute: typeof BrindesRoute
   CalendarioRoute: typeof CalendarioRoute
-  CampanhasRoute: typeof CampanhasRoute
+  CampanhasRoute: typeof CampanhasRouteWithChildren
   ConfiguracoesRoute: typeof ConfiguracoesRoute
   ConteudosRoute: typeof ConteudosRoute
   ContratosRoute: typeof ContratosRoute
@@ -352,15 +364,34 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/campanhas/$id': {
+      id: '/campanhas/$id'
+      path: '/$id'
+      fullPath: '/campanhas/$id'
+      preLoaderRoute: typeof CampanhasIdRouteImport
+      parentRoute: typeof CampanhasRoute
+    }
   }
 }
+
+interface CampanhasRouteChildren {
+  CampanhasIdRoute: typeof CampanhasIdRoute
+}
+
+const CampanhasRouteChildren: CampanhasRouteChildren = {
+  CampanhasIdRoute: CampanhasIdRoute,
+}
+
+const CampanhasRouteWithChildren = CampanhasRoute._addFileChildren(
+  CampanhasRouteChildren,
+)
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AnalyticsRoute: AnalyticsRoute,
   BrindesRoute: BrindesRoute,
   CalendarioRoute: CalendarioRoute,
-  CampanhasRoute: CampanhasRoute,
+  CampanhasRoute: CampanhasRouteWithChildren,
   ConfiguracoesRoute: ConfiguracoesRoute,
   ConteudosRoute: ConteudosRoute,
   ContratosRoute: ContratosRoute,
