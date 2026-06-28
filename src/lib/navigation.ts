@@ -17,6 +17,7 @@ import {
   Settings,
   Workflow,
   Bot,
+  Bell,
   type LucideIcon,
 } from "lucide-react";
 
