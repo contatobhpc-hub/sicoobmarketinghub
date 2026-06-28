@@ -16,6 +16,7 @@ import { Route as PatrociniosRouteImport } from './routes/patrocinios'
 import { Route as ParceirosRouteImport } from './routes/parceiros'
 import { Route as MidiaOfflineRouteImport } from './routes/midia-offline'
 import { Route as KanbanRouteImport } from './routes/kanban'
+import { Route as IndicadoresRouteImport } from './routes/indicadores'
 import { Route as FinanceiroRouteImport } from './routes/financeiro'
 import { Route as EventosRouteImport } from './routes/eventos'
 import { Route as ContratosRouteImport } from './routes/contratos'
@@ -63,6 +64,11 @@ const MidiaOfflineRoute = MidiaOfflineRouteImport.update({
 const KanbanRoute = KanbanRouteImport.update({
   id: '/kanban',
   path: '/kanban',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const IndicadoresRoute = IndicadoresRouteImport.update({
+  id: '/indicadores',
+  path: '/indicadores',
   getParentRoute: () => rootRouteImport,
 } as any)
 const FinanceiroRoute = FinanceiroRouteImport.update({
@@ -143,6 +149,7 @@ export interface FileRoutesByFullPath {
   '/contratos': typeof ContratosRoute
   '/eventos': typeof EventosRoute
   '/financeiro': typeof FinanceiroRoute
+  '/indicadores': typeof IndicadoresRoute
   '/kanban': typeof KanbanRoute
   '/midia-offline': typeof MidiaOfflineRoute
   '/parceiros': typeof ParceirosRoute
@@ -165,6 +172,7 @@ export interface FileRoutesByTo {
   '/contratos': typeof ContratosRoute
   '/eventos': typeof EventosRoute
   '/financeiro': typeof FinanceiroRoute
+  '/indicadores': typeof IndicadoresRoute
   '/kanban': typeof KanbanRoute
   '/midia-offline': typeof MidiaOfflineRoute
   '/parceiros': typeof ParceirosRoute
@@ -188,6 +196,7 @@ export interface FileRoutesById {
   '/contratos': typeof ContratosRoute
   '/eventos': typeof EventosRoute
   '/financeiro': typeof FinanceiroRoute
+  '/indicadores': typeof IndicadoresRoute
   '/kanban': typeof KanbanRoute
   '/midia-offline': typeof MidiaOfflineRoute
   '/parceiros': typeof ParceirosRoute
@@ -212,6 +221,7 @@ export interface FileRouteTypes {
     | '/contratos'
     | '/eventos'
     | '/financeiro'
+    | '/indicadores'
     | '/kanban'
     | '/midia-offline'
     | '/parceiros'
@@ -234,6 +244,7 @@ export interface FileRouteTypes {
     | '/contratos'
     | '/eventos'
     | '/financeiro'
+    | '/indicadores'
     | '/kanban'
     | '/midia-offline'
     | '/parceiros'
@@ -256,6 +267,7 @@ export interface FileRouteTypes {
     | '/contratos'
     | '/eventos'
     | '/financeiro'
+    | '/indicadores'
     | '/kanban'
     | '/midia-offline'
     | '/parceiros'
@@ -279,6 +291,7 @@ export interface RootRouteChildren {
   ContratosRoute: typeof ContratosRoute
   EventosRoute: typeof EventosRoute
   FinanceiroRoute: typeof FinanceiroRoute
+  IndicadoresRoute: typeof IndicadoresRoute
   KanbanRoute: typeof KanbanRoute
   MidiaOfflineRoute: typeof MidiaOfflineRoute
   ParceirosRoute: typeof ParceirosRoute
@@ -337,6 +350,13 @@ declare module '@tanstack/react-router' {
       path: '/kanban'
       fullPath: '/kanban'
       preLoaderRoute: typeof KanbanRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/indicadores': {
+      id: '/indicadores'
+      path: '/indicadores'
+      fullPath: '/indicadores'
+      preLoaderRoute: typeof IndicadoresRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/financeiro': {
@@ -469,6 +489,7 @@ const rootRouteChildren: RootRouteChildren = {
   ContratosRoute: ContratosRoute,
   EventosRoute: EventosRoute,
   FinanceiroRoute: FinanceiroRoute,
+  IndicadoresRoute: IndicadoresRoute,
   KanbanRoute: KanbanRoute,
   MidiaOfflineRoute: MidiaOfflineRoute,
   ParceirosRoute: ParceirosRoute,
