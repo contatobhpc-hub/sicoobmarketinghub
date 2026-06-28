@@ -372,7 +372,7 @@ function PrioridadesPage() {
 
           <Section icon={FileWarning} title="📄 Contratos vencendo" to="/contratos">
             <ul className="space-y-2">
-              {expiringContracts.map((c) => (
+              {contractsList.map((c) => (
                 <li
                   key={c.partner}
                   className="flex items-center justify-between rounded-lg border border-border/60 bg-surface-elevated/40 px-3 py-2"
