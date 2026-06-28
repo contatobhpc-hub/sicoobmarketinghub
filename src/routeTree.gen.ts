@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as WorkflowsRouteImport } from './routes/workflows'
 import { Route as ProjetosRouteImport } from './routes/projetos'
 import { Route as PrioridadesRouteImport } from './routes/prioridades'
+import { Route as PlanejamentoRouteImport } from './routes/planejamento'
 import { Route as PatrociniosRouteImport } from './routes/patrocinios'
 import { Route as ParceirosRouteImport } from './routes/parceiros'
 import { Route as NotificacoesRouteImport } from './routes/notificacoes'
@@ -45,6 +46,11 @@ const ProjetosRoute = ProjetosRouteImport.update({
 const PrioridadesRoute = PrioridadesRouteImport.update({
   id: '/prioridades',
   path: '/prioridades',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PlanejamentoRoute = PlanejamentoRouteImport.update({
+  id: '/planejamento',
+  path: '/planejamento',
   getParentRoute: () => rootRouteImport,
 } as any)
 const PatrociniosRoute = PatrociniosRouteImport.update({
@@ -161,6 +167,7 @@ export interface FileRoutesByFullPath {
   '/notificacoes': typeof NotificacoesRoute
   '/parceiros': typeof ParceirosRoute
   '/patrocinios': typeof PatrociniosRoute
+  '/planejamento': typeof PlanejamentoRoute
   '/prioridades': typeof PrioridadesRoute
   '/projetos': typeof ProjetosRouteWithChildren
   '/workflows': typeof WorkflowsRoute
@@ -185,6 +192,7 @@ export interface FileRoutesByTo {
   '/notificacoes': typeof NotificacoesRoute
   '/parceiros': typeof ParceirosRoute
   '/patrocinios': typeof PatrociniosRoute
+  '/planejamento': typeof PlanejamentoRoute
   '/prioridades': typeof PrioridadesRoute
   '/projetos': typeof ProjetosRouteWithChildren
   '/workflows': typeof WorkflowsRoute
@@ -210,6 +218,7 @@ export interface FileRoutesById {
   '/notificacoes': typeof NotificacoesRoute
   '/parceiros': typeof ParceirosRoute
   '/patrocinios': typeof PatrociniosRoute
+  '/planejamento': typeof PlanejamentoRoute
   '/prioridades': typeof PrioridadesRoute
   '/projetos': typeof ProjetosRouteWithChildren
   '/workflows': typeof WorkflowsRoute
@@ -236,6 +245,7 @@ export interface FileRouteTypes {
     | '/notificacoes'
     | '/parceiros'
     | '/patrocinios'
+    | '/planejamento'
     | '/prioridades'
     | '/projetos'
     | '/workflows'
@@ -260,6 +270,7 @@ export interface FileRouteTypes {
     | '/notificacoes'
     | '/parceiros'
     | '/patrocinios'
+    | '/planejamento'
     | '/prioridades'
     | '/projetos'
     | '/workflows'
@@ -284,6 +295,7 @@ export interface FileRouteTypes {
     | '/notificacoes'
     | '/parceiros'
     | '/patrocinios'
+    | '/planejamento'
     | '/prioridades'
     | '/projetos'
     | '/workflows'
@@ -309,6 +321,7 @@ export interface RootRouteChildren {
   NotificacoesRoute: typeof NotificacoesRoute
   ParceirosRoute: typeof ParceirosRoute
   PatrociniosRoute: typeof PatrociniosRoute
+  PlanejamentoRoute: typeof PlanejamentoRoute
   PrioridadesRoute: typeof PrioridadesRoute
   ProjetosRoute: typeof ProjetosRouteWithChildren
   WorkflowsRoute: typeof WorkflowsRoute
@@ -335,6 +348,13 @@ declare module '@tanstack/react-router' {
       path: '/prioridades'
       fullPath: '/prioridades'
       preLoaderRoute: typeof PrioridadesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/planejamento': {
+      id: '/planejamento'
+      path: '/planejamento'
+      fullPath: '/planejamento'
+      preLoaderRoute: typeof PlanejamentoRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/patrocinios': {
@@ -515,6 +535,7 @@ const rootRouteChildren: RootRouteChildren = {
   NotificacoesRoute: NotificacoesRoute,
   ParceirosRoute: ParceirosRoute,
   PatrociniosRoute: PatrociniosRoute,
+  PlanejamentoRoute: PlanejamentoRoute,
   PrioridadesRoute: PrioridadesRoute,
   ProjetosRoute: ProjetosRouteWithChildren,
   WorkflowsRoute: WorkflowsRoute,
