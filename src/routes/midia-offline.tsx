@@ -98,16 +98,17 @@ function MidiaOfflinePage() {
       <PageHeader
         title="Mídia Offline"
         description="Outdoor, painéis, faixas e materiais físicos. Mapa, calendário e alertas automáticos de retirada."
-      >
-        <Dialog open={creating} onOpenChange={setCreating}>
-          <DialogTrigger asChild>
-            <Button>
-              <Plus className="size-4" /> Nova mídia
-            </Button>
-          </DialogTrigger>
-          <NewMediaDialog onClose={() => setCreating(false)} />
-        </Dialog>
-      </PageHeader>
+        actions={
+          <Dialog open={creating} onOpenChange={setCreating}>
+            <DialogTrigger asChild>
+              <Button>
+                <Plus className="size-4" /> Nova mídia
+              </Button>
+            </DialogTrigger>
+            <NewMediaDialog onClose={() => setCreating(false)} />
+          </Dialog>
+        }
+      />
 
       {/* KPIs */}
       <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
