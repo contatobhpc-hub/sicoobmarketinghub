@@ -335,12 +335,13 @@ function ExecutiveDashboard() {
       <PageHeader
         title="Dashboard Executivo"
         description="Visão consolidada do departamento de Marketing — KPIs, ROI, investimento e operação em tempo real."
-      >
-        <Badge variant="outline" className="gap-1.5 border-emerald-500/40 bg-emerald-500/10 text-emerald-300">
-          <span className="size-1.5 rounded-full bg-emerald-400 animate-pulse" />
-          Tempo real
-        </Badge>
-      </PageHeader>
+        actions={
+          <Badge variant="outline" className="gap-1.5 border-emerald-500/40 bg-emerald-500/10 text-emerald-300">
+            <span className="size-1.5 rounded-full bg-emerald-400 animate-pulse" />
+            Tempo real
+          </Badge>
+        }
+      />
 
       {/* Filters */}
       <Card className="mt-6 border-white/5 bg-white/[0.03] p-4 backdrop-blur-xl">
