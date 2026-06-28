@@ -75,6 +75,9 @@ export type SettingsState = {
   // Logs / Auditoria
   logs: { id: string; at: string; actor: string; action: string; target: string }[];
 
+  // Sessão
+  currentUserId?: string;
+
   // Preferências
   theme: "Sistema" | "Claro" | "Escuro";
   language: "pt-BR" | "en-US" | "es-ES";
