@@ -230,6 +230,14 @@ function MiniCalendar() {
 }
 
 function PrioridadesPage() {
+  const allContracts = useContracts();
+  const liveExpiring = allContracts
+    .filter((c) => c.status !== "Encerrado" && c.status !== "Cancelado")
+    .map((c) => ({ partner: c.company, days: daysUntil(c.endDate) ?? 9999 }))
+    .filter((c) => c.days <= 90 && c.days >= 0)
+    .sort((a, b) => a.days - b.days)
+    .slice(0, 4);
+  const contractsList = liveExpiring.length > 0 ? liveExpiring : expiringContracts;
   return (
     <AppShell>
       {/* Header */}
