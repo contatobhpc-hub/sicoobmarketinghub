@@ -39,12 +39,16 @@ import {
   type CampaignStatus,
   type CampaignType,
 } from "@/lib/campaigns";
+import { settingsStore, useHasPermission } from "@/lib/settings";
+import { PermissionButton } from "@/components/permission-gate";
 
 const defaultModules: CampaignModuleKey[] = CAMPAIGN_MODULES.map((m) => m.key);
 
 export function NewCampaignDialog({ trigger }: { trigger?: ReactNode }) {
   const [open, setOpen] = useState(false);
   const navigate = useNavigate();
+  const canCreate = useHasPermission("campanhas:create");
+
 
   const [name, setName] = useState("");
   const [type, setType] = useState<CampaignType>("Institucional");
