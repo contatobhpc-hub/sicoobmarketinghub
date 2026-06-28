@@ -21,6 +21,7 @@ import { Route as EventosRouteImport } from './routes/eventos'
 import { Route as ContratosRouteImport } from './routes/contratos'
 import { Route as ConteudosRouteImport } from './routes/conteudos'
 import { Route as ConfiguracoesRouteImport } from './routes/configuracoes'
+import { Route as CentralIaRouteImport } from './routes/central-ia'
 import { Route as CampanhasRouteImport } from './routes/campanhas'
 import { Route as CalendarioRouteImport } from './routes/calendario'
 import { Route as BrindesRouteImport } from './routes/brindes'
@@ -89,6 +90,11 @@ const ConfiguracoesRoute = ConfiguracoesRouteImport.update({
   path: '/configuracoes',
   getParentRoute: () => rootRouteImport,
 } as any)
+const CentralIaRoute = CentralIaRouteImport.update({
+  id: '/central-ia',
+  path: '/central-ia',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const CampanhasRoute = CampanhasRouteImport.update({
   id: '/campanhas',
   path: '/campanhas',
@@ -131,6 +137,7 @@ export interface FileRoutesByFullPath {
   '/brindes': typeof BrindesRoute
   '/calendario': typeof CalendarioRoute
   '/campanhas': typeof CampanhasRouteWithChildren
+  '/central-ia': typeof CentralIaRoute
   '/configuracoes': typeof ConfiguracoesRoute
   '/conteudos': typeof ConteudosRoute
   '/contratos': typeof ContratosRoute
@@ -152,6 +159,7 @@ export interface FileRoutesByTo {
   '/brindes': typeof BrindesRoute
   '/calendario': typeof CalendarioRoute
   '/campanhas': typeof CampanhasRouteWithChildren
+  '/central-ia': typeof CentralIaRoute
   '/configuracoes': typeof ConfiguracoesRoute
   '/conteudos': typeof ConteudosRoute
   '/contratos': typeof ContratosRoute
@@ -174,6 +182,7 @@ export interface FileRoutesById {
   '/brindes': typeof BrindesRoute
   '/calendario': typeof CalendarioRoute
   '/campanhas': typeof CampanhasRouteWithChildren
+  '/central-ia': typeof CentralIaRoute
   '/configuracoes': typeof ConfiguracoesRoute
   '/conteudos': typeof ConteudosRoute
   '/contratos': typeof ContratosRoute
@@ -197,6 +206,7 @@ export interface FileRouteTypes {
     | '/brindes'
     | '/calendario'
     | '/campanhas'
+    | '/central-ia'
     | '/configuracoes'
     | '/conteudos'
     | '/contratos'
@@ -218,6 +228,7 @@ export interface FileRouteTypes {
     | '/brindes'
     | '/calendario'
     | '/campanhas'
+    | '/central-ia'
     | '/configuracoes'
     | '/conteudos'
     | '/contratos'
@@ -239,6 +250,7 @@ export interface FileRouteTypes {
     | '/brindes'
     | '/calendario'
     | '/campanhas'
+    | '/central-ia'
     | '/configuracoes'
     | '/conteudos'
     | '/contratos'
@@ -261,6 +273,7 @@ export interface RootRouteChildren {
   BrindesRoute: typeof BrindesRoute
   CalendarioRoute: typeof CalendarioRoute
   CampanhasRoute: typeof CampanhasRouteWithChildren
+  CentralIaRoute: typeof CentralIaRoute
   ConfiguracoesRoute: typeof ConfiguracoesRoute
   ConteudosRoute: typeof ConteudosRoute
   ContratosRoute: typeof ContratosRoute
@@ -361,6 +374,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ConfiguracoesRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/central-ia': {
+      id: '/central-ia'
+      path: '/central-ia'
+      fullPath: '/central-ia'
+      preLoaderRoute: typeof CentralIaRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/campanhas': {
       id: '/campanhas'
       path: '/campanhas'
@@ -443,6 +463,7 @@ const rootRouteChildren: RootRouteChildren = {
   BrindesRoute: BrindesRoute,
   CalendarioRoute: CalendarioRoute,
   CampanhasRoute: CampanhasRouteWithChildren,
+  CentralIaRoute: CentralIaRoute,
   ConfiguracoesRoute: ConfiguracoesRoute,
   ConteudosRoute: ConteudosRoute,
   ContratosRoute: ContratosRoute,
