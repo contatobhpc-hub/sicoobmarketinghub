@@ -72,15 +72,15 @@ function impactFromPriority(p?: string) {
 }
 
 function fromCampaign(c: Campaign): PriorityItem | null {
-  if (c.status === "Encerrada" || c.status === "Cancelada") return null;
+  if (c.status === "Concluída" || c.status === "Cancelada") return null;
   const d = daysBetween(c.endDate);
-  const needsApproval = c.status === "Aprovação";
-  const urgency = needsApproval ? 95 : Math.max(0, Math.min(100, 100 - d * 3));
+  const needsApproval = c.status === "Rascunho" || c.status === "Planejamento";
+  const urgency = needsApproval ? 90 : Math.max(0, Math.min(100, 100 - d * 3));
   const impact = impactFromPriority(c.priority);
   return {
     id: `campaign-${c.id}`,
     kind: "campaign",
-    icon: needsApproval ? "🔥" : "📢",
+    icon: c.priority === "Crítica" ? "🔥" : "📢",
     title: needsApproval ? `Aprovar Campanha ${c.name}` : `Campanha ${c.name}`,
     context: `${c.type} • ${c.status}`,
     due: d >= 0 ? `encerra em ${d}d` : `encerrada há ${-d}d`,
