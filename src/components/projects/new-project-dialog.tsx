@@ -32,11 +32,15 @@ import {
   type ProjectStatus,
 } from "@/lib/projects";
 import { useCampaigns } from "@/lib/campaigns";
+import { settingsStore, useHasPermission } from "@/lib/settings";
+import { PermissionButton } from "@/components/permission-gate";
 
 export function NewProjectDialog({ trigger }: { trigger?: ReactNode }) {
   const [open, setOpen] = useState(false);
   const navigate = useNavigate();
   const campaigns = useCampaigns();
+  const canCreate = useHasPermission("projetos:create");
+
 
   const [name, setName] = useState("");
   const [client, setClient] = useState("");
