@@ -43,7 +43,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Textarea } from "@/components/ui/textarea";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { cn } from "@/lib/utils";
-import { settingsStore, useSettings, type SettingsState } from "@/lib/settings";
+import { settingsStore, useSettings, useCurrentUser, type SettingsState, type RoleKey } from "@/lib/settings";
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 
 export const Route = createFileRoute("/configuracoes")({
   head: () => ({
