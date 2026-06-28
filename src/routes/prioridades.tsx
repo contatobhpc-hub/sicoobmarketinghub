@@ -23,6 +23,7 @@ import {
 } from "lucide-react";
 
 import { AppShell } from "@/components/app-shell";
+import { daysUntil, useContracts } from "@/lib/contracts";
 
 export const Route = createFileRoute("/prioridades")({
   head: () => ({
@@ -229,6 +230,14 @@ function MiniCalendar() {
 }
 
 function PrioridadesPage() {
+  const allContracts = useContracts();
+  const liveExpiring = allContracts
+    .filter((c) => c.status !== "Encerrado" && c.status !== "Cancelado")
+    .map((c) => ({ partner: c.company, days: daysUntil(c.endDate) ?? 9999 }))
+    .filter((c) => c.days <= 90 && c.days >= 0)
+    .sort((a, b) => a.days - b.days)
+    .slice(0, 4);
+  const contractsList = liveExpiring.length > 0 ? liveExpiring : expiringContracts;
   return (
     <AppShell>
       {/* Header */}
@@ -363,7 +372,7 @@ function PrioridadesPage() {
 
           <Section icon={FileWarning} title="📄 Contratos vencendo" to="/contratos">
             <ul className="space-y-2">
-              {expiringContracts.map((c) => (
+              {contractsList.map((c) => (
                 <li
                   key={c.partner}
                   className="flex items-center justify-between rounded-lg border border-border/60 bg-surface-elevated/40 px-3 py-2"
