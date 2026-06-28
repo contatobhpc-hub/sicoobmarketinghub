@@ -233,14 +233,111 @@ export const settingsStore = {
     return () => listeners.delete(l);
   },
   update(patch: Partial<SettingsState>) {
+    const prev = state;
     state = { ...state, ...patch };
+    autoLog(prev, state, Object.keys(patch) as (keyof SettingsState)[]);
     emit();
   },
   patchSection<K extends keyof SettingsState>(key: K, value: SettingsState[K]) {
+    const prev = state;
     state = { ...state, [key]: value };
+    autoLog(prev, state, [key]);
+    emit();
+  },
+  addLog(action: string, target: string, actor?: string) {
+    const who = actor ?? getCurrentUser()?.name ?? "Sistema";
+    const log = { id: uid("l"), at: new Date().toISOString(), actor: who, action, target };
+    state = { ...state, logs: [log, ...state.logs].slice(0, 200) };
+    emit();
+  },
+  exportBackup(): string {
+    return JSON.stringify({ exportedAt: new Date().toISOString(), state }, null, 2);
+  },
+  importBackup(json: string) {
+    const parsed = JSON.parse(json);
+    const next = (parsed?.state ?? parsed) as SettingsState;
+    state = { ...seed(), ...next };
+    emit();
+  },
+  resetToSeed() {
+    state = seed();
+    emit();
+  },
+  setCurrentUser(id: string | undefined) {
+    state = { ...state, currentUserId: id };
     emit();
   },
 };
+
+/* ---------- Helpers ---------- */
+
+const SKIP_LOG_KEYS = new Set<keyof SettingsState>(["logs", "backup", "currentUserId"]);
+function autoLog(prev: SettingsState, next: SettingsState, keys: (keyof SettingsState)[]) {
+  const actor = next.members.find((m) => m.id === next.currentUserId)?.name ?? "Sistema";
+  for (const k of keys) {
+    if (SKIP_LOG_KEYS.has(k)) continue;
+    if (prev[k] === next[k]) continue;
+    const log = { id: uid("l"), at: new Date().toISOString(), actor, action: "Atualizou", target: String(k) };
+    next.logs = [log, ...next.logs].slice(0, 200);
+  }
+}
+
+export function getCurrentUser(): WorkspaceMember | undefined {
+  const id = state.currentUserId ?? state.members[0]?.id;
+  return state.members.find((m) => m.id === id);
+}
+
+export function hasPermission(perm: string, roleOverride?: RoleKey): boolean {
+  const roleKey = roleOverride ?? getCurrentUser()?.role;
+  if (!roleKey) return false;
+  const role = state.roles.find((r) => r.key === roleKey);
+  if (!role) return false;
+  if (role.permissions.includes("*")) return true;
+  if (role.permissions.includes(perm)) return true;
+  const [mod] = perm.split(":");
+  return role.permissions.includes(`${mod}:*`);
+}
+
+export function applyThemeAndLang(s: SettingsState) {
+  if (typeof document === "undefined") return;
+  const root = document.documentElement;
+  const wantDark =
+    s.theme === "Escuro" ||
+    (s.theme === "Sistema" && window.matchMedia?.("(prefers-color-scheme: dark)").matches);
+  root.classList.toggle("dark", !!wantDark);
+  root.lang = s.language === "pt-BR" ? "pt-BR" : s.language === "en-US" ? "en" : "es";
+}
+
+export function useSettings() {
+  return useSyncExternalStore(
+    settingsStore.subscribe,
+    () => state,
+    () => state,
+  );
+}
+
+export function useCurrentUser() {
+  const s = useSettings();
+  return s.members.find((m) => m.id === (s.currentUserId ?? s.members[0]?.id));
+}
+
+export function useHasPermission(perm: string) {
+  const user = useCurrentUser();
+  return hasPermission(perm, user?.role);
+}
+
+/** Mounts theme + language side-effects + responds to OS theme changes. */
+export function useSettingsBridge() {
+  const s = useSettings();
+  useEffect(() => {
+    applyThemeAndLang(s);
+    if (s.theme !== "Sistema" || typeof window === "undefined") return;
+    const mq = window.matchMedia("(prefers-color-scheme: dark)");
+    const onChange = () => applyThemeAndLang(state);
+    mq.addEventListener?.("change", onChange);
+    return () => mq.removeEventListener?.("change", onChange);
+  }, [s.theme, s.language]);
+}
 
 export function useSettings() {
   return useSyncExternalStore(
