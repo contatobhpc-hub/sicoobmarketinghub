@@ -15,6 +15,7 @@ import {
   Wallet,
   BarChart3,
   Settings,
+  Workflow,
   type LucideIcon,
 } from "lucide-react";
 
