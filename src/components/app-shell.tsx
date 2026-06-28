@@ -1,11 +1,25 @@
-import { type ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import { Search, Bell, Command } from "lucide-react";
 
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/app-sidebar";
 import { Button } from "@/components/ui/button";
+import { GlobalSearch } from "@/components/global-search";
 
 export function AppShell({ children }: { children: ReactNode }) {
+  const [searchOpen, setSearchOpen] = useState(false);
+
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "k") {
+        e.preventDefault();
+        setSearchOpen((o) => !o);
+      }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, []);
+
   return (
     <SidebarProvider defaultOpen>
       <div
@@ -21,6 +35,7 @@ export function AppShell({ children }: { children: ReactNode }) {
             <div className="ml-2 hidden flex-1 md:flex">
               <button
                 type="button"
+                onClick={() => setSearchOpen(true)}
                 className="group flex h-9 w-full max-w-md items-center gap-2 rounded-lg border border-border bg-surface/60 px-3 text-sm text-muted-foreground transition-colors hover:border-border-strong hover:text-foreground"
               >
                 <Search className="h-4 w-4" />
@@ -48,6 +63,7 @@ export function AppShell({ children }: { children: ReactNode }) {
           </main>
         </div>
       </div>
+      <GlobalSearch open={searchOpen} onOpenChange={setSearchOpen} />
     </SidebarProvider>
   );
 }
