@@ -14,6 +14,7 @@ import { Route as ProjetosRouteImport } from './routes/projetos'
 import { Route as PrioridadesRouteImport } from './routes/prioridades'
 import { Route as PatrociniosRouteImport } from './routes/patrocinios'
 import { Route as ParceirosRouteImport } from './routes/parceiros'
+import { Route as NotificacoesRouteImport } from './routes/notificacoes'
 import { Route as MidiaOfflineRouteImport } from './routes/midia-offline'
 import { Route as KanbanRouteImport } from './routes/kanban'
 import { Route as IndicadoresRouteImport } from './routes/indicadores'
@@ -54,6 +55,11 @@ const PatrociniosRoute = PatrociniosRouteImport.update({
 const ParceirosRoute = ParceirosRouteImport.update({
   id: '/parceiros',
   path: '/parceiros',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const NotificacoesRoute = NotificacoesRouteImport.update({
+  id: '/notificacoes',
+  path: '/notificacoes',
   getParentRoute: () => rootRouteImport,
 } as any)
 const MidiaOfflineRoute = MidiaOfflineRouteImport.update({
@@ -152,6 +158,7 @@ export interface FileRoutesByFullPath {
   '/indicadores': typeof IndicadoresRoute
   '/kanban': typeof KanbanRoute
   '/midia-offline': typeof MidiaOfflineRoute
+  '/notificacoes': typeof NotificacoesRoute
   '/parceiros': typeof ParceirosRoute
   '/patrocinios': typeof PatrociniosRoute
   '/prioridades': typeof PrioridadesRoute
@@ -175,6 +182,7 @@ export interface FileRoutesByTo {
   '/indicadores': typeof IndicadoresRoute
   '/kanban': typeof KanbanRoute
   '/midia-offline': typeof MidiaOfflineRoute
+  '/notificacoes': typeof NotificacoesRoute
   '/parceiros': typeof ParceirosRoute
   '/patrocinios': typeof PatrociniosRoute
   '/prioridades': typeof PrioridadesRoute
@@ -199,6 +207,7 @@ export interface FileRoutesById {
   '/indicadores': typeof IndicadoresRoute
   '/kanban': typeof KanbanRoute
   '/midia-offline': typeof MidiaOfflineRoute
+  '/notificacoes': typeof NotificacoesRoute
   '/parceiros': typeof ParceirosRoute
   '/patrocinios': typeof PatrociniosRoute
   '/prioridades': typeof PrioridadesRoute
@@ -224,6 +233,7 @@ export interface FileRouteTypes {
     | '/indicadores'
     | '/kanban'
     | '/midia-offline'
+    | '/notificacoes'
     | '/parceiros'
     | '/patrocinios'
     | '/prioridades'
@@ -247,6 +257,7 @@ export interface FileRouteTypes {
     | '/indicadores'
     | '/kanban'
     | '/midia-offline'
+    | '/notificacoes'
     | '/parceiros'
     | '/patrocinios'
     | '/prioridades'
@@ -270,6 +281,7 @@ export interface FileRouteTypes {
     | '/indicadores'
     | '/kanban'
     | '/midia-offline'
+    | '/notificacoes'
     | '/parceiros'
     | '/patrocinios'
     | '/prioridades'
@@ -294,6 +306,7 @@ export interface RootRouteChildren {
   IndicadoresRoute: typeof IndicadoresRoute
   KanbanRoute: typeof KanbanRoute
   MidiaOfflineRoute: typeof MidiaOfflineRoute
+  NotificacoesRoute: typeof NotificacoesRoute
   ParceirosRoute: typeof ParceirosRoute
   PatrociniosRoute: typeof PatrociniosRoute
   PrioridadesRoute: typeof PrioridadesRoute
@@ -336,6 +349,13 @@ declare module '@tanstack/react-router' {
       path: '/parceiros'
       fullPath: '/parceiros'
       preLoaderRoute: typeof ParceirosRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/notificacoes': {
+      id: '/notificacoes'
+      path: '/notificacoes'
+      fullPath: '/notificacoes'
+      preLoaderRoute: typeof NotificacoesRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/midia-offline': {
@@ -492,6 +512,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndicadoresRoute: IndicadoresRoute,
   KanbanRoute: KanbanRoute,
   MidiaOfflineRoute: MidiaOfflineRoute,
+  NotificacoesRoute: NotificacoesRoute,
   ParceirosRoute: ParceirosRoute,
   PatrociniosRoute: PatrociniosRoute,
   PrioridadesRoute: PrioridadesRoute,

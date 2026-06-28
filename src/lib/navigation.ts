@@ -17,6 +17,7 @@ import {
   Settings,
   Workflow,
   Bot,
+  Bell,
   type LucideIcon,
 } from "lucide-react";
 
@@ -37,6 +38,7 @@ export const navGroups: NavGroup[] = [
     items: [
       { title: "Dashboard", to: "/", icon: LayoutDashboard },
       { title: "Central de Prioridades", to: "/prioridades", icon: AlertTriangle },
+      { title: "Notificações", to: "/notificacoes", icon: Bell },
     ],
   },
   {
