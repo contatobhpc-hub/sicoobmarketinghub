@@ -90,6 +90,10 @@ export function NewCampaignDialog({ trigger }: { trigger?: ReactNode }) {
 
   function onSubmit(e: React.FormEvent) {
     e.preventDefault();
+    if (!canCreate) {
+      toast.error("Você não tem permissão para criar campanhas.");
+      return;
+    }
     if (!name.trim()) {
       toast.error("Informe o nome da campanha.");
       return;
@@ -113,6 +117,7 @@ export function NewCampaignDialog({ trigger }: { trigger?: ReactNode }) {
       files,
       modules,
     });
+    settingsStore.addLog("Criou campanha", created.name);
     toast.success("Campanha criada", {
       description: `${modules.length} módulo${modules.length === 1 ? "" : "s"} vinculado${modules.length === 1 ? "" : "s"}.`,
     });
@@ -125,14 +130,16 @@ export function NewCampaignDialog({ trigger }: { trigger?: ReactNode }) {
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
         {trigger ?? (
-          <Button
+          <PermissionButton
+            perm="campanhas:create"
             className="h-9 gap-2 text-primary-foreground shadow-[var(--shadow-glow)]"
             style={{ backgroundImage: "var(--gradient-primary)" }}
           >
             <Plus className="h-4 w-4" /> Nova campanha
-          </Button>
+          </PermissionButton>
         )}
       </DialogTrigger>
+
 
       <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-[720px]">
         <DialogHeader>
