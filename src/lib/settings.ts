@@ -338,11 +338,3 @@ export function useSettingsBridge() {
     return () => mq.removeEventListener?.("change", onChange);
   }, [s.theme, s.language]);
 }
-
-export function useSettings() {
-  return useSyncExternalStore(
-    settingsStore.subscribe,
-    () => state,
-    () => state,
-  );
-}
