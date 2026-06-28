@@ -350,20 +350,45 @@ function EmpresaSection({ settings }: { settings: SettingsState }) {
 
 function UsuariosSection({ settings }: { settings: SettingsState }) {
   const update = (members: SettingsState["members"]) => settingsStore.patchSection("members", members);
-  const add = () => {
-    const name = window.prompt("Nome do usuário?");
-    if (!name) return;
-    const email = window.prompt("E-mail?") ?? "";
-    update([
-      ...settings.members,
-      { id: `u-${Date.now().toString(36)}`, name, email, role: "Colaborador", status: "Convidado" },
-    ]);
+  const [open, setOpen] = useState(false);
+  const [draft, setDraft] = useState<{ name: string; email: string; role: RoleKey }>({ name: "", email: "", role: "Colaborador" });
+
+  const invite = () => {
+    if (!draft.name.trim() || !draft.email.trim()) return toast.error("Preencha nome e e-mail");
+    const member = { id: `u-${Date.now().toString(36)}`, name: draft.name.trim(), email: draft.email.trim(), role: draft.role, status: "Convidado" as const };
+    update([...settings.members, member]);
+    settingsStore.addLog("Convidou", `${member.name} (${member.role})`);
+    toast.success(`Convite enviado para ${member.email}`);
+    setDraft({ name: "", email: "", role: "Colaborador" });
+    setOpen(false);
   };
+
   return (
     <div>
       <div className="mb-3 flex items-center justify-between">
         <p className="text-xs text-muted-foreground">{settings.members.length} usuários no workspace.</p>
-        <Button size="sm" onClick={add}><Plus className="mr-1 h-3.5 w-3.5" /> Convidar</Button>
+        <Dialog open={open} onOpenChange={setOpen}>
+          <DialogTrigger asChild>
+            <Button size="sm"><Plus className="mr-1 h-3.5 w-3.5" /> Convidar</Button>
+          </DialogTrigger>
+          <DialogContent>
+            <DialogHeader><DialogTitle>Convidar usuário</DialogTitle></DialogHeader>
+            <div className="space-y-3">
+              <Field label="Nome"><Input value={draft.name} onChange={(e) => setDraft({ ...draft, name: e.target.value })} placeholder="Nome completo" /></Field>
+              <Field label="E-mail"><Input type="email" value={draft.email} onChange={(e) => setDraft({ ...draft, email: e.target.value })} placeholder="usuario@credibelo.coop.br" /></Field>
+              <Field label="Papel">
+                <Select value={draft.role} onValueChange={(v) => setDraft({ ...draft, role: v as RoleKey })}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>{settings.roles.map((r) => <SelectItem key={r.key} value={r.key}>{r.key}</SelectItem>)}</SelectContent>
+                </Select>
+              </Field>
+            </div>
+            <DialogFooter>
+              <Button variant="ghost" onClick={() => setOpen(false)}>Cancelar</Button>
+              <Button onClick={invite}>Enviar convite</Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </div>
       <div className="overflow-hidden rounded-lg border border-border">
         <table className="w-full text-sm">
@@ -383,14 +408,19 @@ function UsuariosSection({ settings }: { settings: SettingsState }) {
                   </div>
                 </td>
                 <td className="px-3 py-2">
-                  <Select value={m.role} onValueChange={(v) => update(settings.members.map((x) => x.id === m.id ? { ...x, role: v as typeof m.role } : x))}>
+                  <Select value={m.role} onValueChange={(v) => { update(settings.members.map((x) => x.id === m.id ? { ...x, role: v as RoleKey } : x)); toast.success(`Papel de ${m.name} atualizado`); }}>
                     <SelectTrigger className="h-8 w-[200px]"><SelectValue /></SelectTrigger>
                     <SelectContent>{settings.roles.map((r) => <SelectItem key={r.key} value={r.key}>{r.key}</SelectItem>)}</SelectContent>
                   </Select>
                 </td>
-                <td className="px-3 py-2"><Badge variant={m.status === "Ativo" ? "default" : "secondary"}>{m.status}</Badge></td>
+                <td className="px-3 py-2">
+                  <Select value={m.status} onValueChange={(v) => update(settings.members.map((x) => x.id === m.id ? { ...x, status: v as typeof m.status } : x))}>
+                    <SelectTrigger className="h-8 w-[140px]"><Badge variant={m.status === "Ativo" ? "default" : "secondary"}>{m.status}</Badge></SelectTrigger>
+                    <SelectContent>{(["Ativo", "Convidado", "Inativo"] as const).map((s) => <SelectItem key={s} value={s}>{s}</SelectItem>)}</SelectContent>
+                  </Select>
+                </td>
                 <td className="px-3 py-2 text-right">
-                  <Button size="icon" variant="ghost" onClick={() => update(settings.members.filter((x) => x.id !== m.id))}><Trash2 className="h-3.5 w-3.5" /></Button>
+                  <Button size="icon" variant="ghost" onClick={() => { update(settings.members.filter((x) => x.id !== m.id)); toast.success(`${m.name} removido`); }}><Trash2 className="h-3.5 w-3.5" /></Button>
                 </td>
               </tr>
             ))}
