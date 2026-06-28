@@ -8,14 +8,12 @@ import { Button } from "@/components/ui/button";
 export function AppShell({ children }: { children: ReactNode }) {
   return (
     <SidebarProvider defaultOpen>
-      <div
-        className="flex min-h-screen w-full"
-        style={{ backgroundImage: "var(--gradient-mesh)" }}
-      >
+      <div className="flex min-h-screen w-full bg-background">
         <AppSidebar />
 
         <div className="flex min-w-0 flex-1 flex-col">
-          <header className="sticky top-0 z-30 flex h-14 items-center gap-2 border-b border-border bg-background/70 px-3 backdrop-blur-xl">
+          <header className="sticky top-0 z-30 flex h-16 items-center gap-2 border-b border-border bg-background/80 px-4 backdrop-blur-xl">
+
             <SidebarTrigger className="text-muted-foreground hover:text-foreground" />
 
             <div className="ml-2 hidden flex-1 md:flex">

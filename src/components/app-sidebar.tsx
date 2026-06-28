@@ -36,20 +36,22 @@ export function AppSidebar() {
           </div>
           {!collapsed && (
             <div className="flex flex-col leading-tight">
-              <span className="font-display text-sm font-semibold tracking-tight">
+              <span className="text-sm font-semibold tracking-tight text-sidebar-foreground">
                 Marketing Hub
               </span>
-              <span className="text-[11px] text-muted-foreground">Sicoob Credibelo</span>
+              <span className="text-[11px] text-sidebar-foreground/60">
+                Sicoob Credibelo
+              </span>
             </div>
           )}
         </div>
       </SidebarHeader>
 
-      <SidebarContent className="px-1">
+      <SidebarContent className="px-1.5 py-2">
         {navGroups.map((group) => (
           <SidebarGroup key={group.label}>
             {!collapsed && (
-              <SidebarGroupLabel className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground/70">
+              <SidebarGroupLabel className="px-2 text-[10px] font-semibold uppercase tracking-wider text-sidebar-foreground/50">
                 {group.label}
               </SidebarGroupLabel>
             )}
@@ -63,11 +65,11 @@ export function AppSidebar() {
                         asChild
                         isActive={active}
                         tooltip={item.title}
-                        className="group/nav relative h-9 rounded-md text-[13px] font-medium text-sidebar-foreground/80 transition-all duration-150 hover:bg-sidebar-accent hover:text-sidebar-foreground data-[active=true]:bg-primary/10 data-[active=true]:text-foreground"
+                        className="group/nav relative h-9 rounded-lg text-[13px] font-medium text-sidebar-foreground/75 transition-colors duration-150 hover:bg-sidebar-accent hover:text-sidebar-foreground data-[active=true]:bg-primary/15 data-[active=true]:text-sidebar-primary-foreground"
                       >
                         <Link to={item.to}>
                           {active && (
-                            <span className="absolute left-0 top-1/2 h-5 w-[2px] -translate-y-1/2 rounded-r bg-primary" />
+                            <span className="absolute left-0 top-1/2 h-5 w-[3px] -translate-y-1/2 rounded-r-full bg-primary" />
                           )}
                           <item.icon className="h-4 w-4 shrink-0" strokeWidth={1.75} />
                           <span>{item.title}</span>
@@ -84,19 +86,22 @@ export function AppSidebar() {
 
       <SidebarFooter className="border-t border-sidebar-border">
         <div className="flex items-center gap-2.5 px-2 py-1.5">
-          <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-surface-elevated text-xs font-semibold">
+          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-sidebar-accent text-xs font-semibold text-sidebar-foreground">
             SC
           </div>
           {!collapsed && (
             <div className="flex min-w-0 flex-col leading-tight">
-              <span className="truncate text-[13px] font-medium">Comunicação</span>
-              <span className="truncate text-[11px] text-muted-foreground">
+              <span className="truncate text-[13px] font-medium text-sidebar-foreground">
+                Comunicação
+              </span>
+              <span className="truncate text-[11px] text-sidebar-foreground/60">
                 marketing@credibelo
               </span>
             </div>
           )}
         </div>
       </SidebarFooter>
+
     </Sidebar>
   );
 }
