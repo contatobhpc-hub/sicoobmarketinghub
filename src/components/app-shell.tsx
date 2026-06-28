@@ -1,9 +1,10 @@
-import { type ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import { Search, Bell, Command } from "lucide-react";
 
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/app-sidebar";
 import { Button } from "@/components/ui/button";
+import { GlobalSearch } from "@/components/global-search";
 
 export function AppShell({ children }: { children: ReactNode }) {
   return (
