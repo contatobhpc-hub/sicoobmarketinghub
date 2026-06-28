@@ -192,6 +192,7 @@ const seed = (): SettingsState => ({
   ],
   theme: "Sistema",
   language: "pt-BR",
+  currentUserId: undefined,
   security: { twoFactor: false, sessionTimeoutMinutes: 60, enforceSSO: false, passwordMinLength: 10 },
   lgpd: {
     dpoName: "Encarregado de Dados",
