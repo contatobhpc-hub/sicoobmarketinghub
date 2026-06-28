@@ -5,8 +5,10 @@ import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/app-sidebar";
 import { Button } from "@/components/ui/button";
 import { GlobalSearch } from "@/components/global-search";
+import { useSettingsBridge } from "@/lib/settings";
 
 export function AppShell({ children }: { children: ReactNode }) {
+  useSettingsBridge();
   const [searchOpen, setSearchOpen] = useState(false);
 
   useEffect(() => {
