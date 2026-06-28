@@ -9,8 +9,98 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as ProjetosRouteImport } from './routes/projetos'
+import { Route as PrioridadesRouteImport } from './routes/prioridades'
+import { Route as PatrociniosRouteImport } from './routes/patrocinios'
+import { Route as ParceirosRouteImport } from './routes/parceiros'
+import { Route as MidiaOfflineRouteImport } from './routes/midia-offline'
+import { Route as KanbanRouteImport } from './routes/kanban'
+import { Route as FinanceiroRouteImport } from './routes/financeiro'
+import { Route as EventosRouteImport } from './routes/eventos'
+import { Route as ContratosRouteImport } from './routes/contratos'
+import { Route as ConteudosRouteImport } from './routes/conteudos'
+import { Route as ConfiguracoesRouteImport } from './routes/configuracoes'
+import { Route as CampanhasRouteImport } from './routes/campanhas'
+import { Route as CalendarioRouteImport } from './routes/calendario'
+import { Route as BrindesRouteImport } from './routes/brindes'
+import { Route as AnalyticsRouteImport } from './routes/analytics'
 import { Route as IndexRouteImport } from './routes/index'
 
+const ProjetosRoute = ProjetosRouteImport.update({
+  id: '/projetos',
+  path: '/projetos',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PrioridadesRoute = PrioridadesRouteImport.update({
+  id: '/prioridades',
+  path: '/prioridades',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PatrociniosRoute = PatrociniosRouteImport.update({
+  id: '/patrocinios',
+  path: '/patrocinios',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ParceirosRoute = ParceirosRouteImport.update({
+  id: '/parceiros',
+  path: '/parceiros',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const MidiaOfflineRoute = MidiaOfflineRouteImport.update({
+  id: '/midia-offline',
+  path: '/midia-offline',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const KanbanRoute = KanbanRouteImport.update({
+  id: '/kanban',
+  path: '/kanban',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const FinanceiroRoute = FinanceiroRouteImport.update({
+  id: '/financeiro',
+  path: '/financeiro',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const EventosRoute = EventosRouteImport.update({
+  id: '/eventos',
+  path: '/eventos',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ContratosRoute = ContratosRouteImport.update({
+  id: '/contratos',
+  path: '/contratos',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ConteudosRoute = ConteudosRouteImport.update({
+  id: '/conteudos',
+  path: '/conteudos',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ConfiguracoesRoute = ConfiguracoesRouteImport.update({
+  id: '/configuracoes',
+  path: '/configuracoes',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CampanhasRoute = CampanhasRouteImport.update({
+  id: '/campanhas',
+  path: '/campanhas',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CalendarioRoute = CalendarioRouteImport.update({
+  id: '/calendario',
+  path: '/calendario',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const BrindesRoute = BrindesRouteImport.update({
+  id: '/brindes',
+  path: '/brindes',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AnalyticsRoute = AnalyticsRouteImport.update({
+  id: '/analytics',
+  path: '/analytics',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
@@ -19,28 +109,242 @@ const IndexRoute = IndexRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/analytics': typeof AnalyticsRoute
+  '/brindes': typeof BrindesRoute
+  '/calendario': typeof CalendarioRoute
+  '/campanhas': typeof CampanhasRoute
+  '/configuracoes': typeof ConfiguracoesRoute
+  '/conteudos': typeof ConteudosRoute
+  '/contratos': typeof ContratosRoute
+  '/eventos': typeof EventosRoute
+  '/financeiro': typeof FinanceiroRoute
+  '/kanban': typeof KanbanRoute
+  '/midia-offline': typeof MidiaOfflineRoute
+  '/parceiros': typeof ParceirosRoute
+  '/patrocinios': typeof PatrociniosRoute
+  '/prioridades': typeof PrioridadesRoute
+  '/projetos': typeof ProjetosRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/analytics': typeof AnalyticsRoute
+  '/brindes': typeof BrindesRoute
+  '/calendario': typeof CalendarioRoute
+  '/campanhas': typeof CampanhasRoute
+  '/configuracoes': typeof ConfiguracoesRoute
+  '/conteudos': typeof ConteudosRoute
+  '/contratos': typeof ContratosRoute
+  '/eventos': typeof EventosRoute
+  '/financeiro': typeof FinanceiroRoute
+  '/kanban': typeof KanbanRoute
+  '/midia-offline': typeof MidiaOfflineRoute
+  '/parceiros': typeof ParceirosRoute
+  '/patrocinios': typeof PatrociniosRoute
+  '/prioridades': typeof PrioridadesRoute
+  '/projetos': typeof ProjetosRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/analytics': typeof AnalyticsRoute
+  '/brindes': typeof BrindesRoute
+  '/calendario': typeof CalendarioRoute
+  '/campanhas': typeof CampanhasRoute
+  '/configuracoes': typeof ConfiguracoesRoute
+  '/conteudos': typeof ConteudosRoute
+  '/contratos': typeof ContratosRoute
+  '/eventos': typeof EventosRoute
+  '/financeiro': typeof FinanceiroRoute
+  '/kanban': typeof KanbanRoute
+  '/midia-offline': typeof MidiaOfflineRoute
+  '/parceiros': typeof ParceirosRoute
+  '/patrocinios': typeof PatrociniosRoute
+  '/prioridades': typeof PrioridadesRoute
+  '/projetos': typeof ProjetosRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths:
+    | '/'
+    | '/analytics'
+    | '/brindes'
+    | '/calendario'
+    | '/campanhas'
+    | '/configuracoes'
+    | '/conteudos'
+    | '/contratos'
+    | '/eventos'
+    | '/financeiro'
+    | '/kanban'
+    | '/midia-offline'
+    | '/parceiros'
+    | '/patrocinios'
+    | '/prioridades'
+    | '/projetos'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to:
+    | '/'
+    | '/analytics'
+    | '/brindes'
+    | '/calendario'
+    | '/campanhas'
+    | '/configuracoes'
+    | '/conteudos'
+    | '/contratos'
+    | '/eventos'
+    | '/financeiro'
+    | '/kanban'
+    | '/midia-offline'
+    | '/parceiros'
+    | '/patrocinios'
+    | '/prioridades'
+    | '/projetos'
+  id:
+    | '__root__'
+    | '/'
+    | '/analytics'
+    | '/brindes'
+    | '/calendario'
+    | '/campanhas'
+    | '/configuracoes'
+    | '/conteudos'
+    | '/contratos'
+    | '/eventos'
+    | '/financeiro'
+    | '/kanban'
+    | '/midia-offline'
+    | '/parceiros'
+    | '/patrocinios'
+    | '/prioridades'
+    | '/projetos'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AnalyticsRoute: typeof AnalyticsRoute
+  BrindesRoute: typeof BrindesRoute
+  CalendarioRoute: typeof CalendarioRoute
+  CampanhasRoute: typeof CampanhasRoute
+  ConfiguracoesRoute: typeof ConfiguracoesRoute
+  ConteudosRoute: typeof ConteudosRoute
+  ContratosRoute: typeof ContratosRoute
+  EventosRoute: typeof EventosRoute
+  FinanceiroRoute: typeof FinanceiroRoute
+  KanbanRoute: typeof KanbanRoute
+  MidiaOfflineRoute: typeof MidiaOfflineRoute
+  ParceirosRoute: typeof ParceirosRoute
+  PatrociniosRoute: typeof PatrociniosRoute
+  PrioridadesRoute: typeof PrioridadesRoute
+  ProjetosRoute: typeof ProjetosRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/projetos': {
+      id: '/projetos'
+      path: '/projetos'
+      fullPath: '/projetos'
+      preLoaderRoute: typeof ProjetosRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/prioridades': {
+      id: '/prioridades'
+      path: '/prioridades'
+      fullPath: '/prioridades'
+      preLoaderRoute: typeof PrioridadesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/patrocinios': {
+      id: '/patrocinios'
+      path: '/patrocinios'
+      fullPath: '/patrocinios'
+      preLoaderRoute: typeof PatrociniosRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/parceiros': {
+      id: '/parceiros'
+      path: '/parceiros'
+      fullPath: '/parceiros'
+      preLoaderRoute: typeof ParceirosRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/midia-offline': {
+      id: '/midia-offline'
+      path: '/midia-offline'
+      fullPath: '/midia-offline'
+      preLoaderRoute: typeof MidiaOfflineRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/kanban': {
+      id: '/kanban'
+      path: '/kanban'
+      fullPath: '/kanban'
+      preLoaderRoute: typeof KanbanRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/financeiro': {
+      id: '/financeiro'
+      path: '/financeiro'
+      fullPath: '/financeiro'
+      preLoaderRoute: typeof FinanceiroRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/eventos': {
+      id: '/eventos'
+      path: '/eventos'
+      fullPath: '/eventos'
+      preLoaderRoute: typeof EventosRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/contratos': {
+      id: '/contratos'
+      path: '/contratos'
+      fullPath: '/contratos'
+      preLoaderRoute: typeof ContratosRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/conteudos': {
+      id: '/conteudos'
+      path: '/conteudos'
+      fullPath: '/conteudos'
+      preLoaderRoute: typeof ConteudosRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/configuracoes': {
+      id: '/configuracoes'
+      path: '/configuracoes'
+      fullPath: '/configuracoes'
+      preLoaderRoute: typeof ConfiguracoesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/campanhas': {
+      id: '/campanhas'
+      path: '/campanhas'
+      fullPath: '/campanhas'
+      preLoaderRoute: typeof CampanhasRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/calendario': {
+      id: '/calendario'
+      path: '/calendario'
+      fullPath: '/calendario'
+      preLoaderRoute: typeof CalendarioRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/brindes': {
+      id: '/brindes'
+      path: '/brindes'
+      fullPath: '/brindes'
+      preLoaderRoute: typeof BrindesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/analytics': {
+      id: '/analytics'
+      path: '/analytics'
+      fullPath: '/analytics'
+      preLoaderRoute: typeof AnalyticsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
@@ -53,6 +357,21 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AnalyticsRoute: AnalyticsRoute,
+  BrindesRoute: BrindesRoute,
+  CalendarioRoute: CalendarioRoute,
+  CampanhasRoute: CampanhasRoute,
+  ConfiguracoesRoute: ConfiguracoesRoute,
+  ConteudosRoute: ConteudosRoute,
+  ContratosRoute: ContratosRoute,
+  EventosRoute: EventosRoute,
+  FinanceiroRoute: FinanceiroRoute,
+  KanbanRoute: KanbanRoute,
+  MidiaOfflineRoute: MidiaOfflineRoute,
+  ParceirosRoute: ParceirosRoute,
+  PatrociniosRoute: PatrociniosRoute,
+  PrioridadesRoute: PrioridadesRoute,
+  ProjetosRoute: ProjetosRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
