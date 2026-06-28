@@ -279,10 +279,11 @@ function SectionContent({ section, settings }: { section: SectionKey; settings: 
 /* -------------------- Reusable -------------------- */
 
 function OrgSwitcher({ settings }: { settings: SettingsState }) {
+  const current = useCurrentUser();
   return (
     <div className="rounded-xl border border-border bg-surface/40 p-3">
       <div className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground">Multiempresa</div>
-      <Select value={settings.activeOrgId} onValueChange={(v) => settingsStore.update({ activeOrgId: v })}>
+      <Select value={settings.activeOrgId} onValueChange={(v) => { settingsStore.update({ activeOrgId: v }); toast.success("Organização alterada"); }}>
         <SelectTrigger className="mt-2 h-9">
           <SelectValue />
         </SelectTrigger>
@@ -295,7 +296,7 @@ function OrgSwitcher({ settings }: { settings: SettingsState }) {
         </SelectContent>
       </Select>
       <div className="mt-3 text-[10px] font-medium uppercase tracking-wider text-muted-foreground">Workspace</div>
-      <Select value={settings.activeWorkspaceId} onValueChange={(v) => settingsStore.update({ activeWorkspaceId: v })}>
+      <Select value={settings.activeWorkspaceId} onValueChange={(v) => { settingsStore.update({ activeWorkspaceId: v }); toast.success("Workspace alterado"); }}>
         <SelectTrigger className="mt-2 h-9">
           <SelectValue />
         </SelectTrigger>
@@ -309,8 +310,22 @@ function OrgSwitcher({ settings }: { settings: SettingsState }) {
             ))}
         </SelectContent>
       </Select>
+
+      <div className="mt-3 text-[10px] font-medium uppercase tracking-wider text-muted-foreground">Usuário ativo</div>
+      <Select
+        value={current?.id ?? settings.members[0]?.id}
+        onValueChange={(v) => { settingsStore.setCurrentUser(v); toast.success("Sessão alterada"); }}
+      >
+        <SelectTrigger className="mt-2 h-9"><SelectValue /></SelectTrigger>
+        <SelectContent>
+          {settings.members.map((m) => (
+            <SelectItem key={m.id} value={m.id}>{m.name} — {m.role}</SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+
       <p className="mt-2 text-[11px] leading-snug text-muted-foreground">
-        Arquitetura preparada para múltiplas empresas, workspaces e usuários.
+        Define quem está logado para permissões, auditoria e atribuições em toda a plataforma.
       </p>
     </div>
   );
