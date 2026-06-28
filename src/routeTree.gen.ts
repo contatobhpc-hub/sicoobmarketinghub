@@ -9,6 +9,7 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as WorkflowsRouteImport } from './routes/workflows'
 import { Route as ProjetosRouteImport } from './routes/projetos'
 import { Route as PrioridadesRouteImport } from './routes/prioridades'
 import { Route as PatrociniosRouteImport } from './routes/patrocinios'
@@ -28,6 +29,11 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as ProjetosIdRouteImport } from './routes/projetos.$id'
 import { Route as CampanhasIdRouteImport } from './routes/campanhas.$id'
 
+const WorkflowsRoute = WorkflowsRouteImport.update({
+  id: '/workflows',
+  path: '/workflows',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ProjetosRoute = ProjetosRouteImport.update({
   id: '/projetos',
   path: '/projetos',
@@ -136,6 +142,7 @@ export interface FileRoutesByFullPath {
   '/patrocinios': typeof PatrociniosRoute
   '/prioridades': typeof PrioridadesRoute
   '/projetos': typeof ProjetosRouteWithChildren
+  '/workflows': typeof WorkflowsRoute
   '/campanhas/$id': typeof CampanhasIdRoute
   '/projetos/$id': typeof ProjetosIdRoute
 }
@@ -156,6 +163,7 @@ export interface FileRoutesByTo {
   '/patrocinios': typeof PatrociniosRoute
   '/prioridades': typeof PrioridadesRoute
   '/projetos': typeof ProjetosRouteWithChildren
+  '/workflows': typeof WorkflowsRoute
   '/campanhas/$id': typeof CampanhasIdRoute
   '/projetos/$id': typeof ProjetosIdRoute
 }
@@ -177,6 +185,7 @@ export interface FileRoutesById {
   '/patrocinios': typeof PatrociniosRoute
   '/prioridades': typeof PrioridadesRoute
   '/projetos': typeof ProjetosRouteWithChildren
+  '/workflows': typeof WorkflowsRoute
   '/campanhas/$id': typeof CampanhasIdRoute
   '/projetos/$id': typeof ProjetosIdRoute
 }
@@ -199,6 +208,7 @@ export interface FileRouteTypes {
     | '/patrocinios'
     | '/prioridades'
     | '/projetos'
+    | '/workflows'
     | '/campanhas/$id'
     | '/projetos/$id'
   fileRoutesByTo: FileRoutesByTo
@@ -219,6 +229,7 @@ export interface FileRouteTypes {
     | '/patrocinios'
     | '/prioridades'
     | '/projetos'
+    | '/workflows'
     | '/campanhas/$id'
     | '/projetos/$id'
   id:
@@ -239,6 +250,7 @@ export interface FileRouteTypes {
     | '/patrocinios'
     | '/prioridades'
     | '/projetos'
+    | '/workflows'
     | '/campanhas/$id'
     | '/projetos/$id'
   fileRoutesById: FileRoutesById
@@ -260,10 +272,18 @@ export interface RootRouteChildren {
   PatrociniosRoute: typeof PatrociniosRoute
   PrioridadesRoute: typeof PrioridadesRoute
   ProjetosRoute: typeof ProjetosRouteWithChildren
+  WorkflowsRoute: typeof WorkflowsRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/workflows': {
+      id: '/workflows'
+      path: '/workflows'
+      fullPath: '/workflows'
+      preLoaderRoute: typeof WorkflowsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/projetos': {
       id: '/projetos'
       path: '/projetos'
@@ -434,6 +454,7 @@ const rootRouteChildren: RootRouteChildren = {
   PatrociniosRoute: PatrociniosRoute,
   PrioridadesRoute: PrioridadesRoute,
   ProjetosRoute: ProjetosRouteWithChildren,
+  WorkflowsRoute: WorkflowsRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

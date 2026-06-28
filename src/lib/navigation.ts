@@ -15,6 +15,7 @@ import {
   Wallet,
   BarChart3,
   Settings,
+  Workflow,
   type LucideIcon,
 } from "lucide-react";
 
@@ -68,6 +69,7 @@ export const navGroups: NavGroup[] = [
     items: [
       { title: "Financeiro", to: "/financeiro", icon: Wallet },
       { title: "Analytics", to: "/analytics", icon: BarChart3 },
+      { title: "Workflows", to: "/workflows", icon: Workflow },
       { title: "Configurações", to: "/configuracoes", icon: Settings },
     ],
   },
