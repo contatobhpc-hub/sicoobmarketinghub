@@ -7,6 +7,19 @@ import { Button } from "@/components/ui/button";
 import { GlobalSearch } from "@/components/global-search";
 
 export function AppShell({ children }: { children: ReactNode }) {
+  const [searchOpen, setSearchOpen] = useState(false);
+
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "k") {
+        e.preventDefault();
+        setSearchOpen((o) => !o);
+      }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, []);
+
   return (
     <SidebarProvider defaultOpen>
       <div
