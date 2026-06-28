@@ -184,7 +184,7 @@ function fromProject(p: Project): PriorityItem | null {
     id: `project-${p.id}`,
     kind: "project",
     icon: d < 0 ? "🔥" : "📋",
-    title: `Projeto ${p.company}${d < 0 ? " atrasado" : ""}`,
+    title: `Projeto ${p.name}${d < 0 ? " atrasado" : ""}`,
     context: `${p.status} • ${p.progress}%`,
     due: d < 0 ? `${-d}d atrasado` : `em ${d}d`,
     daysLeft: d,
@@ -281,7 +281,7 @@ export function useCommandCenter() {
       recs.push({
         id: "rec-pais",
         icon: "🧠",
-        title: `Antecipe a produção do material da campanha ${dadosDosPais.institution}`,
+        title: `Antecipe a produção do material da campanha ${dadosDosPais.name}`,
         detail: "A IA detectou janela de produção apertada considerando aprovações e mídia.",
         action: { label: "Abrir campanha", href: `/campanhas/${dadosDosPais.id}` },
         tone: "action",
