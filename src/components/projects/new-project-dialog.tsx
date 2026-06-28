@@ -55,6 +55,10 @@ export function NewProjectDialog({ trigger }: { trigger?: ReactNode }) {
 
   function onSubmit(e: React.FormEvent) {
     e.preventDefault();
+    if (!canCreate) {
+      toast.error("Você não tem permissão para criar projetos.");
+      return;
+    }
     if (!name.trim()) {
       toast.error("Informe o nome do projeto.");
       return;
@@ -73,6 +77,7 @@ export function NewProjectDialog({ trigger }: { trigger?: ReactNode }) {
       files: [],
       campaignId: campaignId === "none" ? undefined : campaignId,
     });
+    settingsStore.addLog("Criou projeto", created.name);
     toast.success("Projeto criado");
     setOpen(false);
     navigate({ to: "/projetos/$id", params: { id: created.id } });
@@ -82,14 +87,16 @@ export function NewProjectDialog({ trigger }: { trigger?: ReactNode }) {
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
         {trigger ?? (
-          <Button
+          <PermissionButton
+            perm="projetos:create"
             className="h-9 gap-2 text-primary-foreground shadow-[var(--shadow-glow)]"
             style={{ backgroundImage: "var(--gradient-primary)" }}
           >
             <Plus className="h-4 w-4" /> Novo projeto
-          </Button>
+          </PermissionButton>
         )}
       </DialogTrigger>
+
 
       <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-[640px]">
         <DialogHeader>
