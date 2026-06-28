@@ -23,6 +23,7 @@ import {
 } from "lucide-react";
 
 import { AppShell } from "@/components/app-shell";
+import { daysUntil, useContracts } from "@/lib/contracts";
 
 export const Route = createFileRoute("/prioridades")({
   head: () => ({
