@@ -580,6 +580,12 @@ function TemplatesSection({ settings }: { settings: SettingsState }) {
 
 function IntegracoesSection({ settings }: { settings: SettingsState }) {
   const update = (v: SettingsState["integrations"]) => settingsStore.patchSection("integrations", v);
+  const toggle = (id: string, v: boolean) => {
+    const name = settings.integrations.find((i) => i.id === id)?.name ?? id;
+    update(settings.integrations.map((x) => x.id === id ? { ...x, connected: v } : x));
+    settingsStore.addLog(v ? "Conectou" : "Desconectou", name);
+    toast.success(`${name} ${v ? "conectada" : "desconectada"}`);
+  };
   const byPhase = (phase: 1 | 2) => settings.integrations.filter((i) => i.phase === phase);
   return (
     <div className="space-y-6">
@@ -598,7 +604,7 @@ function IntegracoesSection({ settings }: { settings: SettingsState }) {
                 </div>
                 <div className="flex items-center gap-2">
                   {i.connected && <Badge className="gap-1"><Check className="h-3 w-3" /> Conectado</Badge>}
-                  <Switch checked={i.connected} onCheckedChange={(v) => update(settings.integrations.map((x) => x.id === i.id ? { ...x, connected: v } : x))} />
+                  <Switch checked={i.connected} onCheckedChange={(v) => toggle(i.id, v)} />
                 </div>
               </div>
             ))}
@@ -619,7 +625,13 @@ function AutomacoesSection({ settings }: { settings: SettingsState }) {
             <div className="text-sm font-medium">{a.name}</div>
             <div className="font-mono text-[10px] text-muted-foreground">{a.trigger}</div>
           </div>
-          <Switch checked={a.enabled} onCheckedChange={(v) => update(settings.automations.map((x) => x.id === a.id ? { ...x, enabled: v } : x))} />
+          <Switch
+            checked={a.enabled}
+            onCheckedChange={(v) => {
+              update(settings.automations.map((x) => x.id === a.id ? { ...x, enabled: v } : x));
+              toast.success(`Automação ${v ? "ativada" : "desativada"}`);
+            }}
+          />
         </li>
       ))}
     </ul>
@@ -628,12 +640,28 @@ function AutomacoesSection({ settings }: { settings: SettingsState }) {
 
 function NotificacoesSection({ settings }: { settings: SettingsState }) {
   const update = (v: SettingsState["notifications"]) => settingsStore.patchSection("notifications", v);
+  const toggle = async (channel: SettingsState["notifications"][number]["channel"], v: boolean) => {
+    if (channel === "Push" && v && typeof window !== "undefined" && "Notification" in window) {
+      const perm = await Notification.requestPermission();
+      if (perm !== "granted") {
+        toast.error("Permissão de notificação negada pelo navegador");
+        return;
+      }
+      new Notification("Marketing Hub", { body: "Notificações push ativadas com sucesso." });
+    }
+    update(settings.notifications.map((x) => x.channel === channel ? { ...x, enabled: v } : x));
+    toast.success(`${channel}: ${v ? "ativado" : "desativado"}`);
+  };
   return (
     <ul className="space-y-2">
       {settings.notifications.map((n) => (
         <li key={n.channel} className="flex items-center justify-between rounded-lg border border-border bg-surface/60 p-3">
-          <div className="flex items-center gap-2"><Bell className="h-4 w-4 text-muted-foreground" /><span className="text-sm font-medium">{n.channel}</span></div>
-          <Switch checked={n.enabled} onCheckedChange={(v) => update(settings.notifications.map((x) => x.channel === n.channel ? { ...x, enabled: v } : x))} />
+          <div className="flex items-center gap-2">
+            <Bell className="h-4 w-4 text-muted-foreground" />
+            <span className="text-sm font-medium">{n.channel}</span>
+            {(n.channel === "WhatsApp" || n.channel === "Teams") && <Badge variant="secondary" className="text-[10px]">Fase 2</Badge>}
+          </div>
+          <Switch checked={n.enabled} onCheckedChange={(v) => toggle(n.channel, v)} />
         </li>
       ))}
     </ul>
@@ -643,28 +671,92 @@ function NotificacoesSection({ settings }: { settings: SettingsState }) {
 function BackupSection({ settings }: { settings: SettingsState }) {
   const b = settings.backup;
   const update = (patch: Partial<typeof b>) => settingsStore.patchSection("backup", { ...b, ...patch });
+  const fileRef = useRef<HTMLInputElement>(null);
+
+  const runBackup = () => {
+    const json = settingsStore.exportBackup();
+    const blob = new Blob([json], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `marketing-hub-backup-${new Date().toISOString().slice(0, 10)}.json`;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+    update({ lastBackupAt: new Date().toISOString() });
+    settingsStore.addLog("Executou", "Backup do workspace");
+    toast.success("Backup gerado e baixado");
+  };
+
+  const onRestoreFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    try {
+      const text = await file.text();
+      settingsStore.importBackup(text);
+      settingsStore.addLog("Restaurou", `Backup: ${file.name}`);
+      toast.success("Backup restaurado com sucesso");
+    } catch {
+      toast.error("Arquivo de backup inválido");
+    } finally {
+      if (fileRef.current) fileRef.current.value = "";
+    }
+  };
+
   return (
     <div className="space-y-4">
       <ToggleRow label="Backup diário automático" checked={b.autoDaily} onChange={(v) => update({ autoDaily: v })} />
       <Field label="Retenção (dias)"><Input type="number" value={b.retentionDays} onChange={(e) => update({ retentionDays: Number(e.target.value) })} /></Field>
       <div className="text-xs text-muted-foreground">Último backup: {new Date(b.lastBackupAt).toLocaleString("pt-BR")}</div>
-      <Button variant="outline" onClick={() => update({ lastBackupAt: new Date().toISOString() })}>Executar backup agora</Button>
+      <div className="flex flex-wrap gap-2">
+        <Button onClick={runBackup}><HardDriveDownload className="mr-1 h-3.5 w-3.5" /> Executar backup agora</Button>
+        <Button variant="outline" onClick={() => fileRef.current?.click()}>Restaurar de arquivo…</Button>
+        <input ref={fileRef} type="file" accept="application/json" className="hidden" onChange={onRestoreFile} />
+        <Button
+          variant="ghost"
+          onClick={() => {
+            if (!window.confirm("Restaurar dados padrão? Todas as personalizações serão perdidas.")) return;
+            settingsStore.resetToSeed();
+            toast.success("Configurações restauradas ao padrão");
+          }}
+        >
+          Restaurar padrão
+        </Button>
+      </div>
     </div>
   );
 }
 
 function LogsSection({ settings }: { settings: SettingsState }) {
+  const exportLogs = () => {
+    const csv = ["timestamp,actor,action,target", ...settings.logs.map((l) => `${l.at},${l.actor},${l.action},${l.target}`)].join("\n");
+    const blob = new Blob([csv], { type: "text/csv" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `logs-${new Date().toISOString().slice(0, 10)}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+    toast.success("Logs exportados");
+  };
   return (
-    <ul className="space-y-1">
-      {settings.logs.map((l) => (
-        <li key={l.id} className="rounded-md border border-border bg-surface/60 px-3 py-2 text-sm">
-          <div className="flex items-center justify-between">
-            <div><span className="font-medium">{l.actor}</span> <span className="text-muted-foreground">{l.action.toLowerCase()}</span> <span className="font-medium">{l.target}</span></div>
-            <span className="text-[11px] text-muted-foreground">{new Date(l.at).toLocaleString("pt-BR")}</span>
-          </div>
-        </li>
-      ))}
-    </ul>
+    <div className="space-y-3">
+      <div className="flex items-center justify-between">
+        <p className="text-xs text-muted-foreground">{settings.logs.length} eventos registrados.</p>
+        <Button size="sm" variant="outline" onClick={exportLogs}>Exportar CSV</Button>
+      </div>
+      <ul className="space-y-1">
+        {settings.logs.map((l) => (
+          <li key={l.id} className="rounded-md border border-border bg-surface/60 px-3 py-2 text-sm">
+            <div className="flex items-center justify-between">
+              <div><span className="font-medium">{l.actor}</span> <span className="text-muted-foreground">{l.action.toLowerCase()}</span> <span className="font-medium">{l.target}</span></div>
+              <span className="text-[11px] text-muted-foreground">{new Date(l.at).toLocaleString("pt-BR")}</span>
+            </div>
+          </li>
+        ))}
+      </ul>
+    </div>
   );
 }
 
@@ -674,7 +766,7 @@ function TemaSection({ settings }: { settings: SettingsState }) {
       {(["Sistema", "Claro", "Escuro"] as const).map((t) => (
         <button
           key={t}
-          onClick={() => settingsStore.update({ theme: t })}
+          onClick={() => { settingsStore.update({ theme: t }); toast.success(`Tema: ${t}`); }}
           className={cn(
             "rounded-xl border p-4 text-left transition-all",
             settings.theme === t ? "border-primary bg-primary/10" : "border-border bg-surface/60 hover:border-border-strong",
