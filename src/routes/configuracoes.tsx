@@ -492,9 +492,19 @@ function ListSection({ title, items, onChange }: { title: string; items: string[
   const [value, setValue] = useState("");
   const add = () => {
     const v = value.trim();
-    if (!v) return;
+    if (!v) return toast.error("Digite um valor antes de adicionar");
+    if (items.some((i) => i.toLowerCase() === v.toLowerCase())) return toast.error(`${v} já existe em ${title}`);
     onChange([...items, v]);
+    settingsStore.addLog("Adicionou", `${title}: ${v}`);
+    toast.success(`${v} adicionado em ${title}`);
     setValue("");
+  };
+  const remove = (idx: number) => {
+    const it = items[idx];
+    if (!window.confirm(`Remover "${it}" de ${title}?`)) return;
+    onChange(items.filter((_, i) => i !== idx));
+    settingsStore.addLog("Removeu", `${title}: ${it}`);
+    toast.success(`${it} removido`);
   };
   return (
     <div>
@@ -502,31 +512,50 @@ function ListSection({ title, items, onChange }: { title: string; items: string[
         <Input value={value} onChange={(e) => setValue(e.target.value)} placeholder={`Novo item em ${title.toLowerCase()}…`} onKeyDown={(e) => e.key === "Enter" && add()} />
         <Button onClick={add}><Plus className="mr-1 h-3.5 w-3.5" /> Adicionar</Button>
       </div>
-      <ul className="mt-4 space-y-1">
-        {items.map((it, idx) => (
-          <li key={`${it}-${idx}`} className="flex items-center justify-between rounded-md border border-border bg-surface/60 px-3 py-2 text-sm">
-            <span>{it}</span>
-            <Button size="icon" variant="ghost" onClick={() => onChange(items.filter((_, i) => i !== idx))}><Trash2 className="h-3.5 w-3.5" /></Button>
-          </li>
-        ))}
-      </ul>
+      {items.length === 0 ? (
+        <p className="mt-4 rounded-md border border-dashed border-border bg-surface/40 px-3 py-6 text-center text-xs text-muted-foreground">
+          Nenhum item em {title.toLowerCase()} ainda. Adicione o primeiro acima.
+        </p>
+      ) : (
+        <ul className="mt-4 space-y-1">
+          {items.map((it, idx) => (
+            <li key={`${it}-${idx}`} className="flex items-center justify-between rounded-md border border-border bg-surface/60 px-3 py-2 text-sm">
+              <span>{it}</span>
+              <Button size="icon" variant="ghost" onClick={() => remove(idx)}><Trash2 className="h-3.5 w-3.5" /></Button>
+            </li>
+          ))}
+        </ul>
+      )}
     </div>
   );
 }
 
 function TagsSection({ settings }: { settings: SettingsState }) {
   const update = (v: SettingsState["tags"]) => settingsStore.patchSection("tags", v);
+  const add = () => {
+    const label = window.prompt("Nome da etiqueta:", "Nova etiqueta")?.trim();
+    if (!label) return;
+    if (settings.tags.some((t) => t.label.toLowerCase() === label.toLowerCase())) return toast.error("Etiqueta já existe");
+    update([...settings.tags, { id: `tg-${Date.now().toString(36)}`, label, color: "#6366f1" }]);
+    settingsStore.addLog("Adicionou", `Etiqueta: ${label}`);
+    toast.success(`Etiqueta "${label}" criada`);
+  };
+  const remove = (id: string) => {
+    const t = settings.tags.find((x) => x.id === id);
+    if (!t || !window.confirm(`Remover etiqueta "${t.label}"?`)) return;
+    update(settings.tags.filter((x) => x.id !== id));
+    settingsStore.addLog("Removeu", `Etiqueta: ${t.label}`);
+    toast.success("Etiqueta removida");
+  };
   return (
     <div className="space-y-3">
-      <Button size="sm" onClick={() => update([...settings.tags, { id: `tg-${Date.now().toString(36)}`, label: "Nova etiqueta", color: "#6366f1" }])}>
-        <Plus className="mr-1 h-3.5 w-3.5" /> Nova etiqueta
-      </Button>
+      <Button size="sm" onClick={add}><Plus className="mr-1 h-3.5 w-3.5" /> Nova etiqueta</Button>
       <ul className="space-y-1">
         {settings.tags.map((t) => (
           <li key={t.id} className="flex items-center gap-2 rounded-md border border-border bg-surface/60 px-3 py-2 text-sm">
             <input type="color" value={t.color} onChange={(e) => update(settings.tags.map((x) => x.id === t.id ? { ...x, color: e.target.value } : x))} className="h-6 w-6 cursor-pointer rounded border border-border bg-transparent" />
             <Input value={t.label} onChange={(e) => update(settings.tags.map((x) => x.id === t.id ? { ...x, label: e.target.value } : x))} className="h-8" />
-            <Button size="icon" variant="ghost" onClick={() => update(settings.tags.filter((x) => x.id !== t.id))}><Trash2 className="h-3.5 w-3.5" /></Button>
+            <Button size="icon" variant="ghost" onClick={() => remove(t.id)}><Trash2 className="h-3.5 w-3.5" /></Button>
           </li>
         ))}
       </ul>
@@ -536,18 +565,31 @@ function TagsSection({ settings }: { settings: SettingsState }) {
 
 function StatusSection({ settings }: { settings: SettingsState }) {
   const update = (v: SettingsState["statuses"]) => settingsStore.patchSection("statuses", v);
+  const add = () => {
+    const label = window.prompt("Nome do status:", "Novo status")?.trim();
+    if (!label) return;
+    if (settings.statuses.some((s) => s.label.toLowerCase() === label.toLowerCase())) return toast.error("Status já existe");
+    update([...settings.statuses, { id: `st-${Date.now().toString(36)}`, label, color: "#94a3b8" }]);
+    settingsStore.addLog("Adicionou", `Status: ${label}`);
+    toast.success(`Status "${label}" criado`);
+  };
+  const remove = (id: string) => {
+    const s = settings.statuses.find((x) => x.id === id);
+    if (!s || !window.confirm(`Remover status "${s.label}"?`)) return;
+    update(settings.statuses.filter((x) => x.id !== id));
+    settingsStore.addLog("Removeu", `Status: ${s.label}`);
+    toast.success("Status removido");
+  };
   return (
     <div className="space-y-3">
-      <Button size="sm" onClick={() => update([...settings.statuses, { id: `st-${Date.now().toString(36)}`, label: "Novo status", color: "#94a3b8" }])}>
-        <Plus className="mr-1 h-3.5 w-3.5" /> Novo status
-      </Button>
+      <Button size="sm" onClick={add}><Plus className="mr-1 h-3.5 w-3.5" /> Novo status</Button>
       <ul className="space-y-1">
         {settings.statuses.map((s) => (
           <li key={s.id} className="flex items-center gap-2 rounded-md border border-border bg-surface/60 px-3 py-2 text-sm">
             <span className="h-3 w-3 rounded-full" style={{ background: s.color }} />
             <Input value={s.label} onChange={(e) => update(settings.statuses.map((x) => x.id === s.id ? { ...x, label: e.target.value } : x))} className="h-8" />
             <input type="color" value={s.color} onChange={(e) => update(settings.statuses.map((x) => x.id === s.id ? { ...x, color: e.target.value } : x))} className="h-6 w-6 cursor-pointer rounded border border-border bg-transparent" />
-            <Button size="icon" variant="ghost" onClick={() => update(settings.statuses.filter((x) => x.id !== s.id))}><Trash2 className="h-3.5 w-3.5" /></Button>
+            <Button size="icon" variant="ghost" onClick={() => remove(s.id)}><Trash2 className="h-3.5 w-3.5" /></Button>
           </li>
         ))}
       </ul>
@@ -557,11 +599,23 @@ function StatusSection({ settings }: { settings: SettingsState }) {
 
 function TemplatesSection({ settings }: { settings: SettingsState }) {
   const update = (v: SettingsState["templates"]) => settingsStore.patchSection("templates", v);
+  const add = () => {
+    const name = window.prompt("Nome do template:", "Novo template")?.trim();
+    if (!name) return;
+    update([...settings.templates, { id: `tp-${Date.now().toString(36)}`, name, type: "Campanha" }]);
+    settingsStore.addLog("Adicionou", `Template: ${name}`);
+    toast.success(`Template "${name}" criado`);
+  };
+  const remove = (id: string) => {
+    const t = settings.templates.find((x) => x.id === id);
+    if (!t || !window.confirm(`Remover template "${t.name}"?`)) return;
+    update(settings.templates.filter((x) => x.id !== id));
+    settingsStore.addLog("Removeu", `Template: ${t.name}`);
+    toast.success("Template removido");
+  };
   return (
     <div className="space-y-3">
-      <Button size="sm" onClick={() => update([...settings.templates, { id: `tp-${Date.now().toString(36)}`, name: "Novo template", type: "Campanha" }])}>
-        <Plus className="mr-1 h-3.5 w-3.5" /> Novo template
-      </Button>
+      <Button size="sm" onClick={add}><Plus className="mr-1 h-3.5 w-3.5" /> Novo template</Button>
       <ul className="space-y-1">
         {settings.templates.map((t) => (
           <li key={t.id} className="flex items-center gap-2 rounded-md border border-border bg-surface/60 px-3 py-2 text-sm">
@@ -570,13 +624,14 @@ function TemplatesSection({ settings }: { settings: SettingsState }) {
               <SelectTrigger className="h-8 w-[160px]"><SelectValue /></SelectTrigger>
               <SelectContent>{["Campanha", "Projeto", "Evento", "Conteúdo", "Contrato"].map((o) => <SelectItem key={o} value={o}>{o}</SelectItem>)}</SelectContent>
             </Select>
-            <Button size="icon" variant="ghost" onClick={() => update(settings.templates.filter((x) => x.id !== t.id))}><Trash2 className="h-3.5 w-3.5" /></Button>
+            <Button size="icon" variant="ghost" onClick={() => remove(t.id)}><Trash2 className="h-3.5 w-3.5" /></Button>
           </li>
         ))}
       </ul>
     </div>
   );
 }
+
 
 function IntegracoesSection({ settings }: { settings: SettingsState }) {
   const update = (v: SettingsState["integrations"]) => settingsStore.patchSection("integrations", v);
