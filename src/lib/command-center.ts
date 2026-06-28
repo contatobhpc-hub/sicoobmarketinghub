@@ -303,7 +303,7 @@ export function useCommandCenter() {
       recs.push({
         id: "rec-radio",
         icon: "📻",
-        title: `Renove o contrato da ${radioContract.title}`,
+        title: `Renove o contrato da ${radioContract.object}`,
         detail: a.label || "Contrato próximo do vencimento — inicie negociação.",
         action: { label: "Ver contrato", href: "/contratos" },
         tone: "risk",
@@ -311,7 +311,7 @@ export function useCommandCenter() {
     }
 
     const semIndicadores = campaigns.filter(
-      (c) => c.status === "Ativa" && (!c.kpis || c.kpis.length === 0),
+      (c) => c.status === "Em andamento" && (!c.products || c.products.length === 0),
     );
     if (semIndicadores.length) {
       recs.push({
