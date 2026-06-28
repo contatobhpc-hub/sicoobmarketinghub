@@ -1,4 +1,5 @@
 import { type ReactNode } from "react";
+import { Sparkles } from "lucide-react";
 
 export function PageHeader({
   title,
@@ -12,7 +13,9 @@ export function PageHeader({
   return (
     <div className="mb-8 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
       <div className="min-w-0">
-        <h1 className="font-display text-2xl font-semibold tracking-tight">{title}</h1>
+        <h1 className="text-2xl font-semibold tracking-tight text-foreground">
+          {title}
+        </h1>
         {description && (
           <p className="mt-1.5 text-sm text-muted-foreground">{description}</p>
         )}
@@ -30,15 +33,14 @@ export function PagePlaceholder({
   description: string;
 }) {
   return (
-    <div className="rounded-xl border border-dashed border-border bg-surface/40 px-6 py-16 text-center">
-      <div
-        className="mx-auto mb-4 flex h-10 w-10 items-center justify-center rounded-lg text-primary-foreground shadow-[var(--shadow-glow)]"
-        style={{ backgroundImage: "var(--gradient-primary)" }}
-      >
-        <span className="text-sm font-semibold">+</span>
+    <div className="rounded-2xl border border-dashed border-border bg-card px-6 py-20 text-center shadow-[var(--shadow-xs)]">
+      <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-primary/10 text-primary">
+        <Sparkles className="h-5 w-5" strokeWidth={1.75} />
       </div>
-      <h2 className="font-display text-base font-semibold">{title}</h2>
-      <p className="mx-auto mt-2 max-w-md text-sm text-muted-foreground">{description}</p>
+      <h2 className="text-base font-semibold tracking-tight">{title}</h2>
+      <p className="mx-auto mt-2 max-w-md text-sm text-muted-foreground">
+        {description}
+      </p>
     </div>
   );
 }
