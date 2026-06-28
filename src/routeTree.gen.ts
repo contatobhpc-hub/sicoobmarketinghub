@@ -25,6 +25,7 @@ import { Route as CalendarioRouteImport } from './routes/calendario'
 import { Route as BrindesRouteImport } from './routes/brindes'
 import { Route as AnalyticsRouteImport } from './routes/analytics'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as ProjetosIdRouteImport } from './routes/projetos.$id'
 import { Route as CampanhasIdRouteImport } from './routes/campanhas.$id'
 
 const ProjetosRoute = ProjetosRouteImport.update({
@@ -107,6 +108,11 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ProjetosIdRoute = ProjetosIdRouteImport.update({
+  id: '/$id',
+  path: '/$id',
+  getParentRoute: () => ProjetosRoute,
+} as any)
 const CampanhasIdRoute = CampanhasIdRouteImport.update({
   id: '/$id',
   path: '/$id',
@@ -129,8 +135,9 @@ export interface FileRoutesByFullPath {
   '/parceiros': typeof ParceirosRoute
   '/patrocinios': typeof PatrociniosRoute
   '/prioridades': typeof PrioridadesRoute
-  '/projetos': typeof ProjetosRoute
+  '/projetos': typeof ProjetosRouteWithChildren
   '/campanhas/$id': typeof CampanhasIdRoute
+  '/projetos/$id': typeof ProjetosIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -148,8 +155,9 @@ export interface FileRoutesByTo {
   '/parceiros': typeof ParceirosRoute
   '/patrocinios': typeof PatrociniosRoute
   '/prioridades': typeof PrioridadesRoute
-  '/projetos': typeof ProjetosRoute
+  '/projetos': typeof ProjetosRouteWithChildren
   '/campanhas/$id': typeof CampanhasIdRoute
+  '/projetos/$id': typeof ProjetosIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -168,8 +176,9 @@ export interface FileRoutesById {
   '/parceiros': typeof ParceirosRoute
   '/patrocinios': typeof PatrociniosRoute
   '/prioridades': typeof PrioridadesRoute
-  '/projetos': typeof ProjetosRoute
+  '/projetos': typeof ProjetosRouteWithChildren
   '/campanhas/$id': typeof CampanhasIdRoute
+  '/projetos/$id': typeof ProjetosIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -191,6 +200,7 @@ export interface FileRouteTypes {
     | '/prioridades'
     | '/projetos'
     | '/campanhas/$id'
+    | '/projetos/$id'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -210,6 +220,7 @@ export interface FileRouteTypes {
     | '/prioridades'
     | '/projetos'
     | '/campanhas/$id'
+    | '/projetos/$id'
   id:
     | '__root__'
     | '/'
@@ -229,6 +240,7 @@ export interface FileRouteTypes {
     | '/prioridades'
     | '/projetos'
     | '/campanhas/$id'
+    | '/projetos/$id'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -247,7 +259,7 @@ export interface RootRouteChildren {
   ParceirosRoute: typeof ParceirosRoute
   PatrociniosRoute: typeof PatrociniosRoute
   PrioridadesRoute: typeof PrioridadesRoute
-  ProjetosRoute: typeof ProjetosRoute
+  ProjetosRoute: typeof ProjetosRouteWithChildren
 }
 
 declare module '@tanstack/react-router' {
@@ -364,6 +376,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/projetos/$id': {
+      id: '/projetos/$id'
+      path: '/$id'
+      fullPath: '/projetos/$id'
+      preLoaderRoute: typeof ProjetosIdRouteImport
+      parentRoute: typeof ProjetosRoute
+    }
     '/campanhas/$id': {
       id: '/campanhas/$id'
       path: '/$id'
@@ -386,6 +405,18 @@ const CampanhasRouteWithChildren = CampanhasRoute._addFileChildren(
   CampanhasRouteChildren,
 )
 
+interface ProjetosRouteChildren {
+  ProjetosIdRoute: typeof ProjetosIdRoute
+}
+
+const ProjetosRouteChildren: ProjetosRouteChildren = {
+  ProjetosIdRoute: ProjetosIdRoute,
+}
+
+const ProjetosRouteWithChildren = ProjetosRoute._addFileChildren(
+  ProjetosRouteChildren,
+)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AnalyticsRoute: AnalyticsRoute,
@@ -402,7 +433,7 @@ const rootRouteChildren: RootRouteChildren = {
   ParceirosRoute: ParceirosRoute,
   PatrociniosRoute: PatrociniosRoute,
   PrioridadesRoute: PrioridadesRoute,
-  ProjetosRoute: ProjetosRoute,
+  ProjetosRoute: ProjetosRouteWithChildren,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
