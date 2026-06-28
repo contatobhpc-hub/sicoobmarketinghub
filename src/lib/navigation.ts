@@ -70,6 +70,7 @@ export const navGroups: NavGroup[] = [
     items: [
       { title: "Central IA", to: "/central-ia", icon: Bot },
       { title: "Analytics", to: "/analytics", icon: BarChart3 },
+      { title: "Indicadores", to: "/indicadores", icon: BarChart3 },
     ],
   },
   {
