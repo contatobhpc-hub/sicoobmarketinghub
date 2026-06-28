@@ -102,8 +102,8 @@ function fromContract(c: Contract): PriorityItem | null {
     id: `contract-${c.id}`,
     kind: "contract",
     icon: "⚠",
-    title: `Contrato ${c.title} ${d < 0 ? "vencido" : `vence em ${d} dia${d === 1 ? "" : "s"}`}`,
-    context: `${c.category} • ${c.partner ?? "—"}`,
+    title: `Contrato ${c.object} ${d < 0 ? "vencido" : `vence em ${d} dia${d === 1 ? "" : "s"}`}`,
+    context: `${c.category} • ${c.company}`,
     due: d >= 0 ? `${d}d restantes` : `há ${-d}d`,
     daysLeft: d,
     urgency,
@@ -146,7 +146,7 @@ function fromInventory(i: InventoryItem): PriorityItem | null {
     kind: "inventory",
     icon: "🎁",
     title: `Estoque de ${i.name} ${s === "out" ? "esgotado" : "abaixo do mínimo"}`,
-    context: `${i.category} • ${i.quantity}/${i.minStock} un.`,
+    context: `${i.category} • ${i.quantity}/${i.minQuantity} un.`,
     due: s === "out" ? "reposição imediata" : "reabastecer",
     urgency: s === "out" ? 100 : 75,
     impact: 60,
@@ -164,7 +164,7 @@ function fromPartner(p: Partner): PriorityItem | null {
     id: `partner-${p.id}`,
     kind: "partner",
     icon: "📄",
-    title: `Parceiro ${p.name} ${a.level === "expired" ? "vencido" : `renovar em ${d}d`}`,
+    title: `Parceiro ${p.company} ${a.level === "expired" ? "vencido" : `renovar em ${d}d`}`,
     context: `${p.category} • ${p.status}`,
     due: a.label,
     daysLeft: d,
@@ -177,14 +177,14 @@ function fromPartner(p: Partner): PriorityItem | null {
 }
 
 function fromProject(p: Project): PriorityItem | null {
-  if (p.status === "Concluído" || p.status === "Cancelado") return null;
+  if (p.status === "Concluído") return null;
   const d = daysBetween(p.dueDate);
   if (d > 14) return null;
   return {
     id: `project-${p.id}`,
     kind: "project",
     icon: d < 0 ? "🔥" : "📋",
-    title: `Projeto ${p.name}${d < 0 ? " atrasado" : ""}`,
+    title: `Projeto ${p.company}${d < 0 ? " atrasado" : ""}`,
     context: `${p.status} • ${p.progress}%`,
     due: d < 0 ? `${-d}d atrasado` : `em ${d}d`,
     daysLeft: d,
@@ -204,9 +204,9 @@ function fromSponsorship(s: Sponsorship): PriorityItem | null {
     id: `spons-${s.id}`,
     kind: "sponsorship",
     icon: "🤝",
-    title: `Patrocínio ${s.name}: ${top.message}`,
+    title: `Patrocínio ${s.institution}: ${top.label}`,
     context: `${s.category} • ${s.city ?? "—"}`,
-    due: top.message,
+    due: top.label,
     urgency: 70,
     impact: 70,
     score: scoreOf(70, 70),
@@ -281,7 +281,7 @@ export function useCommandCenter() {
       recs.push({
         id: "rec-pais",
         icon: "🧠",
-        title: `Antecipe a produção do material da campanha ${dadosDosPais.name}`,
+        title: `Antecipe a produção do material da campanha ${dadosDosPais.institution}`,
         detail: "A IA detectou janela de produção apertada considerando aprovações e mídia.",
         action: { label: "Abrir campanha", href: `/campanhas/${dadosDosPais.id}` },
         tone: "action",
@@ -297,7 +297,7 @@ export function useCommandCenter() {
       });
     }
 
-    const radioContract = contracts.find((c) => /r[áa]dio/i.test(c.title));
+    const radioContract = contracts.find((c) => /r[áa]dio/i.test(c.object));
     if (radioContract) {
       const a = alertLevel(radioContract);
       recs.push({
