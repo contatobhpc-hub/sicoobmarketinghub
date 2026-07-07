@@ -1,4 +1,5 @@
-import { useSyncExternalStore } from "react";
+import { useEffect, useSyncExternalStore } from "react";
+import { partnersStore, type Partner, type PartnerStatus } from "./partners";
 
 export const CONTRACT_STATUSES = [
   "Rascunho",
@@ -58,6 +59,7 @@ export type Contract = {
   alertsTriggered: AlertDay[];
   timeline: ContractTimelineEntry[];
   createdAt: string;
+  partnerId?: string;
 };
 
 const KEY = "mhub.contracts.v1";
@@ -283,9 +285,87 @@ export const contractsStore = {
     });
     emit();
   },
+  syncFromPartners(partners: Partner[]) {
+    let changed = false;
+    const next = [...state];
+    for (const p of partners) {
+      const existingIdx = next.findIndex(
+        (c) => (p.contractId && c.id === p.contractId) || c.partnerId === p.id || c.company === p.company,
+      );
+      const startDate = (p.createdAt || now()).slice(0, 10);
+      const endDate = p.contractEnd || inDays(365);
+      const category = mapPartnerCategory(p.category);
+      const status = mapPartnerStatus(p.status);
+      const value = Math.round((p.investmentMonth || 0) * 12);
+      if (existingIdx === -1) {
+        const ts = now();
+        const contract: Contract = {
+          id: uid(),
+          company: p.company,
+          category,
+          object: p.counterparts || `Parceria com ${p.company}.`,
+          value,
+          costCenter: "MKT",
+          startDate,
+          endDate,
+          autoRenewal: false,
+          owner: p.owner,
+          status,
+          files: [],
+          checklist: [],
+          notes: p.notes || "",
+          alertsTriggered: [],
+          timeline: [{
+            id: uid("tl"),
+            createdAt: ts,
+            type: "created",
+            message: `Contrato gerado a partir do parceiro ${p.company}.`,
+            author: "Sistema",
+            signature: sign("Contrato gerado", "Sistema", ts),
+          }],
+          createdAt: ts,
+          partnerId: p.id,
+        };
+        next.unshift(contract);
+        changed = true;
+      } else {
+        const c = next[existingIdx];
+        if (!c.partnerId || c.company !== p.company || c.endDate !== endDate || c.value !== value) {
+          next[existingIdx] = { ...c, partnerId: p.id, company: p.company, endDate, value, category };
+          changed = true;
+        }
+      }
+    }
+    if (changed) { state = next; emit(); }
+  },
 };
 
+function mapPartnerCategory(c: string): ContractCategory {
+  if ((CONTRACT_CATEGORIES as readonly string[]).includes(c)) return c as ContractCategory;
+  if (c === "Rádio") return "Mídia";
+  if (c === "Patrocinador") return "Patrocínio";
+  if (c === "Brindes") return "Fornecedor";
+  return "Outros";
+}
+function mapPartnerStatus(s: PartnerStatus): ContractStatus {
+  switch (s) {
+    case "Ativo": return "Vigente";
+    case "Renovação": return "Renovação";
+    case "Negociação": return "Em análise";
+    case "Prospect": return "Rascunho";
+    case "Inativo": return "Encerrado";
+  }
+}
+
 export function useContracts() {
+  useEffect(() => {
+    partnersStore.hydrate();
+    contractsStore.syncFromPartners(partnersStore.get());
+    const unsub = partnersStore.subscribe(() => {
+      contractsStore.syncFromPartners(partnersStore.get());
+    });
+    return () => { unsub(); };
+  }, []);
   return useSyncExternalStore(contractsStore.subscribe, contractsStore.get, contractsStore.get);
 }
 export function useContract(id: string) {
