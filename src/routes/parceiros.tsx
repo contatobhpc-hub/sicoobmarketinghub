@@ -558,6 +558,61 @@ function MiniStat({ label, value }: { label: string; value: string }) {
   );
 }
 
+function EditableStat({
+  label,
+  value,
+  onSave,
+}: {
+  label: string;
+  value: number;
+  onSave: (v: number) => void;
+}) {
+  const [editing, setEditing] = useState(false);
+  const [draft, setDraft] = useState(String(value ?? 0));
+
+  const commit = () => {
+    const n = Number(draft);
+    onSave(Number.isFinite(n) ? n : 0);
+    setEditing(false);
+    toast.success(`${label} atualizado.`);
+  };
+
+  return (
+    <div className="rounded-lg surface-elevated p-3">
+      <div className="text-[10px] uppercase tracking-wide text-muted-foreground">{label}</div>
+      {editing ? (
+        <Input
+          autoFocus
+          type="number"
+          value={draft}
+          onChange={(e) => setDraft(e.target.value)}
+          onBlur={commit}
+          onKeyDown={(e) => {
+            if (e.key === "Enter") commit();
+            if (e.key === "Escape") {
+              setDraft(String(value ?? 0));
+              setEditing(false);
+            }
+          }}
+          className="h-7 mt-1 text-sm"
+        />
+      ) : (
+        <button
+          type="button"
+          onClick={() => {
+            setDraft(String(value ?? 0));
+            setEditing(true);
+          }}
+          className="text-sm font-display mt-1 text-left w-full hover:text-primary transition-colors"
+          title="Clique para editar"
+        >
+          {formatBRL(value)}
+        </button>
+      )}
+    </div>
+  );
+}
+
 function FileRow({ partnerId, fileId, name, size, icon }: { partnerId: string; fileId: string; name: string; size: number; icon: React.ReactNode }) {
   return (
     <div className="flex items-center gap-3 p-3 rounded-lg surface-elevated">
