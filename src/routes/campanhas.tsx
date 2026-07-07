@@ -162,6 +162,23 @@ function CampanhasPage() {
                   </div>
                 )}
               </Link>
+              <Button
+                size="icon"
+                variant="ghost"
+                className="absolute right-2 top-2 h-7 w-7 opacity-0 transition-opacity group-hover:opacity-100 text-muted-foreground hover:text-destructive bg-surface/80 backdrop-blur"
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  if (window.confirm(`Excluir a campanha "${c.name}"?`)) {
+                    campaignsStore.remove(c.id);
+                    toast.success(`Campanha "${c.name}" excluída.`);
+                  }
+                }}
+                aria-label={`Excluir ${c.name}`}
+              >
+                <Trash2 className="h-4 w-4" />
+              </Button>
+              </div>
             );
           })}
         </div>
