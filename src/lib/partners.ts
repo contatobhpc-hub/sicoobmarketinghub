@@ -214,7 +214,7 @@ function isPartnerStatus(value: unknown): value is PartnerStatus {
 }
 
 function isPartnerCategory(value: unknown): value is PartnerCategory {
-  return typeof value === "string" && PARTNER_CATEGORIES.includes(value as PartnerCategory);
+  return typeof value === "string" && pcState.includes(value);
 }
 
 function safeString(value: unknown, fallback = ""): string {
