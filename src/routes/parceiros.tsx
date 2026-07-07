@@ -319,15 +319,26 @@ function PartnerDetail({ partner }: { partner: Partner }) {
               <MapPin className="size-3" /> {fresh.city}
             </div>
           </div>
-          <Select value={fresh.status} onValueChange={(v) => partnersStore.update(fresh.id, { status: v as PartnerStatus })}>
-            <SelectTrigger className={cn("w-[140px] h-8 text-xs", statusTone(fresh.status))}>
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              {PARTNER_STATUSES.map((s) => (<SelectItem key={s} value={s}>{s}</SelectItem>))}
-            </SelectContent>
-          </Select>
+          <div className="flex items-center gap-2">
+            <Select value={fresh.status} onValueChange={(v) => partnersStore.update(fresh.id, { status: v as PartnerStatus })}>
+              <SelectTrigger className={cn("w-[140px] h-8 text-xs", statusTone(fresh.status))}>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {PARTNER_STATUSES.map((s) => (<SelectItem key={s} value={s}>{s}</SelectItem>))}
+              </SelectContent>
+            </Select>
+            <Dialog open={editOpen} onOpenChange={setEditOpen}>
+              <DialogTrigger asChild>
+                <Button size="sm" variant="outline" className="h-8">
+                  <Pencil className="size-3.5" /> Editar
+                </Button>
+              </DialogTrigger>
+              <EditPartnerDialog partner={fresh} onClose={() => setEditOpen(false)} />
+            </Dialog>
+          </div>
         </div>
+
 
         {renewal.level !== "ok" && (
           <div
