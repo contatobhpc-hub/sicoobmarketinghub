@@ -154,12 +154,83 @@ const seed: Partner[] = [
   },
 ];
 
+function isPartnerStatus(value: unknown): value is PartnerStatus {
+  return typeof value === "string" && PARTNER_STATUSES.includes(value as PartnerStatus);
+}
+
+function isPartnerCategory(value: unknown): value is PartnerCategory {
+  return typeof value === "string" && PARTNER_CATEGORIES.includes(value as PartnerCategory);
+}
+
+function safeString(value: unknown, fallback = ""): string {
+  return typeof value === "string" ? value : fallback;
+}
+
+function safeNumber(value: unknown): number {
+  return typeof value === "number" && Number.isFinite(value) ? value : 0;
+}
+
+function safeArray<T>(value: unknown): T[] {
+  return Array.isArray(value) ? (value as T[]) : [];
+}
+
+function normalizePartner(value: unknown, index: number): Partner | null {
+  if (!value || typeof value !== "object") return null;
+  const raw = value as Record<string, unknown>;
+  const fallback = seed[index % seed.length];
+  const company = safeString(raw.company, fallback.company).trim();
+  if (!company) return null;
+
+  const legacyAnnualInvestment = safeNumber(raw.investmentAnnual);
+  const investmentMonth =
+    raw.investmentMonth !== undefined
+      ? safeNumber(raw.investmentMonth)
+      : legacyAnnualInvestment > 0
+        ? Math.round(legacyAnnualInvestment / 12)
+        : fallback.investmentMonth;
+
+  return {
+    id: safeString(raw.id, uid()),
+    company,
+    category: isPartnerCategory(raw.category) ? raw.category : fallback.category,
+    city: safeString(raw.city, fallback.city),
+    contact: safeString(raw.contact, fallback.contact),
+    phone: safeString(raw.phone),
+    whatsapp: safeString(raw.whatsapp),
+    email: safeString(raw.email, fallback.email),
+    owner: safeString(raw.owner, "Sistema"),
+    contractId: safeString(raw.contractId) || undefined,
+    contractEnd: safeString(raw.contractEnd) || undefined,
+    counterparts: safeString(raw.counterparts),
+    logoUrl: safeString(raw.logoUrl) || undefined,
+    files: safeArray<PartnerFile>(raw.files).filter((file) => file && typeof file === "object"),
+    events: safeArray<string>(raw.events).filter((event) => typeof event === "string"),
+    campaigns: safeArray<string>(raw.campaigns).filter((campaign) => typeof campaign === "string"),
+    investmentMonth,
+    expectedReturn: safeNumber(raw.expectedReturn),
+    deliveredReturn: safeNumber(raw.deliveredReturn),
+    status: isPartnerStatus(raw.status) ? raw.status : "Prospect",
+    checklist: safeArray<PartnerChecklistItem>(raw.checklist).filter((item) => item && typeof item === "object"),
+    timeline: safeArray<PartnerTimelineEntry>(raw.timeline).filter((entry) => entry && typeof entry === "object"),
+    notes: safeString(raw.notes),
+    createdAt: safeString(raw.createdAt, now()),
+  };
+}
+
+function normalizePartners(value: unknown): Partner[] {
+  if (!Array.isArray(value)) return seed;
+  const normalized = value
+    .map((partner, index) => normalizePartner(partner, index))
+    .filter((partner): partner is Partner => partner !== null);
+  return normalized.length > 0 ? normalized : seed;
+}
+
 function load(): Partner[] {
   if (typeof window === "undefined") return seed;
   try {
     const raw = window.localStorage.getItem(KEY);
     if (!raw) return seed;
-    return JSON.parse(raw) as Partner[];
+    return normalizePartners(JSON.parse(raw));
   } catch {
     return seed;
   }
