@@ -106,11 +106,12 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
 function RootShell({ children }: { children: ReactNode }) {
   const themeInit = `(function(){try{var t=localStorage.getItem('mhub.theme');if(!t){t=window.matchMedia&&window.matchMedia('(prefers-color-scheme: light)').matches?'light':'dark';}var r=document.documentElement;if(t==='dark'){r.classList.add('dark');}else{r.classList.remove('dark');}r.style.colorScheme=t;}catch(e){document.documentElement.classList.add('dark');}})();`;
   return (
-    <html lang="pt-BR" className="dark">
-      <head>
+    <html lang="pt-BR" className="dark" suppressHydrationWarning>
+      <head suppressHydrationWarning>
         <HeadContent />
-        <script dangerouslySetInnerHTML={{ __html: themeInit }} />
+        <script suppressHydrationWarning dangerouslySetInnerHTML={{ __html: themeInit }} />
       </head>
+
       <body>
         {children}
         <Scripts />
