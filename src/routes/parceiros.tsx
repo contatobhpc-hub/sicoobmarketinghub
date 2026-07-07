@@ -342,9 +342,21 @@ function PartnerDetail({ partner }: { partner: Partner }) {
         )}
 
         <div className="mt-4 grid grid-cols-3 gap-3">
-          <MiniStat label="Investimento" value={formatBRL(fresh.investmentMonth)} />
-          <MiniStat label="Esperado" value={formatBRL(fresh.expectedReturn)} />
-          <MiniStat label="Entregue" value={formatBRL(fresh.deliveredReturn)} />
+          <EditableStat
+            label="Investimento/mês"
+            value={fresh.investmentMonth}
+            onSave={(v) => partnersStore.update(fresh.id, { investmentMonth: v })}
+          />
+          <EditableStat
+            label="Esperado"
+            value={fresh.expectedReturn}
+            onSave={(v) => partnersStore.update(fresh.id, { expectedReturn: v })}
+          />
+          <EditableStat
+            label="Entregue"
+            value={fresh.deliveredReturn}
+            onSave={(v) => partnersStore.update(fresh.id, { deliveredReturn: v })}
+          />
         </div>
         <div className="mt-3">
           <div className="flex items-center justify-between text-[11px] text-muted-foreground mb-1">
