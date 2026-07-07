@@ -364,7 +364,7 @@ export function useContracts() {
     const unsub = partnersStore.subscribe(() => {
       contractsStore.syncFromPartners(partnersStore.get());
     });
-    return unsub;
+    return () => { unsub(); };
   }, []);
   return useSyncExternalStore(contractsStore.subscribe, contractsStore.get, contractsStore.get);
 }
