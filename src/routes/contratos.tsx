@@ -733,3 +733,78 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
     </div>
   );
 }
+
+function EditContractDialog({ contract, onDone }: { contract: Contract; onDone: () => void }) {
+  const [company, setCompany] = useState(contract.company);
+  const [category, setCategory] = useState<ContractCategory>(contract.category);
+  const [object, setObject] = useState(contract.object);
+  const [value, setValue] = useState(String(contract.value));
+  const [costCenter, setCostCenter] = useState(contract.costCenter);
+  const [startDate, setStartDate] = useState(contract.startDate);
+  const [endDate, setEndDate] = useState(contract.endDate);
+  const [owner, setOwner] = useState(contract.owner);
+  const [status, setStatus] = useState<ContractStatus>(contract.status);
+  const [autoRenewal, setAutoRenewal] = useState(contract.autoRenewal);
+  const [notes, setNotes] = useState(contract.notes);
+
+  return (
+    <>
+      <DialogHeader>
+        <DialogTitle>Editar contrato</DialogTitle>
+      </DialogHeader>
+      <div className="grid grid-cols-2 gap-3 py-2">
+        <Field label="Empresa"><Input value={company} onChange={(e) => setCompany(e.target.value)} /></Field>
+        <Field label="Categoria">
+          <Select value={category} onValueChange={(v) => setCategory(v as ContractCategory)}>
+            <SelectTrigger><SelectValue /></SelectTrigger>
+            <SelectContent>{CONTRACT_CATEGORIES.map((c) => <SelectItem key={c} value={c}>{c}</SelectItem>)}</SelectContent>
+          </Select>
+        </Field>
+        <div className="col-span-2"><Field label="Objeto"><Textarea rows={2} value={object} onChange={(e) => setObject(e.target.value)} /></Field></div>
+        <Field label="Valor (R$)"><Input type="number" value={value} onChange={(e) => setValue(e.target.value)} /></Field>
+        <Field label="Centro de custo"><Input value={costCenter} onChange={(e) => setCostCenter(e.target.value)} /></Field>
+        <Field label="Início"><Input type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} /></Field>
+        <Field label="Vencimento"><Input type="date" value={endDate} onChange={(e) => setEndDate(e.target.value)} /></Field>
+        <Field label="Responsável"><Input value={owner} onChange={(e) => setOwner(e.target.value)} /></Field>
+        <Field label="Status">
+          <Select value={status} onValueChange={(v) => setStatus(v as ContractStatus)}>
+            <SelectTrigger><SelectValue /></SelectTrigger>
+            <SelectContent>{CONTRACT_STATUSES.map((s) => <SelectItem key={s} value={s}>{s}</SelectItem>)}</SelectContent>
+          </Select>
+        </Field>
+        <div className="col-span-2 flex items-center justify-between rounded-md border border-border/60 p-3">
+          <div>
+            <div className="text-xs text-muted-foreground">Renovação automática</div>
+            <div className="text-sm">{autoRenewal ? "Ativada" : "Desativada"}</div>
+          </div>
+          <Switch checked={autoRenewal} onCheckedChange={setAutoRenewal} />
+        </div>
+        <div className="col-span-2"><Field label="Observações"><Textarea rows={3} value={notes} onChange={(e) => setNotes(e.target.value)} /></Field></div>
+      </div>
+      <DialogFooter>
+        <Button variant="outline" onClick={onDone}>Cancelar</Button>
+        <Button
+          onClick={() => {
+            contractsStore.update(contract.id, {
+              company: company.trim() || contract.company,
+              category,
+              object,
+              value: Number(value) || 0,
+              costCenter,
+              startDate,
+              endDate,
+              owner,
+              status,
+              autoRenewal,
+              notes,
+            });
+            toast.success("Contrato atualizado.");
+            onDone();
+          }}
+        >
+          Salvar
+        </Button>
+      </DialogFooter>
+    </>
+  );
+}
