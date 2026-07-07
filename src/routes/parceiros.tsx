@@ -298,6 +298,8 @@ function PartnerDetail({ partner }: { partner: Partner }) {
   const delivered = fresh.expectedReturn > 0 ? Math.min(100, Math.round((fresh.deliveredReturn / fresh.expectedReturn) * 100)) : 0;
   const [note, setNote] = useState("");
   const [newCheck, setNewCheck] = useState("");
+  const [editOpen, setEditOpen] = useState(false);
+
 
   return (
     <div className="flex h-full flex-col">
