@@ -226,7 +226,7 @@ function ContratosPage() {
 
       <Sheet open={!!selected} onOpenChange={(o) => !o && setSelectedId(null)}>
         <SheetContent className="w-full sm:max-w-2xl p-0 overflow-hidden">
-          {selected && <ContractDetail contract={selected} />}
+          {selected && <ContractDetail contract={selected} onClose={() => setSelectedId(null)} />}
         </SheetContent>
       </Sheet>
     </AppShell>
