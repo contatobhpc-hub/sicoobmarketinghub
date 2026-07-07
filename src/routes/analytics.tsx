@@ -39,6 +39,7 @@ import {
 
 import { AppShell } from "@/components/app-shell";
 import { PageHeader } from "@/components/page-header";
+import { ModuleManagementButton } from "@/components/module-management";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
