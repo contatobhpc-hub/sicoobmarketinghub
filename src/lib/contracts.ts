@@ -357,6 +357,14 @@ function mapPartnerStatus(s: PartnerStatus): ContractStatus {
   }
 }
 
+if (typeof window !== "undefined") {
+  partnersStore.hydrate();
+  contractsStore.syncFromPartners(partnersStore.get());
+  partnersStore.subscribe(() => {
+    contractsStore.syncFromPartners(partnersStore.get());
+  });
+}
+
 export function useContracts() {
   useEffect(() => {
     partnersStore.hydrate();
