@@ -115,12 +115,15 @@ function BrindesPage() {
         title="Estoque & Brindes"
         description="Cadastro de produtos, movimentações, reservas e histórico completo com alertas automáticos."
         actions={
-          <Dialog open={creating} onOpenChange={setCreating}>
-            <DialogTrigger asChild>
-              <Button><Plus className="size-4" /> Novo produto</Button>
-            </DialogTrigger>
-            <NewItemDialog onClose={() => setCreating(false)} />
-          </Dialog>
+          <div className="flex items-center gap-2">
+            <ModuleManagementButton module="brindes" />
+            <Dialog open={creating} onOpenChange={setCreating}>
+              <DialogTrigger asChild>
+                <Button><Plus className="size-4" /> Novo produto</Button>
+              </DialogTrigger>
+              <NewItemDialog onClose={() => setCreating(false)} />
+            </Dialog>
+          </div>
         }
       />
 
