@@ -54,7 +54,7 @@ function ProjetosPage() {
       <PageHeader
         title="Projetos"
         description="Iniciativas estruturadas — manuais ou geradas a partir de campanhas."
-        actions={<NewProjectDialog />}
+        actions={<div className="flex items-center gap-2"><ModuleManagementButton module="projetos" /><NewProjectDialog /></div>}
       />
 
       <div className="mb-5 flex flex-col gap-2 sm:flex-row sm:items-center">
