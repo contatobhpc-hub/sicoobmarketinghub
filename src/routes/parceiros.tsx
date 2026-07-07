@@ -597,7 +597,7 @@ function NewPartnerDialog({ onClose }: { onClose: () => void }) {
   const [owner, setOwner] = useState("Bruno");
   const [contractEnd, setContractEnd] = useState("");
   const [counterparts, setCounterparts] = useState("");
-  const [investmentMonth, setInvestmentYear] = useState(0);
+  const [investmentMonth, setInvestmentMonth] = useState(0);
   const [expectedReturn, setExpectedReturn] = useState(0);
   const [status, setStatus] = useState<PartnerStatus>("Prospect");
 
@@ -631,7 +631,7 @@ function NewPartnerDialog({ onClose }: { onClose: () => void }) {
             </SelectContent>
           </Select>
         </Field>
-        <Field label="Investimento/mês (R$)"><Input type="number" value={investmentMonth} onChange={(e) => setInvestmentYear(Number(e.target.value))} /></Field>
+        <Field label="Investimento/mês (R$)"><Input type="number" value={investmentMonth} onChange={(e) => setInvestmentMonth(Number(e.target.value))} /></Field>
         <Field label="Retorno esperado (R$)"><Input type="number" value={expectedReturn} onChange={(e) => setExpectedReturn(Number(e.target.value))} /></Field>
         <div className="sm:col-span-2">
           <Field label="Contrapartidas"><Textarea rows={3} value={counterparts} onChange={(e) => setCounterparts(e.target.value)} /></Field>
