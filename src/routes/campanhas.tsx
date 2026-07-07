@@ -58,7 +58,7 @@ function CampanhasPage() {
       <PageHeader
         title="Campanhas"
         description="Núcleo do Marketing OS — toda ação se vincula a uma campanha."
-        actions={<NewCampaignDialog />}
+        actions={<div className="flex items-center gap-2"><ModuleManagementButton module="campanhas" /><NewCampaignDialog /></div>}
       />
 
       <div className="mb-5 flex flex-col gap-2 sm:flex-row sm:items-center">
