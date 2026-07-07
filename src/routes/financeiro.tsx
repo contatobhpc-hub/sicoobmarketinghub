@@ -16,10 +16,12 @@ import {
   PieChart as PieChartIcon,
   Plus,
   Receipt,
+  Send,
   ShoppingCart,
   Sparkles,
   Star,
   Target,
+  Trash2,
   TrendingUp,
   Wallet,
 } from "lucide-react";
