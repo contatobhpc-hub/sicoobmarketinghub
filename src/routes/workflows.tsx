@@ -125,12 +125,15 @@ function WorkflowsPage() {
         title="Workflow Engine"
         description="Automatize qualquer processo do Marketing OS. Gatilhos, condições e ações conectando todos os módulos."
         actions={
-          <Dialog open={creating} onOpenChange={setCreating}>
-            <DialogTrigger asChild>
-              <Button><Plus className="size-4" /> Novo workflow</Button>
-            </DialogTrigger>
-            <NewWorkflowDialog onClose={() => setCreating(false)} onCreated={(id) => setOpenId(id)} />
-          </Dialog>
+          <div className="flex items-center gap-2">
+            <ModuleManagementButton module="workflows" />
+            <Dialog open={creating} onOpenChange={setCreating}>
+              <DialogTrigger asChild>
+                <Button><Plus className="size-4" /> Novo workflow</Button>
+              </DialogTrigger>
+              <NewWorkflowDialog onClose={() => setCreating(false)} onCreated={(id) => setOpenId(id)} />
+            </Dialog>
+          </div>
         }
       />
 
