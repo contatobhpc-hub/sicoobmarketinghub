@@ -17,6 +17,7 @@ import {
   Plus,
   Search,
   Sparkles,
+  Tags,
   Trash2,
   TrendingUp,
   User as UserIcon,
