@@ -20,6 +20,7 @@ import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxi
 
 import { AppShell } from "@/components/app-shell";
 import { PageHeader } from "@/components/page-header";
+import { ModuleManagementButton } from "@/components/module-management";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
