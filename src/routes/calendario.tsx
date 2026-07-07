@@ -159,7 +159,7 @@ function CalendarPage() {
       <PageHeader
         title="Calendário"
         description="Visão unificada de todas as iniciativas — arraste para reagendar."
-        actions={<NewEventDialog defaultDate={isoDate(anchor)} />}
+        actions={<div className="flex items-center gap-2"><ModuleManagementButton module="calendario" /><NewEventDialog defaultDate={isoDate(anchor)} /></div>}
       />
 
       {/* Toolbar */}
