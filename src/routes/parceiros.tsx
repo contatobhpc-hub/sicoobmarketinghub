@@ -117,8 +117,16 @@ function ParceirosPage() {
         description="CRM de agências, fornecedores e patrocinadores."
         actions={
           <div className="flex items-center gap-2">
-            <PartnerCategoriesButton />
-            <ModuleManagementButton module="parceiros" />
+            <ModuleManagementButton
+              module="parceiros"
+              extraTabs={[
+                {
+                  value: "parceiro-categorias",
+                  label: "Cat. Parceiros",
+                  content: <PartnerCategoriesTab />,
+                },
+              ]}
+            />
             <Dialog open={openNew} onOpenChange={setOpenNew}>
               <DialogTrigger asChild>
                 <Button>
