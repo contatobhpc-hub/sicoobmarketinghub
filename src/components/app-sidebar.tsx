@@ -1,5 +1,6 @@
 import { Link, useRouterState } from "@tanstack/react-router";
-import { Sparkles } from "lucide-react";
+
+import companyLogo from "@/assets/company-logo.jpg.asset.json";
 
 import {
   Sidebar,
