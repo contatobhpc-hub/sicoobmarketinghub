@@ -4,6 +4,7 @@ import { Search, FolderKanban, Calendar, User, Users } from "lucide-react";
 
 import { AppShell } from "@/components/app-shell";
 import { PageHeader } from "@/components/page-header";
+import { ModuleManagementButton } from "@/components/module-management";
 import { Input } from "@/components/ui/input";
 import {
   Select,
@@ -53,7 +54,7 @@ function ProjetosPage() {
       <PageHeader
         title="Projetos"
         description="Iniciativas estruturadas — manuais ou geradas a partir de campanhas."
-        actions={<NewProjectDialog />}
+        actions={<div className="flex items-center gap-2"><ModuleManagementButton module="projetos" /><NewProjectDialog /></div>}
       />
 
       <div className="mb-5 flex flex-col gap-2 sm:flex-row sm:items-center">

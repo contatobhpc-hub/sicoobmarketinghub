@@ -20,6 +20,7 @@ import { toast } from "sonner";
 
 import { AppShell } from "@/components/app-shell";
 import { PageHeader } from "@/components/page-header";
+import { ModuleManagementButton } from "@/components/module-management";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -130,14 +131,17 @@ function ContratosPage() {
         title="Contratos"
         description="Vigência, valores, renovações e alertas automáticos."
         actions={
-          <Dialog open={openNew} onOpenChange={setOpenNew}>
-            <DialogTrigger asChild>
-              <Button>
-                <Plus className="size-4" /> Novo contrato
-              </Button>
-            </DialogTrigger>
-            <NewContractDialog onClose={() => setOpenNew(false)} />
-          </Dialog>
+          <div className="flex items-center gap-2">
+            <ModuleManagementButton module="contratos" />
+            <Dialog open={openNew} onOpenChange={setOpenNew}>
+              <DialogTrigger asChild>
+                <Button>
+                  <Plus className="size-4" /> Novo contrato
+                </Button>
+              </DialogTrigger>
+              <NewContractDialog onClose={() => setOpenNew(false)} />
+            </Dialog>
+          </div>
         }
       />
 

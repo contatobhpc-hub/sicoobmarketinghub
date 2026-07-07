@@ -34,6 +34,7 @@ import { toast } from "sonner";
 
 import { AppShell } from "@/components/app-shell";
 import { PageHeader } from "@/components/page-header";
+import { ModuleManagementButton } from "@/components/module-management";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -124,12 +125,15 @@ function WorkflowsPage() {
         title="Workflow Engine"
         description="Automatize qualquer processo do Marketing OS. Gatilhos, condições e ações conectando todos os módulos."
         actions={
-          <Dialog open={creating} onOpenChange={setCreating}>
-            <DialogTrigger asChild>
-              <Button><Plus className="size-4" /> Novo workflow</Button>
-            </DialogTrigger>
-            <NewWorkflowDialog onClose={() => setCreating(false)} onCreated={(id) => setOpenId(id)} />
-          </Dialog>
+          <div className="flex items-center gap-2">
+            <ModuleManagementButton module="workflows" />
+            <Dialog open={creating} onOpenChange={setCreating}>
+              <DialogTrigger asChild>
+                <Button><Plus className="size-4" /> Novo workflow</Button>
+              </DialogTrigger>
+              <NewWorkflowDialog onClose={() => setCreating(false)} onCreated={(id) => setOpenId(id)} />
+            </Dialog>
+          </div>
         }
       />
 

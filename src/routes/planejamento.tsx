@@ -20,6 +20,7 @@ import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxi
 
 import { AppShell } from "@/components/app-shell";
 import { PageHeader } from "@/components/page-header";
+import { ModuleManagementButton } from "@/components/module-management";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -78,14 +79,17 @@ function PlanejamentoPage() {
         title="Planejamento Estratégico"
         description="O ponto inicial de toda a operação. Nenhuma campanha existe sem um planejamento."
         actions={
-          <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-            <DialogTrigger asChild>
-              <Button className="gap-2">
-                <Plus className="h-4 w-4" /> Novo Planejamento
-              </Button>
-            </DialogTrigger>
-            <NewPlanDialog onClose={() => setDialogOpen(false)} onCreated={(id) => { setActiveId(id); setSection("visao"); }} />
-          </Dialog>
+          <div className="flex items-center gap-2">
+            <ModuleManagementButton module="planejamento" />
+            <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+              <DialogTrigger asChild>
+                <Button className="gap-2">
+                  <Plus className="h-4 w-4" /> Novo Planejamento
+                </Button>
+              </DialogTrigger>
+              <NewPlanDialog onClose={() => setDialogOpen(false)} onCreated={(id) => { setActiveId(id); setSection("visao"); }} />
+            </Dialog>
+          </div>
         }
       />
 

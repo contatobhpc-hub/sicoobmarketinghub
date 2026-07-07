@@ -22,6 +22,7 @@ import {
 
 import { AppShell } from "@/components/app-shell";
 import { PageHeader } from "@/components/page-header";
+import { ModuleManagementButton } from "@/components/module-management";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -158,7 +159,7 @@ function CalendarPage() {
       <PageHeader
         title="Calendário"
         description="Visão unificada de todas as iniciativas — arraste para reagendar."
-        actions={<NewEventDialog defaultDate={isoDate(anchor)} />}
+        actions={<div className="flex items-center gap-2"><ModuleManagementButton module="calendario" /><NewEventDialog defaultDate={isoDate(anchor)} /></div>}
       />
 
       {/* Toolbar */}

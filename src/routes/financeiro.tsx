@@ -41,6 +41,7 @@ import {
 
 import { AppShell } from "@/components/app-shell";
 import { PageHeader } from "@/components/page-header";
+import { ModuleManagementButton } from "@/components/module-management";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -128,6 +129,7 @@ function FinanceiroPage() {
       <PageHeader
         title="Centro de Gestão Orçamentária"
         description="Controle financeiro do Departamento de Comunicação e Marketing — não substitui o ERP da cooperativa."
+        actions={<ModuleManagementButton module="financeiro" />}
       />
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-[220px_1fr]">
         <aside className="sticky top-4 self-start rounded-2xl border border-border bg-surface/60 p-2">

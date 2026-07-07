@@ -29,6 +29,7 @@ import { toast } from "sonner";
 
 import { AppShell } from "@/components/app-shell";
 import { PageHeader } from "@/components/page-header";
+import { ModuleManagementButton } from "@/components/module-management";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -144,18 +145,21 @@ function PatrociniosPage() {
         title="Patrocínios"
         description="Investimentos, contrapartidas, ROI e relacionamento com eventos e campanhas."
         actions={
-          <Dialog open={createOpen} onOpenChange={setCreateOpen}>
-            <DialogTrigger asChild>
-              <Button size="sm" className="gap-2">
-                <Plus className="h-4 w-4" /> Novo patrocínio
-              </Button>
-            </DialogTrigger>
-            <NewSponsorshipDialog
-              onClose={() => setCreateOpen(false)}
-              events={events.map((e) => ({ id: e.id, name: e.name, city: e.city, campaign: e.campaign }))}
-              campaigns={campaigns.map((c) => ({ id: c.id, name: c.name }))}
-            />
-          </Dialog>
+          <div className="flex items-center gap-2">
+            <ModuleManagementButton module="patrocinios" />
+            <Dialog open={createOpen} onOpenChange={setCreateOpen}>
+              <DialogTrigger asChild>
+                <Button size="sm" className="gap-2">
+                  <Plus className="h-4 w-4" /> Novo patrocínio
+                </Button>
+              </DialogTrigger>
+              <NewSponsorshipDialog
+                onClose={() => setCreateOpen(false)}
+                events={events.map((e) => ({ id: e.id, name: e.name, city: e.city, campaign: e.campaign }))}
+                campaigns={campaigns.map((c) => ({ id: c.id, name: c.name }))}
+              />
+            </Dialog>
+          </div>
         }
       />
 

@@ -16,6 +16,7 @@ import {
 } from "lucide-react";
 import { AppShell } from "@/components/app-shell";
 import { PageHeader } from "@/components/page-header";
+import { ModuleManagementButton } from "@/components/module-management";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -117,6 +118,7 @@ function NotificacoesPage() {
         description="Alertas inteligentes do Marketing OS. Tudo o que precisa da sua atenção, em um só lugar."
         actions={
           <div className="flex items-center gap-2">
+            <ModuleManagementButton module="notificacoes" />
             <Button variant="outline" size="sm" onClick={triggerSample}>
               <Plus className="mr-2 h-4 w-4" />Simular
             </Button>
