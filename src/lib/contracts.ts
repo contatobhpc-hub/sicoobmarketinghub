@@ -59,6 +59,7 @@ export type Contract = {
   alertsTriggered: AlertDay[];
   timeline: ContractTimelineEntry[];
   createdAt: string;
+  partnerId?: string;
 };
 
 const KEY = "mhub.contracts.v1";
