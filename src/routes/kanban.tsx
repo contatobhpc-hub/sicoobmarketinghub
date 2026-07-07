@@ -78,7 +78,7 @@ function KanbanPage() {
       <PageHeader
         title="Kanban"
         description="Arraste cartões entre as colunas para atualizar o status."
-        actions={<NewTaskDialog />}
+        actions={<div className="flex items-center gap-2"><ModuleManagementButton module="kanban" /><NewTaskDialog /></div>}
       />
 
       <div className="mb-5 max-w-md">
