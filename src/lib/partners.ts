@@ -21,7 +21,62 @@ export const PARTNER_CATEGORIES = [
   "Tecnologia",
   "Consultoria",
 ] as const;
-export type PartnerCategory = (typeof PARTNER_CATEGORIES)[number];
+export type PartnerCategory = string;
+
+/* ---------- Partner categories store (dynamic, per-module) ---------- */
+const PC_KEY = "sicoob:partner-categories:v1";
+let pcState: string[] = [...PARTNER_CATEGORIES];
+const pcListeners = new Set<() => void>();
+if (typeof window !== "undefined") {
+  try {
+    const raw = window.localStorage.getItem(PC_KEY);
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      if (Array.isArray(parsed) && parsed.every((v) => typeof v === "string") && parsed.length) {
+        pcState = parsed;
+      }
+    }
+  } catch {
+    /* ignore */
+  }
+}
+function pcEmit() {
+  if (typeof window !== "undefined") {
+    try {
+      window.localStorage.setItem(PC_KEY, JSON.stringify(pcState));
+    } catch {
+      /* ignore */
+    }
+  }
+  for (const l of pcListeners) l();
+}
+export const partnerCategoriesStore = {
+  get: () => pcState,
+  subscribe(l: () => void) {
+    pcListeners.add(l);
+    return () => pcListeners.delete(l);
+  },
+  add(name: string) {
+    const v = name.trim();
+    if (!v) return false;
+    if (pcState.some((c) => c.toLowerCase() === v.toLowerCase())) return false;
+    pcState = [...pcState, v];
+    pcEmit();
+    return true;
+  },
+  remove(name: string) {
+    if (!pcState.includes(name)) return;
+    pcState = pcState.filter((c) => c !== name);
+    pcEmit();
+  },
+};
+export function usePartnerCategories() {
+  return useSyncExternalStore(
+    partnerCategoriesStore.subscribe,
+    () => pcState,
+    () => pcState,
+  );
+}
 
 export type PartnerFile = { id: string; name: string; size: number; kind: "doc" | "photo" };
 
