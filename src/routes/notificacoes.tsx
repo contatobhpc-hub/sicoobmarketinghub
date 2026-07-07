@@ -118,6 +118,7 @@ function NotificacoesPage() {
         description="Alertas inteligentes do Marketing OS. Tudo o que precisa da sua atenção, em um só lugar."
         actions={
           <div className="flex items-center gap-2">
+            <ModuleManagementButton module="notificacoes" />
             <Button variant="outline" size="sm" onClick={triggerSample}>
               <Plus className="mr-2 h-4 w-4" />Simular
             </Button>
