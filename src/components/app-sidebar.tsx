@@ -1,5 +1,6 @@
 import { Link, useRouterState } from "@tanstack/react-router";
-import { Sparkles } from "lucide-react";
+
+import companyLogo from "@/assets/company-logo.jpg.asset.json";
 
 import {
   Sidebar,
@@ -28,11 +29,12 @@ export function AppSidebar() {
     <Sidebar collapsible="icon" className="border-r border-sidebar-border">
       <SidebarHeader className="border-b border-sidebar-border">
         <div className="flex items-center gap-2.5 px-2 py-2">
-          <div
-            className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-primary-foreground shadow-[var(--shadow-glow)]"
-            style={{ backgroundImage: "var(--gradient-primary)" }}
-          >
-            <Sparkles className="h-4 w-4" />
+          <div className="flex h-8 w-8 shrink-0 items-center justify-center overflow-hidden rounded-lg bg-white shadow-[var(--shadow-glow)]">
+            <img
+              src={companyLogo.url}
+              alt="Logo Sicoob Credibelo"
+              className="h-full w-full object-contain"
+            />
           </div>
           {!collapsed && (
             <div className="flex flex-col leading-tight">
