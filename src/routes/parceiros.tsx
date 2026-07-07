@@ -673,6 +673,7 @@ function UploadButton({ partnerId, kind }: { partnerId: string; kind: "doc" | "p
 }
 
 function NewPartnerDialog({ onClose }: { onClose: () => void }) {
+  const categories = usePartnerCategories();
   const [company, setCompany] = useState("");
   const [category, setCategory] = useState<PartnerCategory>("Agência");
   const [city, setCity] = useState("");
