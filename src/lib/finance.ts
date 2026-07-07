@@ -134,7 +134,14 @@ export type Invoice = {
   xmlName?: string;
   receiptName?: string;
   status: InvoiceStatus;
+  dueDate?: string;
+  receivedAt?: string;
+  receivedBy?: string;
+  sentToPaymentAt?: string;
+  sentBy?: string;
+  notes?: string;
 };
+
 
 export type Payment = {
   id: string;
