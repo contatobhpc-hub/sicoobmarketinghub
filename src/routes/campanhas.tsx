@@ -101,11 +101,11 @@ function CampanhasPage() {
           {filtered.map((c) => {
             const progress = campaignProgress(c);
             return (
+              <div key={c.id} className="group relative">
               <Link
-                key={c.id}
                 to="/campanhas/$id"
                 params={{ id: c.id }}
-                className="group flex flex-col rounded-xl border border-border bg-surface/60 p-5 transition-all duration-200 hover:-translate-y-0.5 hover:border-border-strong hover:shadow-[var(--shadow-md)]"
+                className="flex flex-col rounded-xl border border-border bg-surface/60 p-5 transition-all duration-200 hover:-translate-y-0.5 hover:border-border-strong hover:shadow-[var(--shadow-md)]"
               >
                 <div className="flex items-start justify-between gap-2">
                   <div className="min-w-0">
