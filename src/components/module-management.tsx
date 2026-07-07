@@ -21,12 +21,16 @@ import { settingsStore, useSettings } from "@/lib/settings";
  * that power dropdowns across the platform. Backed by settingsStore so changes
  * persist and reflect immediately everywhere.
  */
+export type ExtraTab = { value: string; label: string; content: ReactNode };
+
 export function ModuleManagementButton({
   module,
   label = "Gestão",
+  extraTabs = [],
 }: {
   module: string;
   label?: string;
+  extraTabs?: ExtraTab[];
 }) {
   const [open, setOpen] = useState(false);
   const s = useSettings();
