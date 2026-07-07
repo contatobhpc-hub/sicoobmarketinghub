@@ -1,10 +1,12 @@
 import { useMemo, useState } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { Search, FolderKanban, Calendar, User, Users } from "lucide-react";
+import { Search, FolderKanban, Calendar, User, Users, Trash2 } from "lucide-react";
+import { toast } from "sonner";
 
 import { AppShell } from "@/components/app-shell";
 import { PageHeader } from "@/components/page-header";
 import { ModuleManagementButton } from "@/components/module-management";
+import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
   Select,
@@ -18,6 +20,7 @@ import {
   PROJECT_STATUSES,
   formatDate,
   priorityTone,
+  projectsStore,
   statusTone,
   useProjects,
 } from "@/lib/projects";
