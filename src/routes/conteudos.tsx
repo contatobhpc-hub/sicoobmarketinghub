@@ -134,6 +134,7 @@ function ContentLibraryPage() {
             >
               <Sparkles className="h-3.5 w-3.5 text-primary" /> Gerar com IA
             </Button>
+            <ModuleManagementButton module="conteudos" />
             <NewContentDialog />
           </div>
         }
