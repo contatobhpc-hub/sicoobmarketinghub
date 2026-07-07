@@ -48,7 +48,7 @@ export type CalendarEvent = {
   timeline: CalTimelineEntry[];
 };
 
-const KEY = "mhub.calendar.v1";
+const KEY = "mhub.calendar.v2";
 
 function uid(p = "e") {
   return `${p}-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 6)}`;
@@ -62,85 +62,59 @@ function isoDate(d: Date) {
   return `${y}-${m}-${day}`;
 }
 
-const today = new Date();
-const d = (offset: number) => {
-  const x = new Date(today);
-  x.setDate(today.getDate() + offset);
-  return isoDate(x);
+const CURRENT_YEAR = new Date().getFullYear();
+
+type BirthdaySeed = {
+  title: string;
+  category: EventCategory;
+  month: number;
+  day: number;
+  originYear?: number;
+  description: string;
 };
 
+const CITY_BIRTHDAYS: BirthdaySeed[] = [
+  { title: "Aniversário da cidade — Campo Belo", category: "Evento", month: 9, day: 28, originYear: 1879, description: "Fundação de Campo Belo (28/09/1879)." },
+  { title: "Aniversário da cidade — Candeias", category: "Evento", month: 12, day: 17, originYear: 1938, description: "Fundação de Candeias (17/12/1938)." },
+  { title: "Aniversário da cidade — Cristais", category: "Evento", month: 6, day: 4, originYear: 1948, description: "Fundação de Cristais (04/06/1948)." },
+  { title: "Aniversário da cidade — Aguanil", category: "Evento", month: 3, day: 1, originYear: 1962, description: "Fundação de Aguanil (01/03/1962)." },
+  { title: "Aniversário da cidade — Cana Verde", category: "Evento", month: 9, day: 1, originYear: 1962, description: "Fundação de Cana Verde (01/09/1962)." },
+  { title: "Aniversário da cidade — Santana do Jacaré", category: "Evento", month: 12, day: 12, description: "Aniversário de Santana do Jacaré (12/12)." },
+];
+
+const AGENCY_BIRTHDAYS: BirthdaySeed[] = [
+  { title: "Aniversário da agência — Campo Belo", category: "Campanha", month: 10, day: 15, originYear: 1993, description: "Inauguração da agência Campo Belo (15/10/1993)." },
+  { title: "Aniversário da agência — Candeias", category: "Campanha", month: 3, day: 2, originYear: 1998, description: "Inauguração da agência Candeias (02/03/1998)." },
+  { title: "Aniversário da agência — Cristais", category: "Campanha", month: 9, day: 25, originYear: 1999, description: "Inauguração da agência Cristais (25/09/1999)." },
+  { title: "Aniversário da agência — Aguanil", category: "Campanha", month: 5, day: 3, originYear: 2001, description: "Inauguração da agência Aguanil (03/05/2001)." },
+  { title: "Aniversário da agência — Cana Verde", category: "Campanha", month: 11, day: 5, originYear: 2006, description: "Inauguração da agência Cana Verde (05/11/2006)." },
+  { title: "Aniversário da agência — Alto das Mercês", category: "Campanha", month: 9, day: 2, originYear: 2013, description: "Inauguração da agência Alto das Mercês (02/09/2013)." },
+  { title: "Aniversário da agência — Praça", category: "Campanha", month: 6, day: 2, originYear: 2022, description: "Inauguração da agência Praça (02/06/2022)." },
+  { title: "Aniversário da agência — Santana do Jacaré", category: "Campanha", month: 10, day: 16, originYear: 2023, description: "Inauguração da agência Santana do Jacaré (16/10/2023)." },
+];
+
+function buildBirthday(b: BirthdaySeed): CalendarEvent {
+  const date = `${CURRENT_YEAR}-${String(b.month).padStart(2, "0")}-${String(b.day).padStart(2, "0")}`;
+  const years = b.originYear ? ` (${CURRENT_YEAR - b.originYear} anos)` : "";
+  return {
+    id: uid(),
+    title: `${b.title}${years}`,
+    category: b.category,
+    status: "Planejado",
+    priority: "Média",
+    date,
+    description: b.description,
+    owners: ["Marketing"],
+    files: [],
+    checklist: [],
+    comments: [],
+    timeline: [{ id: uid("t"), message: "Evento criado", author: "Sistema", createdAt: now() }],
+  };
+}
+
 const seed: CalendarEvent[] = [
-  {
-    id: uid(), title: "Kickoff — Crédito Rural 2026", category: "Reunião",
-    status: "Planejado", priority: "Alta", date: d(1), time: "09:30", durationMin: 60,
-    description: "Reunião de abertura da campanha com squad e diretoria.",
-    owners: ["Bruno", "Marina"], agency: "Interna", campaignId: "c-1",
-    files: [], checklist: [{ id: uid("ck"), text: "Pauta enviada", done: true }],
-    comments: [], timeline: [{ id: uid("t"), message: "Evento criado", author: "Sistema", createdAt: now() }],
-  },
-  {
-    id: uid(), title: "Veiculação Outdoor — Lote 1", category: "Outdoor",
-    status: "Em andamento", priority: "Alta", date: d(3),
-    description: "Início da veiculação dos 12 outdoors do Lote 1.",
-    owners: ["Pedro"], agency: "OOH Brasil", campaignId: "c-1",
-    files: [], checklist: [], comments: [],
-    timeline: [{ id: uid("t"), message: "Evento criado", createdAt: now() }],
-  },
-  {
-    id: uid(), title: "Post Instagram — Stories Conta Jovem", category: "Publicação",
-    status: "Planejado", priority: "Média", date: d(2), time: "11:00",
-    description: "Sequência de 5 stories — Conta Digital Jovem.",
-    owners: ["Carla"], campaignId: "c-2", projectId: "p-conta-jovem",
-    files: [], checklist: [], comments: [],
-    timeline: [{ id: uid("t"), message: "Evento criado", createdAt: now() }],
-  },
-  {
-    id: uid(), title: "Spot rádio — Cidade FM", category: "Rádio",
-    status: "Planejado", priority: "Média", date: d(5), time: "07:00",
-    description: "30 inserções diárias na Cidade FM.",
-    owners: ["Pedro"], agency: "Cidade FM", campaignId: "c-1",
-    files: [], checklist: [], comments: [], timeline: [],
-  },
-  {
-    id: uid(), title: "Aprovação — KV Filiação", category: "Aprovação",
-    status: "Planejado", priority: "Crítica", date: d(0), time: "16:00", durationMin: 30,
-    description: "Apresentação do KV final para diretoria.",
-    owners: ["Bruno", "Diretoria"], campaignId: "c-3",
-    files: [], checklist: [], comments: [],
-    timeline: [{ id: uid("t"), message: "Solicitado", author: "Bruno", createdAt: now() }],
-  },
-  {
-    id: uid(), title: "Entrega — Vídeo institucional 60s", category: "Produção de vídeo",
-    status: "Planejado", priority: "Alta", date: d(7),
-    description: "Entrega master do vídeo institucional.",
-    owners: ["Marina"], agency: "Foco Filmes", campaignId: "c-2",
-    files: [], checklist: [], comments: [], timeline: [],
-  },
-  {
-    id: uid(), title: "Contrato — Patrocínio Festa Junina", category: "Contrato",
-    status: "Planejado", priority: "Média", date: d(10),
-    description: "Assinatura do contrato de patrocínio.",
-    owners: ["Bruno"], agency: "Pref. Município", files: [], checklist: [],
-    comments: [], timeline: [],
-  },
-  {
-    id: uid(), title: "Patrocínio — Cavalgada Regional", category: "Patrocínio",
-    status: "Planejado", priority: "Média", date: d(12),
-    description: "Ativação no evento regional.",
-    owners: ["Pedro"], files: [], checklist: [], comments: [], timeline: [],
-  },
-  {
-    id: uid(), title: "Prazo — Briefing campanha Q4", category: "Prazo",
-    status: "Planejado", priority: "Alta", date: d(-2),
-    description: "Prazo final de envio do briefing.",
-    owners: ["Bruno"], files: [], checklist: [], comments: [], timeline: [],
-  },
-  {
-    id: uid(), title: "Campanha — Conta Jovem (janela)", category: "Campanha",
-    status: "Em andamento", priority: "Crítica", date: d(4),
-    description: "Pico de mídia da campanha Conta Jovem.",
-    owners: ["Marina"], campaignId: "c-2", files: [], checklist: [], comments: [], timeline: [],
-  },
+  ...CITY_BIRTHDAYS.map(buildBirthday),
+  ...AGENCY_BIRTHDAYS.map(buildBirthday),
 ];
 
 function load(): CalendarEvent[] {
