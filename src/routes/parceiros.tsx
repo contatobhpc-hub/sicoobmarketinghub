@@ -44,6 +44,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
 import {
   PARTNER_CATEGORIES,
+  partnerCategoriesStore,
+  usePartnerCategories,
   PARTNER_STATUSES,
   type Partner,
   type PartnerCategory,
