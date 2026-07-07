@@ -1,6 +1,8 @@
 import { useMemo, useState } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { Search, Megaphone, Calendar, User, Wallet } from "lucide-react";
+import { Search, Megaphone, Calendar, User, Wallet, Trash2 } from "lucide-react";
+import { toast } from "sonner";
+
 
 import { AppShell } from "@/components/app-shell";
 import { PageHeader } from "@/components/page-header";
@@ -17,12 +19,14 @@ import { NewCampaignDialog } from "@/components/campaigns/new-campaign-dialog";
 import {
   CAMPAIGN_STATUSES,
   campaignProgress,
+  campaignsStore,
   formatCurrency,
   formatDate,
   priorityTone,
   statusTone,
   useCampaigns,
 } from "@/lib/campaigns";
+import { Button } from "@/components/ui/button";
 
 export const Route = createFileRoute("/campanhas")({
   head: () => ({
@@ -97,11 +101,11 @@ function CampanhasPage() {
           {filtered.map((c) => {
             const progress = campaignProgress(c);
             return (
+              <div key={c.id} className="group relative">
               <Link
-                key={c.id}
                 to="/campanhas/$id"
                 params={{ id: c.id }}
-                className="group flex flex-col rounded-xl border border-border bg-surface/60 p-5 transition-all duration-200 hover:-translate-y-0.5 hover:border-border-strong hover:shadow-[var(--shadow-md)]"
+                className="flex flex-col rounded-xl border border-border bg-surface/60 p-5 transition-all duration-200 hover:-translate-y-0.5 hover:border-border-strong hover:shadow-[var(--shadow-md)]"
               >
                 <div className="flex items-start justify-between gap-2">
                   <div className="min-w-0">
@@ -158,6 +162,23 @@ function CampanhasPage() {
                   </div>
                 )}
               </Link>
+              <Button
+                size="icon"
+                variant="ghost"
+                className="absolute right-2 top-2 h-7 w-7 opacity-0 transition-opacity group-hover:opacity-100 text-muted-foreground hover:text-destructive bg-surface/80 backdrop-blur"
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  if (window.confirm(`Excluir a campanha "${c.name}"?`)) {
+                    campaignsStore.remove(c.id);
+                    toast.success(`Campanha "${c.name}" excluída.`);
+                  }
+                }}
+                aria-label={`Excluir ${c.name}`}
+              >
+                <Trash2 className="h-4 w-4" />
+              </Button>
+              </div>
             );
           })}
         </div>
