@@ -767,6 +767,7 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
 }
 
 function EditPartnerDialog({ partner, onClose }: { partner: Partner; onClose: () => void }) {
+  const categories = usePartnerCategories();
   const [company, setCompany] = useState(partner.company);
   const [category, setCategory] = useState<PartnerCategory>(partner.category);
   const [city, setCity] = useState(partner.city);
