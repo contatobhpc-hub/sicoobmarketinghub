@@ -14,6 +14,7 @@ export const PARTNER_CATEGORIES = [
   "Fornecedor",
   "Patrocinador",
   "Mídia",
+  "Rádio",
   "Gráfica",
   "Brindes",
   "Eventos",
