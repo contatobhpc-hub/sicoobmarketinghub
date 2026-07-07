@@ -778,7 +778,29 @@ function BackupSection({ settings }: { settings: SettingsState }) {
         >
           Restaurar padrão
         </Button>
+        <Button
+          variant="destructive"
+          onClick={() => {
+            if (!window.confirm("Limpar TODOS os dados da plataforma? Esta ação apaga campanhas, projetos, parceiros, contratos, eventos, financeiro e demais registros. Não pode ser desfeita.")) return;
+            if (!window.confirm("Tem certeza? Digite OK na próxima confirmação para prosseguir.")) return;
+            try {
+              const keys: string[] = [];
+              for (let i = 0; i < window.localStorage.length; i++) {
+                const k = window.localStorage.key(i);
+                if (k && k.startsWith("mhub.")) keys.push(k);
+              }
+              keys.forEach((k) => window.localStorage.removeItem(k));
+              toast.success("Plataforma limpa. Recarregando…");
+              setTimeout(() => window.location.reload(), 800);
+            } catch {
+              toast.error("Não foi possível limpar os dados");
+            }
+          }}
+        >
+          <Trash2 className="mr-1 h-3.5 w-3.5" /> Limpar toda a plataforma
+        </Button>
       </div>
+
     </div>
   );
 }
