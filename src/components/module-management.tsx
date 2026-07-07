@@ -149,11 +149,17 @@ export function ModuleManagementButton({
         </DialogHeader>
 
         <Tabs defaultValue="categorias" className="mt-2">
-          <TabsList className="grid w-full grid-cols-4">
+          <TabsList
+            className="grid w-full"
+            style={{ gridTemplateColumns: `repeat(${4 + extraTabs.length}, minmax(0, 1fr))` }}
+          >
             <TabsTrigger value="categorias">Categorias</TabsTrigger>
             <TabsTrigger value="status">Status</TabsTrigger>
             <TabsTrigger value="tags">Tags</TabsTrigger>
             <TabsTrigger value="templates">Templates</TabsTrigger>
+            {extraTabs.map((t) => (
+              <TabsTrigger key={t.value} value={t.value}>{t.label}</TabsTrigger>
+            ))}
           </TabsList>
 
           <TabsContent value="categorias" className="space-y-3 pt-4">
