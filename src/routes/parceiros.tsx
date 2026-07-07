@@ -74,6 +74,7 @@ export const Route = createFileRoute("/parceiros")({
 
 function ParceirosPage() {
   const partners = usePartners();
+  const categories = usePartnerCategories();
   const [query, setQuery] = useState("");
   const [status, setStatus] = useState<PartnerStatus | "todos">("todos");
   const [category, setCategory] = useState<PartnerCategory | "todas">("todas");
