@@ -5,6 +5,8 @@ import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/app-sidebar";
 import { Button } from "@/components/ui/button";
 import { GlobalSearch } from "@/components/global-search";
+import { ThemeToggle } from "@/components/theme-toggle";
+
 import { useSettingsBridge } from "@/lib/settings";
 
 export function AppShell({ children }: { children: ReactNode }) {
@@ -49,6 +51,8 @@ export function AppShell({ children }: { children: ReactNode }) {
             </div>
 
             <div className="ml-auto flex items-center gap-1">
+              <ThemeToggle />
+
               <Button
                 variant="ghost"
                 size="icon"
