@@ -1,4 +1,5 @@
-import { useSyncExternalStore } from "react";
+import { useEffect, useSyncExternalStore } from "react";
+import { partnersStore, type Partner, type PartnerStatus } from "./partners";
 
 export const CONTRACT_STATUSES = [
   "Rascunho",
