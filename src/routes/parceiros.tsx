@@ -699,7 +699,7 @@ function NewPartnerDialog({ onClose }: { onClose: () => void }) {
           <Select value={category} onValueChange={(v) => setCategory(v as PartnerCategory)}>
             <SelectTrigger><SelectValue /></SelectTrigger>
             <SelectContent>
-              {PARTNER_CATEGORIES.map((c) => <SelectItem key={c} value={c}>{c}</SelectItem>)}
+              {categories.map((c) => <SelectItem key={c} value={c}>{c}</SelectItem>)}
             </SelectContent>
           </Select>
         </Field>
