@@ -90,11 +90,11 @@ function ProjetosPage() {
       ) : (
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
           {filtered.map((p) => (
+            <div key={p.id} className="group relative">
             <Link
-              key={p.id}
               to="/projetos/$id"
               params={{ id: p.id }}
-              className="group flex flex-col rounded-xl border border-border bg-surface/60 p-5 transition-all duration-200 hover:-translate-y-0.5 hover:border-border-strong hover:shadow-[var(--shadow-md)]"
+              className="flex flex-col rounded-xl border border-border bg-surface/60 p-5 transition-all duration-200 hover:-translate-y-0.5 hover:border-border-strong hover:shadow-[var(--shadow-md)]"
             >
               <div className="flex items-start justify-between gap-2">
                 <div className="min-w-0">
@@ -136,6 +136,23 @@ function ProjetosPage() {
                 </span>
               </div>
             </Link>
+            <Button
+              size="icon"
+              variant="ghost"
+              className="absolute right-2 top-2 h-7 w-7 opacity-0 transition-opacity group-hover:opacity-100 text-muted-foreground hover:text-destructive bg-surface/80 backdrop-blur"
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                if (window.confirm(`Excluir o projeto "${p.name}"?`)) {
+                  projectsStore.remove(p.id);
+                  toast.success(`Projeto "${p.name}" excluído.`);
+                }
+              }}
+              aria-label={`Excluir ${p.name}`}
+            >
+              <Trash2 className="h-4 w-4" />
+            </Button>
+            </div>
           ))}
         </div>
       )}
