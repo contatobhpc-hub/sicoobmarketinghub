@@ -282,9 +282,25 @@ function ContractRow({ contract, onOpen }: { contract: Contract; onOpen: () => v
             <span className="inline-flex items-center gap-1"><CalendarIcon className="size-3" /> {formatDate(contract.startDate)} → {formatDate(contract.endDate)}</span>
           </div>
         </div>
-        <div className="text-right">
-          <div className="text-[10px] uppercase tracking-wide text-muted-foreground">Valor</div>
-          <div className="font-display">{formatBRL(contract.value)}</div>
+        <div className="flex flex-col items-end gap-2">
+          <div className="text-right">
+            <div className="text-[10px] uppercase tracking-wide text-muted-foreground">Valor</div>
+            <div className="font-display">{formatBRL(contract.value)}</div>
+          </div>
+          <Button
+            size="icon"
+            variant="ghost"
+            className="h-7 w-7 text-muted-foreground hover:text-[color:var(--color-destructive)]"
+            onClick={(e) => {
+              e.stopPropagation();
+              if (confirm(`Remover contrato "${contract.company}"?`)) {
+                contractsStore.remove(contract.id);
+                toast.success("Contrato removido.");
+              }
+            }}
+          >
+            <Trash2 className="size-3.5" />
+          </Button>
         </div>
       </div>
     </Card>
