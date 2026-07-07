@@ -143,6 +143,7 @@ function IndicadoresPage() {
         description="Indicadores por módulo, gráficos interativos e dashboards personalizáveis."
         actions={
           <div className="flex flex-wrap items-center gap-2">
+            <ModuleManagementButton module="indicadores" />
             <Select value={module} onValueChange={(v) => setModule(v as ModuleKey)}>
               <SelectTrigger className="h-9 w-[180px]"><SelectValue /></SelectTrigger>
               <SelectContent>
