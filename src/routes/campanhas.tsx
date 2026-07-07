@@ -19,12 +19,14 @@ import { NewCampaignDialog } from "@/components/campaigns/new-campaign-dialog";
 import {
   CAMPAIGN_STATUSES,
   campaignProgress,
+  campaignsStore,
   formatCurrency,
   formatDate,
   priorityTone,
   statusTone,
   useCampaigns,
 } from "@/lib/campaigns";
+import { Button } from "@/components/ui/button";
 
 export const Route = createFileRoute("/campanhas")({
   head: () => ({
