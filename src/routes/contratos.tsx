@@ -131,14 +131,17 @@ function ContratosPage() {
         title="Contratos"
         description="Vigência, valores, renovações e alertas automáticos."
         actions={
-          <Dialog open={openNew} onOpenChange={setOpenNew}>
-            <DialogTrigger asChild>
-              <Button>
-                <Plus className="size-4" /> Novo contrato
-              </Button>
-            </DialogTrigger>
-            <NewContractDialog onClose={() => setOpenNew(false)} />
-          </Dialog>
+          <div className="flex items-center gap-2">
+            <ModuleManagementButton module="contratos" />
+            <Dialog open={openNew} onOpenChange={setOpenNew}>
+              <DialogTrigger asChild>
+                <Button>
+                  <Plus className="size-4" /> Novo contrato
+                </Button>
+              </DialogTrigger>
+              <NewContractDialog onClose={() => setOpenNew(false)} />
+            </Dialog>
+          </div>
         }
       />
 
