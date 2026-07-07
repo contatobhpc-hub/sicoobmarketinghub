@@ -17,6 +17,7 @@ import {
   Plus,
   Search,
   Sparkles,
+  Tags,
   Trash2,
   TrendingUp,
   User as UserIcon,
@@ -44,6 +45,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
 import {
   PARTNER_CATEGORIES,
+  partnerCategoriesStore,
+  usePartnerCategories,
   PARTNER_STATUSES,
   type Partner,
   type PartnerCategory,
@@ -72,6 +75,7 @@ export const Route = createFileRoute("/parceiros")({
 
 function ParceirosPage() {
   const partners = usePartners();
+  const categories = usePartnerCategories();
   const [query, setQuery] = useState("");
   const [status, setStatus] = useState<PartnerStatus | "todos">("todos");
   const [category, setCategory] = useState<PartnerCategory | "todas">("todas");
@@ -113,6 +117,7 @@ function ParceirosPage() {
         description="CRM de agências, fornecedores e patrocinadores."
         actions={
           <div className="flex items-center gap-2">
+            <PartnerCategoriesButton />
             <ModuleManagementButton module="parceiros" />
             <Dialog open={openNew} onOpenChange={setOpenNew}>
               <DialogTrigger asChild>
@@ -157,7 +162,7 @@ function ParceirosPage() {
             <SelectTrigger className="w-[170px]"><SelectValue /></SelectTrigger>
             <SelectContent>
               <SelectItem value="todas">Todas as categorias</SelectItem>
-              {PARTNER_CATEGORIES.map((c) => (
+              {categories.map((c) => (
                 <SelectItem key={c} value={c}>{c}</SelectItem>
               ))}
             </SelectContent>
@@ -669,6 +674,7 @@ function UploadButton({ partnerId, kind }: { partnerId: string; kind: "doc" | "p
 }
 
 function NewPartnerDialog({ onClose }: { onClose: () => void }) {
+  const categories = usePartnerCategories();
   const [company, setCompany] = useState("");
   const [category, setCategory] = useState<PartnerCategory>("Agência");
   const [city, setCity] = useState("");
@@ -694,7 +700,7 @@ function NewPartnerDialog({ onClose }: { onClose: () => void }) {
           <Select value={category} onValueChange={(v) => setCategory(v as PartnerCategory)}>
             <SelectTrigger><SelectValue /></SelectTrigger>
             <SelectContent>
-              {PARTNER_CATEGORIES.map((c) => <SelectItem key={c} value={c}>{c}</SelectItem>)}
+              {categories.map((c) => <SelectItem key={c} value={c}>{c}</SelectItem>)}
             </SelectContent>
           </Select>
         </Field>
@@ -762,6 +768,7 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
 }
 
 function EditPartnerDialog({ partner, onClose }: { partner: Partner; onClose: () => void }) {
+  const categories = usePartnerCategories();
   const [company, setCompany] = useState(partner.company);
   const [category, setCategory] = useState<PartnerCategory>(partner.category);
   const [city, setCity] = useState(partner.city);
@@ -789,7 +796,7 @@ function EditPartnerDialog({ partner, onClose }: { partner: Partner; onClose: ()
           <Select value={category} onValueChange={(v) => setCategory(v as PartnerCategory)}>
             <SelectTrigger><SelectValue /></SelectTrigger>
             <SelectContent>
-              {PARTNER_CATEGORIES.map((c) => <SelectItem key={c} value={c}>{c}</SelectItem>)}
+              {categories.map((c) => <SelectItem key={c} value={c}>{c}</SelectItem>)}
             </SelectContent>
           </Select>
         </Field>
@@ -851,3 +858,71 @@ function EditPartnerDialog({ partner, onClose }: { partner: Partner; onClose: ()
   );
 }
 
+
+function PartnerCategoriesButton() {
+  const categories = usePartnerCategories();
+  const [open, setOpen] = useState(false);
+  const [name, setName] = useState("");
+
+  const add = () => {
+    const v = name.trim();
+    if (!v) return;
+    const ok = partnerCategoriesStore.add(v);
+    if (!ok) {
+      toast.error("Categoria já existe");
+      return;
+    }
+    toast.success(`Categoria "${v}" adicionada`);
+    setName("");
+  };
+  const remove = (c: string) => {
+    if (!window.confirm(`Remover categoria "${c}"?`)) return;
+    partnerCategoriesStore.remove(c);
+    toast.success(`Categoria "${c}" removida`);
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger asChild>
+        <Button variant="outline" size="sm" className="gap-1.5">
+          <Tags className="h-4 w-4" /> Categorias
+        </Button>
+      </DialogTrigger>
+      <DialogContent className="sm:max-w-lg">
+        <DialogHeader>
+          <DialogTitle>Categorias de parceiros</DialogTitle>
+        </DialogHeader>
+        <div className="flex gap-2">
+          <Input
+            placeholder="Nova categoria de parceiro"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            onKeyDown={(e) => e.key === "Enter" && add()}
+          />
+          <Button onClick={add} size="sm" className="gap-1">
+            <Plus className="h-4 w-4" /> Adicionar
+          </Button>
+        </div>
+        {categories.length === 0 ? (
+          <p className="text-sm text-muted-foreground py-4 text-center">Nenhuma categoria.</p>
+        ) : (
+          <ul className="max-h-72 divide-y divide-border overflow-y-auto rounded-md border border-border">
+            {categories.map((c) => (
+              <li key={c} className="flex items-center justify-between px-3 py-2">
+                <Badge variant="secondary" className={cn("truncate", categoryTone(c))}>{c}</Badge>
+                <Button
+                  size="icon"
+                  variant="ghost"
+                  className="h-7 w-7 text-muted-foreground hover:text-destructive"
+                  onClick={() => remove(c)}
+                >
+                  <Trash2 className="h-4 w-4" />
+                </Button>
+              </li>
+            ))}
+          </ul>
+        )}
+      </DialogContent>
+    </Dialog>
+  );
+}
