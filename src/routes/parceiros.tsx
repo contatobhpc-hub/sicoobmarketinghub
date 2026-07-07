@@ -110,14 +110,17 @@ function ParceirosPage() {
         title="Parceiros"
         description="CRM de agências, fornecedores e patrocinadores."
         actions={
-          <Dialog open={openNew} onOpenChange={setOpenNew}>
-            <DialogTrigger asChild>
-              <Button>
-                <Plus className="size-4" /> Novo parceiro
-              </Button>
-            </DialogTrigger>
-            <NewPartnerDialog onClose={() => setOpenNew(false)} />
-          </Dialog>
+          <div className="flex items-center gap-2">
+            <ModuleManagementButton module="parceiros" />
+            <Dialog open={openNew} onOpenChange={setOpenNew}>
+              <DialogTrigger asChild>
+                <Button>
+                  <Plus className="size-4" /> Novo parceiro
+                </Button>
+              </DialogTrigger>
+              <NewPartnerDialog onClose={() => setOpenNew(false)} />
+            </Dialog>
+          </div>
         }
       />
 
