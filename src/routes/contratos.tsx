@@ -10,6 +10,7 @@ import {
   FileSignature,
   FileText,
   Paperclip,
+  Pencil,
   Plus,
   Search,
   Shield,
