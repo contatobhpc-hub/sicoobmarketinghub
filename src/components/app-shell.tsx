@@ -51,6 +51,8 @@ export function AppShell({ children }: { children: ReactNode }) {
             </div>
 
             <div className="ml-auto flex items-center gap-1">
+              <ThemeToggle />
+
               <Button
                 variant="ghost"
                 size="icon"
