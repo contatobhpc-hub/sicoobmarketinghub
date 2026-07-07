@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, type ReactNode } from "react";
 import { Settings2, Plus, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -21,12 +21,16 @@ import { settingsStore, useSettings } from "@/lib/settings";
  * that power dropdowns across the platform. Backed by settingsStore so changes
  * persist and reflect immediately everywhere.
  */
+export type ExtraTab = { value: string; label: string; content: ReactNode };
+
 export function ModuleManagementButton({
   module,
   label = "Gestão",
+  extraTabs = [],
 }: {
   module: string;
   label?: string;
+  extraTabs?: ExtraTab[];
 }) {
   const [open, setOpen] = useState(false);
   const s = useSettings();
@@ -145,11 +149,17 @@ export function ModuleManagementButton({
         </DialogHeader>
 
         <Tabs defaultValue="categorias" className="mt-2">
-          <TabsList className="grid w-full grid-cols-4">
+          <TabsList
+            className="grid w-full"
+            style={{ gridTemplateColumns: `repeat(${4 + extraTabs.length}, minmax(0, 1fr))` }}
+          >
             <TabsTrigger value="categorias">Categorias</TabsTrigger>
             <TabsTrigger value="status">Status</TabsTrigger>
             <TabsTrigger value="tags">Tags</TabsTrigger>
             <TabsTrigger value="templates">Templates</TabsTrigger>
+            {extraTabs.map((t) => (
+              <TabsTrigger key={t.value} value={t.value}>{t.label}</TabsTrigger>
+            ))}
           </TabsList>
 
           <TabsContent value="categorias" className="space-y-3 pt-4">
@@ -229,6 +239,12 @@ export function ModuleManagementButton({
               empty="Nenhum template deste módulo."
             />
           </TabsContent>
+
+          {extraTabs.map((t) => (
+            <TabsContent key={t.value} value={t.value} className="space-y-3 pt-4">
+              {t.content}
+            </TabsContent>
+          ))}
         </Tabs>
       </DialogContent>
     </Dialog>
