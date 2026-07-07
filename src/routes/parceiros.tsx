@@ -170,7 +170,18 @@ function ParceirosPage() {
           </Card>
         )}
         {filtered.map((p) => (
-          <PartnerRow key={p.id} partner={p} onOpen={() => setSelectedId(p.id)} />
+          <PartnerRow
+            key={p.id}
+            partner={p}
+            onOpen={() => setSelectedId(p.id)}
+            onDelete={() => {
+              if (window.confirm(`Excluir o parceiro "${p.company}"? Esta ação não pode ser desfeita.`)) {
+                partnersStore.remove(p.id);
+                if (selectedId === p.id) setSelectedId(null);
+                toast.success(`Parceiro "${p.company}" excluído.`);
+              }
+            }}
+          />
         ))}
       </div>
 
