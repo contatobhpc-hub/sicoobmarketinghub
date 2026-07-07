@@ -52,7 +52,7 @@ export type Partner = {
   files: PartnerFile[];
   events: string[];
   campaigns: string[];
-  investmentYear: number;
+  investmentMonth: number;
   expectedReturn: number;
   deliveredReturn: number;
   status: PartnerStatus;
@@ -86,7 +86,7 @@ const seed: Partner[] = [
     ],
     events: ["Lançamento Crédito Rural"],
     campaigns: ["Campanha Safra 2026"],
-    investmentYear: 180000,
+    investmentMonth: 15000,
     expectedReturn: 350000,
     deliveredReturn: 142000,
     status: "Ativo",
@@ -115,7 +115,7 @@ const seed: Partner[] = [
     files: [{ id: uid("f"), name: "Mídia-Kit.pdf", size: 540000, kind: "doc" }],
     events: [],
     campaigns: ["Campanha Safra 2026", "Educação Financeira"],
-    investmentYear: 96000,
+    investmentMonth: 8000,
     expectedReturn: 220000,
     deliveredReturn: 198000,
     status: "Renovação",
@@ -141,7 +141,7 @@ const seed: Partner[] = [
     files: [],
     events: [],
     campaigns: ["Assembleia 2026"],
-    investmentYear: 42000,
+    investmentMonth: 3500,
     expectedReturn: 60000,
     deliveredReturn: 22000,
     status: "Ativo",

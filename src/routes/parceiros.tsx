@@ -98,7 +98,7 @@ function ParceirosPage() {
       const r = renewalAlert(p);
       return r.level === "urgent" || r.level === "expired" || p.status === "Renovação";
     }).length;
-    const invested = partners.reduce((acc, p) => acc + p.investmentYear, 0);
+    const invested = partners.reduce((acc, p) => acc + p.investmentMonth, 0);
     return { total, active, renewals, invested };
   }, [partners]);
 
@@ -128,7 +128,7 @@ function ParceirosPage() {
         <StatCard label="Total" value={stats.total} icon={<Building2 className="size-4" />} />
         <StatCard label="Ativos" value={stats.active} icon={<CheckCircle2 className="size-4" />} tone="success" />
         <StatCard label="Renovações" value={stats.renewals} icon={<Bell className="size-4" />} tone="warning" />
-        <StatCard label="Investimento/ano" value={formatBRL(stats.invested)} icon={<TrendingUp className="size-4" />} tone="primary" />
+        <StatCard label="Investimento/mês" value={formatBRL(stats.invested)} icon={<TrendingUp className="size-4" />} tone="primary" />
       </div>
 
       <Card className="p-3 surface-elevated">
@@ -268,7 +268,7 @@ function PartnerRow({ partner, onOpen, onDelete }: { partner: Partner; onOpen: (
 
         <div className="hidden md:block text-right">
           <div className="text-[10px] text-muted-foreground uppercase tracking-wide">Investimento</div>
-          <div className="text-sm font-display">{formatBRL(partner.investmentYear)}</div>
+          <div className="text-sm font-display">{formatBRL(partner.investmentMonth)}</div>
         </div>
 
         <Button
@@ -342,7 +342,7 @@ function PartnerDetail({ partner }: { partner: Partner }) {
         )}
 
         <div className="mt-4 grid grid-cols-3 gap-3">
-          <MiniStat label="Investimento" value={formatBRL(fresh.investmentYear)} />
+          <MiniStat label="Investimento" value={formatBRL(fresh.investmentMonth)} />
           <MiniStat label="Esperado" value={formatBRL(fresh.expectedReturn)} />
           <MiniStat label="Entregue" value={formatBRL(fresh.deliveredReturn)} />
         </div>
@@ -597,7 +597,7 @@ function NewPartnerDialog({ onClose }: { onClose: () => void }) {
   const [owner, setOwner] = useState("Bruno");
   const [contractEnd, setContractEnd] = useState("");
   const [counterparts, setCounterparts] = useState("");
-  const [investmentYear, setInvestmentYear] = useState(0);
+  const [investmentMonth, setInvestmentMonth] = useState(0);
   const [expectedReturn, setExpectedReturn] = useState(0);
   const [status, setStatus] = useState<PartnerStatus>("Prospect");
 
@@ -631,7 +631,7 @@ function NewPartnerDialog({ onClose }: { onClose: () => void }) {
             </SelectContent>
           </Select>
         </Field>
-        <Field label="Investimento/ano (R$)"><Input type="number" value={investmentYear} onChange={(e) => setInvestmentYear(Number(e.target.value))} /></Field>
+        <Field label="Investimento/mês (R$)"><Input type="number" value={investmentMonth} onChange={(e) => setInvestmentMonth(Number(e.target.value))} /></Field>
         <Field label="Retorno esperado (R$)"><Input type="number" value={expectedReturn} onChange={(e) => setExpectedReturn(Number(e.target.value))} /></Field>
         <div className="sm:col-span-2">
           <Field label="Contrapartidas"><Textarea rows={3} value={counterparts} onChange={(e) => setCounterparts(e.target.value)} /></Field>
@@ -653,7 +653,7 @@ function NewPartnerDialog({ onClose }: { onClose: () => void }) {
               owner,
               contractEnd: contractEnd || undefined,
               counterparts,
-              investmentYear: investmentYear || 0,
+              investmentMonth: investmentMonth || 0,
               expectedReturn: expectedReturn || 0,
               deliveredReturn: 0,
               status,
