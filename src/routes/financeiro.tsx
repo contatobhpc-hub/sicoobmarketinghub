@@ -63,6 +63,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
+import { Checkbox } from "@/components/ui/checkbox";
 import { useCampaigns, formatCurrency } from "@/lib/campaigns";
 import { useEvents } from "@/lib/events";
 import {
