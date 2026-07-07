@@ -342,9 +342,21 @@ function PartnerDetail({ partner }: { partner: Partner }) {
         )}
 
         <div className="mt-4 grid grid-cols-3 gap-3">
-          <MiniStat label="Investimento" value={formatBRL(fresh.investmentMonth)} />
-          <MiniStat label="Esperado" value={formatBRL(fresh.expectedReturn)} />
-          <MiniStat label="Entregue" value={formatBRL(fresh.deliveredReturn)} />
+          <EditableStat
+            label="Investimento/mês"
+            value={fresh.investmentMonth}
+            onSave={(v) => partnersStore.update(fresh.id, { investmentMonth: v })}
+          />
+          <EditableStat
+            label="Esperado"
+            value={fresh.expectedReturn}
+            onSave={(v) => partnersStore.update(fresh.id, { expectedReturn: v })}
+          />
+          <EditableStat
+            label="Entregue"
+            value={fresh.deliveredReturn}
+            onSave={(v) => partnersStore.update(fresh.id, { deliveredReturn: v })}
+          />
         </div>
         <div className="mt-3">
           <div className="flex items-center justify-between text-[11px] text-muted-foreground mb-1">
@@ -542,6 +554,61 @@ function MiniStat({ label, value }: { label: string; value: string }) {
     <div className="rounded-lg surface-elevated p-3">
       <div className="text-[10px] uppercase tracking-wide text-muted-foreground">{label}</div>
       <div className="text-sm font-display mt-1">{value}</div>
+    </div>
+  );
+}
+
+function EditableStat({
+  label,
+  value,
+  onSave,
+}: {
+  label: string;
+  value: number;
+  onSave: (v: number) => void;
+}) {
+  const [editing, setEditing] = useState(false);
+  const [draft, setDraft] = useState(String(value ?? 0));
+
+  const commit = () => {
+    const n = Number(draft);
+    onSave(Number.isFinite(n) ? n : 0);
+    setEditing(false);
+    toast.success(`${label} atualizado.`);
+  };
+
+  return (
+    <div className="rounded-lg surface-elevated p-3">
+      <div className="text-[10px] uppercase tracking-wide text-muted-foreground">{label}</div>
+      {editing ? (
+        <Input
+          autoFocus
+          type="number"
+          value={draft}
+          onChange={(e) => setDraft(e.target.value)}
+          onBlur={commit}
+          onKeyDown={(e) => {
+            if (e.key === "Enter") commit();
+            if (e.key === "Escape") {
+              setDraft(String(value ?? 0));
+              setEditing(false);
+            }
+          }}
+          className="h-7 mt-1 text-sm"
+        />
+      ) : (
+        <button
+          type="button"
+          onClick={() => {
+            setDraft(String(value ?? 0));
+            setEditing(true);
+          }}
+          className="text-sm font-display mt-1 text-left w-full hover:text-primary transition-colors"
+          title="Clique para editar"
+        >
+          {formatBRL(value)}
+        </button>
+      )}
     </div>
   );
 }
