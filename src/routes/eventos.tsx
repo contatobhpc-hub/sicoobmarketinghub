@@ -138,14 +138,17 @@ function EventosPage() {
         title="Eventos"
         description="Cada evento é um projeto completo. Cronograma, checklist, kanban e lista de presença — tudo conectado."
         actions={
-          <Dialog open={createOpen} onOpenChange={setCreateOpen}>
-            <DialogTrigger asChild>
-              <Button size="sm" className="gap-2">
-                <Plus className="h-4 w-4" /> Novo evento
-              </Button>
-            </DialogTrigger>
-            <NewEventDialog onClose={() => setCreateOpen(false)} />
-          </Dialog>
+          <div className="flex items-center gap-2">
+            <ModuleManagementButton module="eventos" />
+            <Dialog open={createOpen} onOpenChange={setCreateOpen}>
+              <DialogTrigger asChild>
+                <Button size="sm" className="gap-2">
+                  <Plus className="h-4 w-4" /> Novo evento
+                </Button>
+              </DialogTrigger>
+              <NewEventDialog onClose={() => setCreateOpen(false)} />
+            </Dialog>
+          </div>
         }
       />
 
