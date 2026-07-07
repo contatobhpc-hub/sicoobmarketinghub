@@ -291,13 +291,14 @@ function ContractRow({ contract, onOpen }: { contract: Contract; onOpen: () => v
   );
 }
 
-function ContractDetail({ contract }: { contract: Contract }) {
+function ContractDetail({ contract, onClose }: { contract: Contract; onClose: () => void }) {
   const fresh = useContract(contract.id) ?? contract;
   const a = alertLevel(fresh);
   const pdf = fresh.files.find((f) => f.id === fresh.pdfFileId);
   const attachments = fresh.files.filter((f) => f.id !== fresh.pdfFileId);
   const [note, setNote] = useState("");
   const [newCheck, setNewCheck] = useState("");
+  const [editOpen, setEditOpen] = useState(false);
 
   return (
     <div className="flex h-full flex-col">
@@ -313,15 +314,43 @@ function ContractDetail({ contract }: { contract: Contract }) {
             </div>
             <p className="text-sm text-muted-foreground mt-1">{fresh.object}</p>
           </div>
-          <Select value={fresh.status} onValueChange={(v) => contractsStore.update(fresh.id, { status: v as ContractStatus })}>
-            <SelectTrigger className={cn("w-[140px] h-8 text-xs", statusTone(fresh.status))}>
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              {CONTRACT_STATUSES.map((s) => <SelectItem key={s} value={s}>{s}</SelectItem>)}
-            </SelectContent>
-          </Select>
+          <div className="flex flex-col gap-2 items-end">
+            <Select value={fresh.status} onValueChange={(v) => contractsStore.update(fresh.id, { status: v as ContractStatus })}>
+              <SelectTrigger className={cn("w-[140px] h-8 text-xs", statusTone(fresh.status))}>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {CONTRACT_STATUSES.map((s) => <SelectItem key={s} value={s}>{s}</SelectItem>)}
+              </SelectContent>
+            </Select>
+            <div className="flex gap-1">
+              <Button size="sm" variant="outline" className="h-8" onClick={() => setEditOpen(true)}>
+                <Pencil className="size-3.5 mr-1" /> Editar
+              </Button>
+              <Button
+                size="sm"
+                variant="outline"
+                className="h-8 text-[color:var(--color-destructive)] hover:text-[color:var(--color-destructive)]"
+                onClick={() => {
+                  if (confirm(`Remover contrato "${fresh.company}"? Esta ação não pode ser desfeita.`)) {
+                    contractsStore.remove(fresh.id);
+                    toast.success("Contrato removido.");
+                    onClose();
+                  }
+                }}
+              >
+                <Trash2 className="size-3.5" />
+              </Button>
+            </div>
+          </div>
         </div>
+
+        <Dialog open={editOpen} onOpenChange={setEditOpen}>
+          <DialogContent className="max-w-lg">
+            <EditContractDialog contract={fresh} onDone={() => setEditOpen(false)} />
+          </DialogContent>
+        </Dialog>
+
 
         {a.level !== "ok" && (
           <div className={cn("mt-4 flex items-center gap-2 rounded-lg border p-3 text-xs", alertTone(a.level))}>
