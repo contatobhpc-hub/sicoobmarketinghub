@@ -116,6 +116,7 @@ function ParceirosPage() {
         description="CRM de agências, fornecedores e patrocinadores."
         actions={
           <div className="flex items-center gap-2">
+            <PartnerCategoriesButton />
             <ModuleManagementButton module="parceiros" />
             <Dialog open={openNew} onOpenChange={setOpenNew}>
               <DialogTrigger asChild>
