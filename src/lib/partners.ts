@@ -1,4 +1,4 @@
-import { useSyncExternalStore } from "react";
+import { useEffect, useSyncExternalStore } from "react";
 
 export const PARTNER_STATUSES = [
   "Prospect",
@@ -244,10 +244,18 @@ function save(s: Partner[]) {
   }
 }
 
-let state: Partner[] = load();
+let state: Partner[] = seed;
+let hydrated = false;
 const listeners = new Set<() => void>();
 function emit() {
   save(state);
+  listeners.forEach((l) => l());
+}
+
+function hydrateFromStorage() {
+  if (hydrated || typeof window === "undefined") return;
+  hydrated = true;
+  state = load();
   listeners.forEach((l) => l());
 }
 
@@ -257,6 +265,8 @@ function pushTimeline(p: Partner, e: Omit<PartnerTimelineEntry, "id" | "createdA
 
 export const partnersStore = {
   get: () => state,
+  getServerSnapshot: () => seed,
+  hydrate: hydrateFromStorage,
   subscribe(l: () => void) {
     listeners.add(l);
     return () => listeners.delete(l);
@@ -338,7 +348,10 @@ export const partnersStore = {
 };
 
 export function usePartners() {
-  return useSyncExternalStore(partnersStore.subscribe, partnersStore.get, partnersStore.get);
+  useEffect(() => {
+    partnersStore.hydrate();
+  }, []);
+  return useSyncExternalStore(partnersStore.subscribe, partnersStore.get, partnersStore.getServerSnapshot);
 }
 export function usePartner(id: string) {
   return usePartners().find((p) => p.id === id);
