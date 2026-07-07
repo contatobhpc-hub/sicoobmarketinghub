@@ -12,6 +12,7 @@ import {
   MapPin,
   MessageSquare,
   Paperclip,
+  Pencil,
   Phone,
   Plus,
   Search,
@@ -19,6 +20,7 @@ import {
   Trash2,
   TrendingUp,
   User as UserIcon,
+
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -296,6 +298,8 @@ function PartnerDetail({ partner }: { partner: Partner }) {
   const delivered = fresh.expectedReturn > 0 ? Math.min(100, Math.round((fresh.deliveredReturn / fresh.expectedReturn) * 100)) : 0;
   const [note, setNote] = useState("");
   const [newCheck, setNewCheck] = useState("");
+  const [editOpen, setEditOpen] = useState(false);
+
 
   return (
     <div className="flex h-full flex-col">
@@ -315,15 +319,26 @@ function PartnerDetail({ partner }: { partner: Partner }) {
               <MapPin className="size-3" /> {fresh.city}
             </div>
           </div>
-          <Select value={fresh.status} onValueChange={(v) => partnersStore.update(fresh.id, { status: v as PartnerStatus })}>
-            <SelectTrigger className={cn("w-[140px] h-8 text-xs", statusTone(fresh.status))}>
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              {PARTNER_STATUSES.map((s) => (<SelectItem key={s} value={s}>{s}</SelectItem>))}
-            </SelectContent>
-          </Select>
+          <div className="flex items-center gap-2">
+            <Select value={fresh.status} onValueChange={(v) => partnersStore.update(fresh.id, { status: v as PartnerStatus })}>
+              <SelectTrigger className={cn("w-[140px] h-8 text-xs", statusTone(fresh.status))}>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {PARTNER_STATUSES.map((s) => (<SelectItem key={s} value={s}>{s}</SelectItem>))}
+              </SelectContent>
+            </Select>
+            <Dialog open={editOpen} onOpenChange={setEditOpen}>
+              <DialogTrigger asChild>
+                <Button size="sm" variant="outline" className="h-8">
+                  <Pencil className="size-3.5" /> Editar
+                </Button>
+              </DialogTrigger>
+              <EditPartnerDialog partner={fresh} onClose={() => setEditOpen(false)} />
+            </Dialog>
+          </div>
         </div>
+
 
         {renewal.level !== "ok" && (
           <div
@@ -745,3 +760,94 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
     </div>
   );
 }
+
+function EditPartnerDialog({ partner, onClose }: { partner: Partner; onClose: () => void }) {
+  const [company, setCompany] = useState(partner.company);
+  const [category, setCategory] = useState<PartnerCategory>(partner.category);
+  const [city, setCity] = useState(partner.city);
+  const [contact, setContact] = useState(partner.contact);
+  const [phone, setPhone] = useState(partner.phone);
+  const [whatsapp, setWhatsapp] = useState(partner.whatsapp);
+  const [email, setEmail] = useState(partner.email);
+  const [owner, setOwner] = useState(partner.owner);
+  const [contractEnd, setContractEnd] = useState(partner.contractEnd ?? "");
+  const [counterparts, setCounterparts] = useState(partner.counterparts);
+  const [notes, setNotes] = useState(partner.notes);
+  const [investmentMonth, setInvestmentMonth] = useState(partner.investmentMonth);
+  const [expectedReturn, setExpectedReturn] = useState(partner.expectedReturn);
+  const [deliveredReturn, setDeliveredReturn] = useState(partner.deliveredReturn);
+  const [status, setStatus] = useState<PartnerStatus>(partner.status);
+
+  return (
+    <DialogContent className="sm:max-w-2xl max-h-[90vh] overflow-y-auto">
+      <DialogHeader>
+        <DialogTitle>Editar parceiro</DialogTitle>
+      </DialogHeader>
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <Field label="Empresa"><Input value={company} onChange={(e) => setCompany(e.target.value)} /></Field>
+        <Field label="Categoria">
+          <Select value={category} onValueChange={(v) => setCategory(v as PartnerCategory)}>
+            <SelectTrigger><SelectValue /></SelectTrigger>
+            <SelectContent>
+              {PARTNER_CATEGORIES.map((c) => <SelectItem key={c} value={c}>{c}</SelectItem>)}
+            </SelectContent>
+          </Select>
+        </Field>
+        <Field label="Cidade"><Input value={city} onChange={(e) => setCity(e.target.value)} /></Field>
+        <Field label="Contato"><Input value={contact} onChange={(e) => setContact(e.target.value)} /></Field>
+        <Field label="Telefone"><Input value={phone} onChange={(e) => setPhone(e.target.value)} /></Field>
+        <Field label="WhatsApp"><Input value={whatsapp} onChange={(e) => setWhatsapp(e.target.value)} /></Field>
+        <Field label="E-mail"><Input value={email} type="email" onChange={(e) => setEmail(e.target.value)} /></Field>
+        <Field label="Responsável interno"><Input value={owner} onChange={(e) => setOwner(e.target.value)} /></Field>
+        <Field label="Vencimento contrato"><Input type="date" value={contractEnd} onChange={(e) => setContractEnd(e.target.value)} /></Field>
+        <Field label="Status">
+          <Select value={status} onValueChange={(v) => setStatus(v as PartnerStatus)}>
+            <SelectTrigger><SelectValue /></SelectTrigger>
+            <SelectContent>
+              {PARTNER_STATUSES.map((s) => <SelectItem key={s} value={s}>{s}</SelectItem>)}
+            </SelectContent>
+          </Select>
+        </Field>
+        <Field label="Investimento/mês (R$)"><Input type="number" value={investmentMonth} onChange={(e) => setInvestmentMonth(Number(e.target.value))} /></Field>
+        <Field label="Retorno esperado (R$)"><Input type="number" value={expectedReturn} onChange={(e) => setExpectedReturn(Number(e.target.value))} /></Field>
+        <Field label="Retorno entregue (R$)"><Input type="number" value={deliveredReturn} onChange={(e) => setDeliveredReturn(Number(e.target.value))} /></Field>
+        <div className="sm:col-span-2">
+          <Field label="Contrapartidas"><Textarea rows={3} value={counterparts} onChange={(e) => setCounterparts(e.target.value)} /></Field>
+        </div>
+        <div className="sm:col-span-2">
+          <Field label="Notas internas"><Textarea rows={3} value={notes} onChange={(e) => setNotes(e.target.value)} /></Field>
+        </div>
+      </div>
+      <DialogFooter>
+        <Button variant="ghost" onClick={onClose}>Cancelar</Button>
+        <Button
+          disabled={!company.trim()}
+          onClick={() => {
+            partnersStore.update(partner.id, {
+              company: company.trim(),
+              category,
+              city,
+              contact,
+              phone,
+              whatsapp,
+              email,
+              owner,
+              contractEnd: contractEnd || undefined,
+              counterparts,
+              notes,
+              investmentMonth: investmentMonth || 0,
+              expectedReturn: expectedReturn || 0,
+              deliveredReturn: deliveredReturn || 0,
+              status,
+            });
+            toast.success("Parceiro atualizado.");
+            onClose();
+          }}
+        >
+          Salvar alterações
+        </Button>
+      </DialogFooter>
+    </DialogContent>
+  );
+}
+
