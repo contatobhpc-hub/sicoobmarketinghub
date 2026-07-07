@@ -460,7 +460,7 @@ export function statusTone(s: PartnerStatus) {
 }
 
 export function categoryTone(c: PartnerCategory) {
-  const map: Record<PartnerCategory, string> = {
+  const map: Record<string, string> = {
     "Agência": "bg-primary/15 text-primary",
     Fornecedor: "bg-[color:var(--color-accent)]/15 text-[color:var(--color-accent)]",
     Patrocinador: "bg-[color:var(--color-success)]/15 text-[color:var(--color-success)]",
@@ -472,7 +472,7 @@ export function categoryTone(c: PartnerCategory) {
     Tecnologia: "bg-[color:var(--color-success)]/15 text-[color:var(--color-success)]",
     Consultoria: "bg-[color:var(--color-warning)]/15 text-[color:var(--color-warning)]",
   };
-  return map[c];
+  return map[c] ?? "bg-surface-elevated text-muted-foreground";
 }
 
 export function partnerInitials(name: string) {
