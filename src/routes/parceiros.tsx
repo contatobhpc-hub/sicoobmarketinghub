@@ -212,7 +212,7 @@ function StatCard({ label, value, icon, tone = "default" }: { label: string; val
   );
 }
 
-function PartnerRow({ partner, onOpen }: { partner: Partner; onOpen: () => void }) {
+function PartnerRow({ partner, onOpen, onDelete }: { partner: Partner; onOpen: () => void; onDelete: () => void }) {
   const renewal = renewalAlert(partner);
   const delivered = partner.expectedReturn > 0 ? Math.min(100, Math.round((partner.deliveredReturn / partner.expectedReturn) * 100)) : 0;
 
@@ -270,6 +270,19 @@ function PartnerRow({ partner, onOpen }: { partner: Partner; onOpen: () => void 
           <div className="text-[10px] text-muted-foreground uppercase tracking-wide">Investimento</div>
           <div className="text-sm font-display">{formatBRL(partner.investmentYear)}</div>
         </div>
+
+        <Button
+          size="icon"
+          variant="ghost"
+          className="h-8 w-8 text-muted-foreground hover:text-destructive"
+          onClick={(e) => {
+            e.stopPropagation();
+            onDelete();
+          }}
+          aria-label={`Excluir ${partner.company}`}
+        >
+          <Trash2 className="size-4" />
+        </Button>
       </div>
     </Card>
   );
