@@ -12,6 +12,7 @@ import {
 
 import { AppShell } from "@/components/app-shell";
 import { PageHeader } from "@/components/page-header";
+import { ModuleManagementButton } from "@/components/module-management";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import {
