@@ -239,6 +239,12 @@ export function ModuleManagementButton({
               empty="Nenhum template deste módulo."
             />
           </TabsContent>
+
+          {extraTabs.map((t) => (
+            <TabsContent key={t.value} value={t.value} className="space-y-3 pt-4">
+              {t.content}
+            </TabsContent>
+          ))}
         </Tabs>
       </DialogContent>
     </Dialog>
