@@ -161,7 +161,7 @@ function ParceirosPage() {
             <SelectTrigger className="w-[170px]"><SelectValue /></SelectTrigger>
             <SelectContent>
               <SelectItem value="todas">Todas as categorias</SelectItem>
-              {PARTNER_CATEGORIES.map((c) => (
+              {categories.map((c) => (
                 <SelectItem key={c} value={c}>{c}</SelectItem>
               ))}
             </SelectContent>
