@@ -111,7 +111,16 @@ function MidiaOfflinePage() {
         description="Outdoor, painéis, faixas e materiais físicos. Mapa, calendário e alertas automáticos de retirada."
         actions={
           <div className="flex items-center gap-2">
-            <ModuleManagementButton module="midia-offline" />
+            <ModuleManagementButton
+              module="midia-offline"
+              extraTabs={[
+                {
+                  value: "cat-offline",
+                  label: "Categorias offline",
+                  content: <OfflineCategoriesManager />,
+                },
+              ]}
+            />
             <Dialog open={creating} onOpenChange={setCreating}>
               <DialogTrigger asChild>
                 <Button>
