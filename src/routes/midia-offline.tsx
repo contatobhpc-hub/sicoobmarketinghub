@@ -41,13 +41,18 @@ import {
   OFFLINE_MEDIA_STATUSES,
   STATUS_TONE,
   daysUntil,
+  offlineMediaCategoriesStore,
   offlineMediaStore,
   removalAlert,
   useOfflineMedia,
+  useOfflineMediaCategories,
   type OfflineMedia,
   type OfflineMediaCategory,
   type OfflineMediaStatus,
 } from "@/lib/offline-media";
+
+const catTone = (c: string) =>
+  CATEGORY_TONE[c] ?? "bg-slate-500/15 text-slate-300 border-slate-500/30";
 
 export const Route = createFileRoute("/midia-offline")({
   head: () => ({
