@@ -881,3 +881,57 @@ function EditMediaDialog({ media, onClose }: { media: OfflineMedia; onClose: () 
     </DialogContent>
   );
 }
+
+function OfflineCategoriesManager() {
+  const categories = useOfflineMediaCategories();
+  const [value, setValue] = useState("");
+  const add = () => {
+    const v = value.trim();
+    if (!v) return;
+    if (!offlineMediaCategoriesStore.add(v)) {
+      toast.error("Categoria já existe");
+      return;
+    }
+    toast.success(`Categoria "${v}" adicionada`);
+    setValue("");
+  };
+  const remove = (c: string) => {
+    if (!window.confirm(`Remover categoria "${c}"?`)) return;
+    offlineMediaCategoriesStore.remove(c);
+    toast.success(`Categoria "${c}" removida`);
+  };
+  return (
+    <div className="space-y-3">
+      <div className="flex gap-2">
+        <Input
+          placeholder="Nova categoria de mídia offline"
+          value={value}
+          onChange={(e) => setValue(e.target.value)}
+          onKeyDown={(e) => e.key === "Enter" && add()}
+        />
+        <Button size="sm" onClick={add} className="gap-1">
+          <Plus className="h-4 w-4" /> Adicionar
+        </Button>
+      </div>
+      {categories.length === 0 ? (
+        <p className="text-sm text-muted-foreground py-4 text-center">Nenhuma categoria.</p>
+      ) : (
+        <ul className="max-h-72 divide-y divide-border overflow-y-auto rounded-md border border-border">
+          {categories.map((c) => (
+            <li key={c} className="flex items-center justify-between px-3 py-2">
+              <Badge variant="outline" className={catTone(c)}>{c}</Badge>
+              <Button
+                size="icon"
+                variant="ghost"
+                className="h-7 w-7 text-muted-foreground hover:text-destructive"
+                onClick={() => remove(c)}
+              >
+                <Trash2 className="h-4 w-4" />
+              </Button>
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
+  );
+}
