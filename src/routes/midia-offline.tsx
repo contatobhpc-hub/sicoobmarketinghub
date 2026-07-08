@@ -72,6 +72,7 @@ const fmtDate = (d: string) =>
 
 function MidiaOfflinePage() {
   const items = useOfflineMedia();
+  const categories = useOfflineMediaCategories();
   const [view, setView] = useState<ViewMode>("cards");
   const [query, setQuery] = useState("");
   const [cat, setCat] = useState<"all" | OfflineMediaCategory>("all");
