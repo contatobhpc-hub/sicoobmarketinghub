@@ -34,7 +34,8 @@ async function pushNow<T>(module: string, getter: () => T) {
   const { error } = await supabase
     .from("app_state")
     .upsert(
-      { module, data: payload as unknown as Record<string, unknown>, updated_by: currentUserId },
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      { module, data: payload as any, updated_by: currentUserId },
       { onConflict: "module" },
     );
   if (error) console.error(`[cloud-sync:${module}] push`, error);
