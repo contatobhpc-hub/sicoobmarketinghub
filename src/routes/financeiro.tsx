@@ -81,6 +81,7 @@ import {
   useFinance,
   type ExpenseCategory,
   type FinanceSupplier,
+  type Invoice,
   type PaymentMethod,
   type PRStatus,
   type Urgency,
