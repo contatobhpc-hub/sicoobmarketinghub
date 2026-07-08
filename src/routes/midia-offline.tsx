@@ -72,6 +72,7 @@ function MidiaOfflinePage() {
   const [cat, setCat] = useState<"all" | OfflineMediaCategory>("all");
   const [status, setStatus] = useState<"all" | OfflineMediaStatus>("all");
   const [openId, setOpenId] = useState<string | null>(null);
+  const [editId, setEditId] = useState<string | null>(null);
   const [creating, setCreating] = useState(false);
 
   const filtered = useMemo(() => {
@@ -95,6 +96,7 @@ function MidiaOfflinePage() {
   }, [items]);
 
   const selected = openId ? items.find((m) => m.id === openId) ?? null : null;
+  const editing = editId ? items.find((m) => m.id === editId) ?? null : null;
 
   return (
     <AppShell>
@@ -157,16 +159,20 @@ function MidiaOfflinePage() {
         </div>
       </Card>
 
-      {view === "cards" && <CardsView items={filtered} onOpen={setOpenId} />}
+      {view === "cards" && <CardsView items={filtered} onOpen={setOpenId} onEdit={setEditId} />}
       {view === "map" && <MapView items={filtered} onOpen={setOpenId} />}
       {view === "calendar" && <CalendarView items={filtered} onOpen={setOpenId} />}
-      {view === "list" && <ListView items={filtered} onOpen={setOpenId} />}
+      {view === "list" && <ListView items={filtered} onOpen={setOpenId} onEdit={setEditId} />}
 
       <Sheet open={!!selected} onOpenChange={(o) => !o && setOpenId(null)}>
         <SheetContent side="right" className="w-full overflow-y-auto sm:max-w-xl">
           {selected && <MediaDetail media={selected} />}
         </SheetContent>
       </Sheet>
+
+      <Dialog open={!!editing} onOpenChange={(o) => !o && setEditId(null)}>
+        {editing && <EditMediaDialog media={editing} onClose={() => setEditId(null)} />}
+      </Dialog>
     </AppShell>
   );
 }
@@ -222,18 +228,18 @@ function RemovalAlerts({ items, onOpen }: { items: OfflineMedia[]; onOpen: (id: 
   );
 }
 
-function CardsView({ items, onOpen }: { items: OfflineMedia[]; onOpen: (id: string) => void }) {
+function CardsView({ items, onOpen, onEdit }: { items: OfflineMedia[]; onOpen: (id: string) => void; onEdit: (id: string) => void }) {
   if (items.length === 0) return <EmptyState />;
   return (
     <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-3">
       {items.map((m) => (
-        <MediaCard key={m.id} m={m} onClick={() => onOpen(m.id)} />
+        <MediaCard key={m.id} m={m} onClick={() => onOpen(m.id)} onEdit={() => onEdit(m.id)} />
       ))}
     </div>
   );
 }
 
-function MediaCard({ m, onClick }: { m: OfflineMedia; onClick: () => void }) {
+function MediaCard({ m, onClick, onEdit }: { m: OfflineMedia; onClick: () => void; onEdit: () => void }) {
   const alert = removalAlert(m);
   const d = daysUntil(m.removalDate);
   return (
@@ -258,7 +264,7 @@ function MediaCard({ m, onClick }: { m: OfflineMedia; onClick: () => void }) {
               size="icon"
               variant="ghost"
               className="size-7 text-muted-foreground hover:text-primary"
-              onClick={(e) => { e.stopPropagation(); onClick(); }}
+              onClick={(e) => { e.stopPropagation(); onEdit(); }}
               aria-label="Editar mídia"
             >
               <Pencil className="size-4" />
@@ -448,7 +454,7 @@ function CalendarView({ items, onOpen }: { items: OfflineMedia[]; onOpen: (id: s
   );
 }
 
-function ListView({ items, onOpen }: { items: OfflineMedia[]; onOpen: (id: string) => void }) {
+function ListView({ items, onOpen, onEdit }: { items: OfflineMedia[]; onOpen: (id: string) => void; onEdit: (id: string) => void }) {
   if (items.length === 0) return <EmptyState />;
   return (
     <Card className="divide-y divide-border/40 p-0">
@@ -486,7 +492,7 @@ function ListView({ items, onOpen }: { items: OfflineMedia[]; onOpen: (id: strin
                 size="icon"
                 variant="ghost"
                 className="size-8 text-muted-foreground hover:text-primary"
-                onClick={() => onOpen(m.id)}
+                onClick={() => onEdit(m.id)}
                 aria-label="Editar mídia"
               >
                 <Pencil className="size-4" />
@@ -746,6 +752,114 @@ function NewMediaDialog({ onClose }: { onClose: () => void }) {
       <DialogFooter>
         <Button variant="outline" onClick={onClose}>Cancelar</Button>
         <Button onClick={submit}>Cadastrar mídia</Button>
+      </DialogFooter>
+    </DialogContent>
+  );
+}
+
+function EditMediaDialog({ media, onClose }: { media: OfflineMedia; onClose: () => void }) {
+  const [form, setForm] = useState({
+    title: media.title,
+    category: media.category,
+    city: media.city,
+    location: media.location,
+    supplier: media.supplier,
+    campaign: media.campaign ?? "",
+    installDate: media.installDate,
+    removalDate: media.removalDate,
+    status: media.status,
+    owner: media.owner,
+    value: media.value,
+    costCenter: media.costCenter,
+    notes: media.notes,
+  });
+
+  function submit() {
+    if (!form.title || !form.city || !form.location || !form.supplier || !form.owner) {
+      toast.error("Preencha título, cidade, local, fornecedor e responsável.");
+      return;
+    }
+    offlineMediaStore.update(media.id, {
+      ...form,
+      campaign: form.campaign || undefined,
+    }, "Informações atualizadas.");
+    toast.success("Mídia atualizada.");
+    onClose();
+  }
+
+  return (
+    <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+      <DialogHeader>
+        <DialogTitle>Editar mídia</DialogTitle>
+        <DialogDescription>Atualize as informações desta peça.</DialogDescription>
+      </DialogHeader>
+      <div className="grid grid-cols-2 gap-3">
+        <div className="col-span-2">
+          <Label>Título</Label>
+          <Input value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} />
+        </div>
+        <div>
+          <Label>Categoria</Label>
+          <Select value={form.category} onValueChange={(v) => setForm({ ...form, category: v as OfflineMediaCategory })}>
+            <SelectTrigger><SelectValue /></SelectTrigger>
+            <SelectContent>
+              {OFFLINE_MEDIA_CATEGORIES.map((c) => <SelectItem key={c} value={c}>{c}</SelectItem>)}
+            </SelectContent>
+          </Select>
+        </div>
+        <div>
+          <Label>Status</Label>
+          <Select value={form.status} onValueChange={(v) => setForm({ ...form, status: v as OfflineMediaStatus })}>
+            <SelectTrigger><SelectValue /></SelectTrigger>
+            <SelectContent>
+              {OFFLINE_MEDIA_STATUSES.map((s) => <SelectItem key={s} value={s}>{s}</SelectItem>)}
+            </SelectContent>
+          </Select>
+        </div>
+        <div>
+          <Label>Cidade</Label>
+          <Input value={form.city} onChange={(e) => setForm({ ...form, city: e.target.value })} />
+        </div>
+        <div>
+          <Label>Fornecedor</Label>
+          <Input value={form.supplier} onChange={(e) => setForm({ ...form, supplier: e.target.value })} />
+        </div>
+        <div className="col-span-2">
+          <Label>Local</Label>
+          <Input value={form.location} onChange={(e) => setForm({ ...form, location: e.target.value })} />
+        </div>
+        <div>
+          <Label>Campanha</Label>
+          <Input value={form.campaign} onChange={(e) => setForm({ ...form, campaign: e.target.value })} />
+        </div>
+        <div>
+          <Label>Responsável</Label>
+          <Input value={form.owner} onChange={(e) => setForm({ ...form, owner: e.target.value })} />
+        </div>
+        <div>
+          <Label>Data de instalação</Label>
+          <Input type="date" value={form.installDate} onChange={(e) => setForm({ ...form, installDate: e.target.value })} />
+        </div>
+        <div>
+          <Label>Data de retirada</Label>
+          <Input type="date" value={form.removalDate} onChange={(e) => setForm({ ...form, removalDate: e.target.value })} />
+        </div>
+        <div>
+          <Label>Valor (R$)</Label>
+          <Input type="number" value={form.value} onChange={(e) => setForm({ ...form, value: Number(e.target.value) || 0 })} />
+        </div>
+        <div>
+          <Label>Centro de custo</Label>
+          <Input value={form.costCenter} onChange={(e) => setForm({ ...form, costCenter: e.target.value })} />
+        </div>
+        <div className="col-span-2">
+          <Label>Observações</Label>
+          <Textarea rows={3} value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })} />
+        </div>
+      </div>
+      <DialogFooter>
+        <Button variant="outline" onClick={onClose}>Cancelar</Button>
+        <Button onClick={submit}>Salvar alterações</Button>
       </DialogFooter>
     </DialogContent>
   );
