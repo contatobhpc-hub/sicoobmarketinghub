@@ -1,4 +1,5 @@
 import { useSyncExternalStore } from "react";
+import { enableCloudSync } from "./cloud-sync";
 
 export const PLAN_STATUSES = ["Rascunho", "Em execução", "Concluído", "Arquivado"] as const;
 export type PlanStatus = (typeof PLAN_STATUSES)[number];
@@ -183,8 +184,10 @@ let state: StrategicPlan[] = (() => {
 })();
 
 const listeners = new Set<() => void>();
+const cloudPush = enableCloudSync<StrategicPlan[]>("strategic-planning", () => state, (s) => { state = s; listeners.forEach((l) => l()); });
 function emit() {
   try { localStorage.setItem(KEY, JSON.stringify(state)); } catch {}
+  cloudPush();
   listeners.forEach((l) => l());
 }
 

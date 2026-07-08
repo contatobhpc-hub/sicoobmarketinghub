@@ -1,4 +1,5 @@
 import { useSyncExternalStore } from "react";
+import { enableCloudSync } from "./cloud-sync";
 
 export const SPONSORSHIP_TYPES = [
   "Master",
@@ -242,8 +243,10 @@ function save(s: Sponsorship[]) {
 
 let state: Sponsorship[] = load();
 const listeners = new Set<() => void>();
+const cloudPush = enableCloudSync<Sponsorship[]>("sponsorships", () => state, (s) => { state = s; listeners.forEach((l) => l()); });
 function emit() {
   save(state);
+  cloudPush();
   listeners.forEach((l) => l());
 }
 function pushTimeline(s: Sponsorship, t: Omit<SponsorshipTimelineEntry, "id" | "createdAt">): Sponsorship {

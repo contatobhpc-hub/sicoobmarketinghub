@@ -1,4 +1,5 @@
 import { useSyncExternalStore } from "react";
+import { enableCloudSync } from "./cloud-sync";
 
 export const CONTENT_CATEGORIES = [
   "Legendas",
@@ -181,8 +182,9 @@ function load(): ContentItem[] {
 
 let state = load();
 const listeners = new Set<() => void>();
+const cloudPush = enableCloudSync<ContentItem[]>("content-library", () => state, (s) => { state = s; listeners.forEach((l) => l()); });
 function persist() { if (typeof window !== "undefined") window.localStorage.setItem(KEY, JSON.stringify(state)); }
-function emit() { persist(); listeners.forEach((l) => l()); }
+function emit() { persist(); cloudPush(); listeners.forEach((l) => l()); }
 function pushHistory(c: ContentItem, message: string, author = "Você"): ContentItem {
   return { ...c, history: [{ id: uid("h"), message, author, createdAt: now() }, ...c.history], updatedAt: now() };
 }

@@ -1,4 +1,5 @@
 import { useSyncExternalStore } from "react";
+import { enableCloudSync } from "./cloud-sync";
 
 export const OFFLINE_MEDIA_DEFAULT_CATEGORIES = [
   "Outdoor",
@@ -265,8 +266,10 @@ function save(s: OfflineMedia[]) {
 
 let state: OfflineMedia[] = load();
 const listeners = new Set<() => void>();
+const cloudPush = enableCloudSync<OfflineMedia[]>("offline-media", () => state, (s) => { state = s; listeners.forEach((l) => l()); });
 function emit() {
   save(state);
+  cloudPush();
   listeners.forEach((l) => l());
 }
 function pushTimeline(m: OfflineMedia, t: Omit<OfflineMediaTimelineEntry, "id" | "createdAt">): OfflineMedia {

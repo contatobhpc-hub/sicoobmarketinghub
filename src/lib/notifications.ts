@@ -77,6 +77,9 @@ const DEFAULT_PREFS: NotificationPrefs = {
 const listeners = new Set<() => void>();
 let state: Notification[] = load();
 let prefs: NotificationPrefs = loadPrefs();
+import { enableCloudSync as _ecs } from "./cloud-sync";
+const cloudPushN = _ecs<Notification[]>("notifications", () => state, (s) => { state = s; listeners.forEach((l) => l()); });
+const cloudPushP = _ecs<NotificationPrefs>("notifications-prefs", () => prefs, (s) => { prefs = s; listeners.forEach((l) => l()); });
 
 function seed(): Notification[] {
   const now = Date.now();
@@ -115,9 +118,11 @@ function loadPrefs(): NotificationPrefs {
 
 function persist() {
   try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch {}
+  cloudPushN();
 }
 function persistPrefs() {
   try { localStorage.setItem(PREFS_KEY, JSON.stringify(prefs)); } catch {}
+  cloudPushP();
 }
 function emit() { listeners.forEach((l) => l()); }
 
