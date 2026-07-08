@@ -313,6 +313,19 @@ export const financeStore = {
     state = { ...state, suppliers: [{ ...input, id: uid("sup") }, ...state.suppliers] };
     emit();
   },
+  removeSupplier: (id: string) => {
+    state = {
+      ...state,
+      suppliers: state.suppliers.filter((s) => s.id !== id),
+      expenses: state.expenses.map((e) => (e.supplierId === id ? { ...e, supplierId: undefined } : e)),
+      invoices: state.invoices.map((i) => (i.supplierId === id ? { ...i, supplierId: undefined } : i)),
+      payments: state.payments.map((p) => (p.supplierId === id ? { ...p, supplierId: undefined } : p)),
+      purchaseRequests: state.purchaseRequests.map((pr) =>
+        pr.supplierId === id ? { ...pr, supplierId: undefined } : pr,
+      ),
+    };
+    emit();
+  },
   addCostCenter: (input: Omit<CostCenter, "id">) => {
     state = { ...state, costCenters: [{ ...input, id: uid("cc") }, ...state.costCenters] };
     emit();
