@@ -774,6 +774,7 @@ function NewMediaDialog({ onClose }: { onClose: () => void }) {
 }
 
 function EditMediaDialog({ media, onClose }: { media: OfflineMedia; onClose: () => void }) {
+  const categories = useOfflineMediaCategories();
   const [form, setForm] = useState({
     title: media.title,
     category: media.category,
