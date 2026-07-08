@@ -4,6 +4,7 @@ import {
   Link,
   createRootRouteWithContext,
   useRouter,
+  useNavigate,
   HeadContent,
   Scripts,
 } from "@tanstack/react-router";
@@ -79,14 +80,13 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Lovable App" },
-      { name: "description", content: "Lovable Generated Project" },
-      { name: "author", content: "Lovable" },
-      { property: "og:title", content: "Lovable App" },
-      { property: "og:description", content: "Lovable Generated Project" },
+      { title: "Marketing Hub Sicoob" },
+      { name: "description", content: "Hub operacional de marketing para campanhas, contratos, parceiros e indicadores." },
+      { name: "author", content: "Marketing Hub" },
+      { property: "og:title", content: "Marketing Hub Sicoob" },
+      { property: "og:description", content: "Gestão integrada de campanhas, contratos, parceiros, eventos e operações de marketing." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
-      { name: "twitter:site", content: "@Lovable" },
     ],
     links: [
       { rel: "stylesheet", href: appCss },
@@ -141,18 +141,19 @@ function RootComponent() {
 function AuthGate({ children }: { children: ReactNode }) {
   const { session, loading } = useAuth();
   const router = useRouter();
+  const navigate = useNavigate();
   const path = router.state.location.pathname;
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-background text-muted-foreground text-sm">
-        Carregando…
-      </div>
-    );
-  }
-  if (!session && path !== "/auth") {
-    if (typeof window !== "undefined") {
-      window.location.replace("/auth");
+  const isAuthRoute = path === "/auth";
+
+  useEffect(() => {
+    if (!loading && !session && !isAuthRoute) {
+      navigate({ to: "/auth", replace: true });
     }
+  }, [isAuthRoute, loading, navigate, session]);
+
+  if (isAuthRoute) return <>{children}</>;
+
+  if (!loading && !session) {
     return null;
   }
   return <>{children}</>;

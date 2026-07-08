@@ -339,11 +339,16 @@ export async function hydratePartnersFromCloud(userId: string | null) {
 }
 
 if (typeof window !== "undefined") {
-  supabase.auth.getSession().then(({ data }) => {
-    if (data.session?.user) hydratePartnersFromCloud(data.session.user.id);
-  });
+  supabase.auth
+    .getSession()
+    .then(({ data }) => {
+      if (data.session?.user) void hydratePartnersFromCloud(data.session.user.id);
+    })
+    .catch((error) => console.error("[partners] auth session", error));
   supabase.auth.onAuthStateChange((_evt, session) => {
-    hydratePartnersFromCloud(session?.user?.id ?? null);
+    setTimeout(() => {
+      void hydratePartnersFromCloud(session?.user?.id ?? null);
+    }, 0);
   });
 }
 
