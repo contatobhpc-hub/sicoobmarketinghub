@@ -219,6 +219,13 @@ const cloudPush = enableCloudSync<Campaign[]>("campaigns", () => state, (s) => {
   listeners.forEach((l) => l());
 });
 
+// Garante que as campanhas do calendário CNV 2026 fiquem persistidas no
+// localStorage e sincronizadas com a nuvem já no primeiro load.
+if (typeof window !== "undefined") {
+  window.localStorage.setItem(KEY, JSON.stringify(state));
+  setTimeout(() => cloudPush(), 0);
+}
+
 function persist() {
   if (typeof window === "undefined") return;
   window.localStorage.setItem(KEY, JSON.stringify(state));
