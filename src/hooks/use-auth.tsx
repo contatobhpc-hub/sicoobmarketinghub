@@ -16,15 +16,42 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const { data: sub } = supabase.auth.onAuthStateChange((_evt, s) => {
+    let done = false;
+    const finish = (s: Session | null) => {
+      if (done) return;
+      done = true;
       setSession(s);
       setLoading(false);
-    });
-    supabase.auth.getSession().then(({ data }) => {
-      setSession(data.session);
-      setLoading(false);
-    });
-    return () => sub.subscription.unsubscribe();
+    };
+
+    let unsub = () => {};
+    try {
+      const { data: sub } = supabase.auth.onAuthStateChange((_evt, s) => {
+        // update session on subsequent changes too
+        setSession(s);
+        setLoading(false);
+        done = true;
+      });
+      unsub = () => sub.subscription.unsubscribe();
+      supabase.auth
+        .getSession()
+        .then(({ data }) => finish(data.session))
+        .catch((e) => {
+          console.error("[auth] getSession failed", e);
+          finish(null);
+        });
+    } catch (e) {
+      console.error("[auth] init failed", e);
+      finish(null);
+    }
+
+    // Safety net: never leave the UI stuck on the loading screen.
+    const safety = setTimeout(() => finish(null), 4000);
+
+    return () => {
+      clearTimeout(safety);
+      unsub();
+    };
   }, []);
 
   return (
