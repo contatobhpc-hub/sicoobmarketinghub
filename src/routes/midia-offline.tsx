@@ -481,20 +481,31 @@ function ListView({ items, onOpen }: { items: OfflineMedia[]; onOpen: (id: strin
                 </span>
               )}
             </button>
-            <Button
-              size="icon"
-              variant="ghost"
-              className="mr-2 size-8 text-muted-foreground opacity-0 transition group-hover:opacity-100 hover:text-red-400"
-              onClick={() => {
-                if (confirm(`Remover a mídia "${m.title}"?`)) {
-                  offlineMediaStore.remove(m.id);
-                  toast.success("Mídia removida.");
-                }
-              }}
-              aria-label="Remover mídia"
-            >
-              <Trash2 className="size-4" />
-            </Button>
+            <div className="mr-2 flex items-center gap-1 opacity-0 transition group-hover:opacity-100">
+              <Button
+                size="icon"
+                variant="ghost"
+                className="size-8 text-muted-foreground hover:text-primary"
+                onClick={() => onOpen(m.id)}
+                aria-label="Editar mídia"
+              >
+                <Pencil className="size-4" />
+              </Button>
+              <Button
+                size="icon"
+                variant="ghost"
+                className="size-8 text-muted-foreground hover:text-red-400"
+                onClick={() => {
+                  if (confirm(`Remover a mídia "${m.title}"?`)) {
+                    offlineMediaStore.remove(m.id);
+                    toast.success("Mídia removida.");
+                  }
+                }}
+                aria-label="Remover mídia"
+              >
+                <Trash2 className="size-4" />
+              </Button>
+            </div>
           </div>
         );
 
