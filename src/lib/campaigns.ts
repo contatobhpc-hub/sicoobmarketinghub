@@ -155,6 +155,7 @@ function load(): Campaign[] {
 
 let state: Campaign[] = load();
 const listeners = new Set<() => void>();
+const cloudPush = enableCloudSync<Campaign[]>("campaigns", () => state, (s) => { state = s; listeners.forEach((l) => l()); });
 
 function persist() {
   if (typeof window === "undefined") return;
@@ -163,6 +164,7 @@ function persist() {
 
 function emit() {
   persist();
+  cloudPush();
   listeners.forEach((l) => l());
 }
 

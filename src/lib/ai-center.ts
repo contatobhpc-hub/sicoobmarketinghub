@@ -1,4 +1,5 @@
 import { useSyncExternalStore } from "react";
+import { enableCloudSync } from "./cloud-sync";
 
 const KEY = "mh:ai-center:v1";
 
@@ -85,9 +86,11 @@ function load(): State {
 
 let state: State = load();
 const listeners = new Set<() => void>();
+const cloudPush = enableCloudSync<State>("ai-center", () => state, (s) => { state = s; listeners.forEach((l) => l()); });
 
 function save() {
   try { localStorage.setItem(KEY, JSON.stringify(state)); } catch {}
+  cloudPush();
   listeners.forEach((l) => l());
 }
 
