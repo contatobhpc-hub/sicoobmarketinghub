@@ -296,11 +296,16 @@ export async function hydrateFinanceFromCloud(userId: string | null) {
 }
 
 if (typeof window !== "undefined") {
-  supabase.auth.getSession().then(({ data }) => {
-    if (data.session?.user) hydrateFinanceFromCloud(data.session.user.id);
-  });
+  supabase.auth
+    .getSession()
+    .then(({ data }) => {
+      if (data.session?.user) void hydrateFinanceFromCloud(data.session.user.id);
+    })
+    .catch((error) => console.error("[finance] auth session", error));
   supabase.auth.onAuthStateChange((_evt, session) => {
-    hydrateFinanceFromCloud(session?.user?.id ?? null);
+    setTimeout(() => {
+      void hydrateFinanceFromCloud(session?.user?.id ?? null);
+    }, 0);
   });
 }
 

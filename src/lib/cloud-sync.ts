@@ -81,7 +81,14 @@ export function enableCloudSync<T>(
     if (cloud != null) replaceState(cloud);
     else scheduleModulePush(module, getState);
   };
-  supabase.auth.getSession().then(({ data }) => hydrate(data.session?.user?.id ?? null));
-  supabase.auth.onAuthStateChange((_e, s) => hydrate(s?.user?.id ?? null));
+  supabase.auth
+    .getSession()
+    .then(({ data }) => hydrate(data.session?.user?.id ?? null))
+    .catch((error) => console.error(`[cloud-sync:${module}] auth session`, error));
+  supabase.auth.onAuthStateChange((_e, s) => {
+    setTimeout(() => {
+      void hydrate(s?.user?.id ?? null);
+    }, 0);
+  });
   return push;
 }

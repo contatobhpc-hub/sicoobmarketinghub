@@ -257,11 +257,16 @@ export async function hydrateContractsFromCloud(userId: string | null) {
 }
 
 if (typeof window !== "undefined") {
-  supabase.auth.getSession().then(({ data }) => {
-    if (data.session?.user) hydrateContractsFromCloud(data.session.user.id);
-  });
+  supabase.auth
+    .getSession()
+    .then(({ data }) => {
+      if (data.session?.user) void hydrateContractsFromCloud(data.session.user.id);
+    })
+    .catch((error) => console.error("[contracts] auth session", error));
   supabase.auth.onAuthStateChange((_evt, session) => {
-    hydrateContractsFromCloud(session?.user?.id ?? null);
+    setTimeout(() => {
+      void hydrateContractsFromCloud(session?.user?.id ?? null);
+    }, 0);
   });
 }
 
