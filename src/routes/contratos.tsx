@@ -838,3 +838,60 @@ function EditContractDialog({ contract, onDone }: { contract: Contract; onDone: 
     </>
   );
 }
+
+function ContractCategoriesTab() {
+  const categories = useContractCategories();
+  const [name, setName] = useState("");
+
+  const add = () => {
+    const v = name.trim();
+    if (!v) return;
+    const ok = contractCategoriesStore.add(v);
+    if (!ok) {
+      toast.error("Categoria já existe");
+      return;
+    }
+    toast.success(`Categoria "${v}" adicionada`);
+    setName("");
+  };
+  const remove = (c: string) => {
+    if (!window.confirm(`Remover categoria "${c}"?`)) return;
+    contractCategoriesStore.remove(c);
+    toast.success(`Categoria "${c}" removida`);
+  };
+
+  return (
+    <>
+      <div className="flex gap-2">
+        <Input
+          placeholder="Nova categoria de contrato"
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          onKeyDown={(e) => e.key === "Enter" && add()}
+        />
+        <Button onClick={add} size="sm" className="gap-1">
+          <Plus className="h-4 w-4" /> Adicionar
+        </Button>
+      </div>
+      {categories.length === 0 ? (
+        <p className="text-sm text-muted-foreground py-4 text-center">Nenhuma categoria.</p>
+      ) : (
+        <ul className="mt-3 max-h-72 divide-y divide-border overflow-y-auto rounded-md border border-border">
+          {categories.map((c) => (
+            <li key={c} className="flex items-center justify-between px-3 py-2">
+              <Badge variant="secondary" className="truncate">{c}</Badge>
+              <Button
+                size="icon"
+                variant="ghost"
+                className="h-7 w-7 text-muted-foreground hover:text-destructive"
+                onClick={() => remove(c)}
+              >
+                <Trash2 className="h-4 w-4" />
+              </Button>
+            </li>
+          ))}
+        </ul>
+      )}
+    </>
+  );
+}
