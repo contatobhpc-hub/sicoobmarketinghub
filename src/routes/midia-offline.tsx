@@ -159,16 +159,20 @@ function MidiaOfflinePage() {
         </div>
       </Card>
 
-      {view === "cards" && <CardsView items={filtered} onOpen={setOpenId} />}
+      {view === "cards" && <CardsView items={filtered} onOpen={setOpenId} onEdit={setEditId} />}
       {view === "map" && <MapView items={filtered} onOpen={setOpenId} />}
       {view === "calendar" && <CalendarView items={filtered} onOpen={setOpenId} />}
-      {view === "list" && <ListView items={filtered} onOpen={setOpenId} />}
+      {view === "list" && <ListView items={filtered} onOpen={setOpenId} onEdit={setEditId} />}
 
       <Sheet open={!!selected} onOpenChange={(o) => !o && setOpenId(null)}>
         <SheetContent side="right" className="w-full overflow-y-auto sm:max-w-xl">
           {selected && <MediaDetail media={selected} />}
         </SheetContent>
       </Sheet>
+
+      <Dialog open={!!editing} onOpenChange={(o) => !o && setEditId(null)}>
+        {editing && <EditMediaDialog media={editing} onClose={() => setEditId(null)} />}
+      </Dialog>
     </AppShell>
   );
 }
