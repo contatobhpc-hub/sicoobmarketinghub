@@ -28,6 +28,7 @@ import { Route as CentralIaRouteImport } from './routes/central-ia'
 import { Route as CampanhasRouteImport } from './routes/campanhas'
 import { Route as CalendarioRouteImport } from './routes/calendario'
 import { Route as BrindesRouteImport } from './routes/brindes'
+import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AnalyticsRouteImport } from './routes/analytics'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as ProjetosIdRouteImport } from './routes/projetos.$id'
@@ -128,6 +129,11 @@ const BrindesRoute = BrindesRouteImport.update({
   path: '/brindes',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthRoute = AuthRouteImport.update({
+  id: '/auth',
+  path: '/auth',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AnalyticsRoute = AnalyticsRouteImport.update({
   id: '/analytics',
   path: '/analytics',
@@ -152,6 +158,7 @@ const CampanhasIdRoute = CampanhasIdRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/analytics': typeof AnalyticsRoute
+  '/auth': typeof AuthRoute
   '/brindes': typeof BrindesRoute
   '/calendario': typeof CalendarioRoute
   '/campanhas': typeof CampanhasRouteWithChildren
@@ -177,6 +184,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/analytics': typeof AnalyticsRoute
+  '/auth': typeof AuthRoute
   '/brindes': typeof BrindesRoute
   '/calendario': typeof CalendarioRoute
   '/campanhas': typeof CampanhasRouteWithChildren
@@ -203,6 +211,7 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/analytics': typeof AnalyticsRoute
+  '/auth': typeof AuthRoute
   '/brindes': typeof BrindesRoute
   '/calendario': typeof CalendarioRoute
   '/campanhas': typeof CampanhasRouteWithChildren
@@ -230,6 +239,7 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/analytics'
+    | '/auth'
     | '/brindes'
     | '/calendario'
     | '/campanhas'
@@ -255,6 +265,7 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/analytics'
+    | '/auth'
     | '/brindes'
     | '/calendario'
     | '/campanhas'
@@ -280,6 +291,7 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/analytics'
+    | '/auth'
     | '/brindes'
     | '/calendario'
     | '/campanhas'
@@ -306,6 +318,7 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AnalyticsRoute: typeof AnalyticsRoute
+  AuthRoute: typeof AuthRoute
   BrindesRoute: typeof BrindesRoute
   CalendarioRoute: typeof CalendarioRoute
   CampanhasRoute: typeof CampanhasRouteWithChildren
@@ -462,6 +475,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof BrindesRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/auth': {
+      id: '/auth'
+      path: '/auth'
+      fullPath: '/auth'
+      preLoaderRoute: typeof AuthRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/analytics': {
       id: '/analytics'
       path: '/analytics'
@@ -520,6 +540,7 @@ const ProjetosRouteWithChildren = ProjetosRoute._addFileChildren(
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AnalyticsRoute: AnalyticsRoute,
+  AuthRoute: AuthRoute,
   BrindesRoute: BrindesRoute,
   CalendarioRoute: CalendarioRoute,
   CampanhasRoute: CampanhasRouteWithChildren,

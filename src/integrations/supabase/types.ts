@@ -14,16 +14,474 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      finance_budget: {
+        Row: {
+          approved: number
+          category: string
+          created_at: string
+          id: string
+          planned: number
+          updated_at: string
+          year: number
+        }
+        Insert: {
+          approved?: number
+          category: string
+          created_at?: string
+          id?: string
+          planned?: number
+          updated_at?: string
+          year: number
+        }
+        Update: {
+          approved?: number
+          category?: string
+          created_at?: string
+          id?: string
+          planned?: number
+          updated_at?: string
+          year?: number
+        }
+        Relationships: []
+      }
+      finance_cost_centers: {
+        Row: {
+          active: boolean
+          code: string
+          created_at: string
+          id: string
+          name: string
+          responsible: string | null
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean
+          code: string
+          created_at?: string
+          id?: string
+          name: string
+          responsible?: string | null
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean
+          code?: string
+          created_at?: string
+          id?: string
+          name?: string
+          responsible?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      finance_expenses: {
+        Row: {
+          attachment_name: string | null
+          campaign_id: string | null
+          category: string | null
+          cost_center_id: string | null
+          created_at: string
+          date: string
+          description: string
+          id: string
+          invoice_id: string | null
+          notes: string | null
+          owner: string | null
+          payment_method: string | null
+          quantity: number
+          supplier_id: string | null
+          unit_value: number
+          updated_at: string
+        }
+        Insert: {
+          attachment_name?: string | null
+          campaign_id?: string | null
+          category?: string | null
+          cost_center_id?: string | null
+          created_at?: string
+          date?: string
+          description: string
+          id?: string
+          invoice_id?: string | null
+          notes?: string | null
+          owner?: string | null
+          payment_method?: string | null
+          quantity?: number
+          supplier_id?: string | null
+          unit_value?: number
+          updated_at?: string
+        }
+        Update: {
+          attachment_name?: string | null
+          campaign_id?: string | null
+          category?: string | null
+          cost_center_id?: string | null
+          created_at?: string
+          date?: string
+          description?: string
+          id?: string
+          invoice_id?: string | null
+          notes?: string | null
+          owner?: string | null
+          payment_method?: string | null
+          quantity?: number
+          supplier_id?: string | null
+          unit_value?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "finance_expenses_cost_center_id_fkey"
+            columns: ["cost_center_id"]
+            isOneToOne: false
+            referencedRelation: "finance_cost_centers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "finance_expenses_supplier_id_fkey"
+            columns: ["supplier_id"]
+            isOneToOne: false
+            referencedRelation: "finance_suppliers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      finance_invoices: {
+        Row: {
+          campaign_id: string | null
+          category: string | null
+          cost_center_id: string | null
+          created_at: string
+          date: string
+          due_date: string | null
+          event_id: string | null
+          id: string
+          notes: string | null
+          number: string
+          pdf_name: string | null
+          project_id: string | null
+          receipt_name: string | null
+          received_at: string | null
+          received_by: string | null
+          sent_by: string | null
+          sent_to_payment_at: string | null
+          status: string | null
+          supplier_id: string | null
+          updated_at: string
+          value: number
+          xml_name: string | null
+        }
+        Insert: {
+          campaign_id?: string | null
+          category?: string | null
+          cost_center_id?: string | null
+          created_at?: string
+          date?: string
+          due_date?: string | null
+          event_id?: string | null
+          id?: string
+          notes?: string | null
+          number: string
+          pdf_name?: string | null
+          project_id?: string | null
+          receipt_name?: string | null
+          received_at?: string | null
+          received_by?: string | null
+          sent_by?: string | null
+          sent_to_payment_at?: string | null
+          status?: string | null
+          supplier_id?: string | null
+          updated_at?: string
+          value?: number
+          xml_name?: string | null
+        }
+        Update: {
+          campaign_id?: string | null
+          category?: string | null
+          cost_center_id?: string | null
+          created_at?: string
+          date?: string
+          due_date?: string | null
+          event_id?: string | null
+          id?: string
+          notes?: string | null
+          number?: string
+          pdf_name?: string | null
+          project_id?: string | null
+          receipt_name?: string | null
+          received_at?: string | null
+          received_by?: string | null
+          sent_by?: string | null
+          sent_to_payment_at?: string | null
+          status?: string | null
+          supplier_id?: string | null
+          updated_at?: string
+          value?: number
+          xml_name?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "finance_invoices_cost_center_id_fkey"
+            columns: ["cost_center_id"]
+            isOneToOne: false
+            referencedRelation: "finance_cost_centers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "finance_invoices_supplier_id_fkey"
+            columns: ["supplier_id"]
+            isOneToOne: false
+            referencedRelation: "finance_suppliers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      finance_payments: {
+        Row: {
+          created_at: string
+          description: string
+          due_date: string
+          id: string
+          invoice_id: string | null
+          method: string | null
+          paid_at: string | null
+          status: string | null
+          supplier_id: string | null
+          updated_at: string
+          value: number
+        }
+        Insert: {
+          created_at?: string
+          description: string
+          due_date: string
+          id?: string
+          invoice_id?: string | null
+          method?: string | null
+          paid_at?: string | null
+          status?: string | null
+          supplier_id?: string | null
+          updated_at?: string
+          value?: number
+        }
+        Update: {
+          created_at?: string
+          description?: string
+          due_date?: string
+          id?: string
+          invoice_id?: string | null
+          method?: string | null
+          paid_at?: string | null
+          status?: string | null
+          supplier_id?: string | null
+          updated_at?: string
+          value?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "finance_payments_invoice_id_fkey"
+            columns: ["invoice_id"]
+            isOneToOne: false
+            referencedRelation: "finance_invoices"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "finance_payments_supplier_id_fkey"
+            columns: ["supplier_id"]
+            isOneToOne: false
+            referencedRelation: "finance_suppliers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      finance_purchase_requests: {
+        Row: {
+          campaign_id: string | null
+          code: string
+          cost_center_id: string | null
+          created_at: string
+          description: string
+          estimated_value: number | null
+          id: string
+          justification: string | null
+          project_id: string | null
+          requester: string | null
+          status: string | null
+          supplier_id: string | null
+          timeline: Json | null
+          updated_at: string
+          urgency: string | null
+        }
+        Insert: {
+          campaign_id?: string | null
+          code: string
+          cost_center_id?: string | null
+          created_at?: string
+          description: string
+          estimated_value?: number | null
+          id?: string
+          justification?: string | null
+          project_id?: string | null
+          requester?: string | null
+          status?: string | null
+          supplier_id?: string | null
+          timeline?: Json | null
+          updated_at?: string
+          urgency?: string | null
+        }
+        Update: {
+          campaign_id?: string | null
+          code?: string
+          cost_center_id?: string | null
+          created_at?: string
+          description?: string
+          estimated_value?: number | null
+          id?: string
+          justification?: string | null
+          project_id?: string | null
+          requester?: string | null
+          status?: string | null
+          supplier_id?: string | null
+          timeline?: Json | null
+          updated_at?: string
+          urgency?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "finance_purchase_requests_cost_center_id_fkey"
+            columns: ["cost_center_id"]
+            isOneToOne: false
+            referencedRelation: "finance_cost_centers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "finance_purchase_requests_supplier_id_fkey"
+            columns: ["supplier_id"]
+            isOneToOne: false
+            referencedRelation: "finance_suppliers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      finance_suppliers: {
+        Row: {
+          annual_investment: number | null
+          category: string | null
+          city: string | null
+          company: string
+          contact: string | null
+          contract_ref: string | null
+          created_at: string
+          email: string | null
+          id: string
+          monthly_investment: number | null
+          partner_id: string | null
+          phone: string | null
+          products: string[] | null
+          rating: number | null
+          updated_at: string
+        }
+        Insert: {
+          annual_investment?: number | null
+          category?: string | null
+          city?: string | null
+          company: string
+          contact?: string | null
+          contract_ref?: string | null
+          created_at?: string
+          email?: string | null
+          id?: string
+          monthly_investment?: number | null
+          partner_id?: string | null
+          phone?: string | null
+          products?: string[] | null
+          rating?: number | null
+          updated_at?: string
+        }
+        Update: {
+          annual_investment?: number | null
+          category?: string | null
+          city?: string | null
+          company?: string
+          contact?: string | null
+          contract_ref?: string | null
+          created_at?: string
+          email?: string | null
+          id?: string
+          monthly_investment?: number | null
+          partner_id?: string | null
+          phone?: string | null
+          products?: string[] | null
+          rating?: number | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          avatar_url: string | null
+          created_at: string
+          full_name: string | null
+          id: string
+          job_title: string | null
+          phone: string | null
+          updated_at: string
+        }
+        Insert: {
+          avatar_url?: string | null
+          created_at?: string
+          full_name?: string | null
+          id: string
+          job_title?: string | null
+          phone?: string | null
+          updated_at?: string
+        }
+        Update: {
+          avatar_url?: string | null
+          created_at?: string
+          full_name?: string | null
+          id?: string
+          job_title?: string | null
+          phone?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      user_roles: {
+        Row: {
+          created_at: string
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
     }
     Enums: {
-      [_ in never]: never
+      app_role: "admin" | "gestor" | "analista" | "visualizador"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +608,8 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      app_role: ["admin", "gestor", "analista", "visualizador"],
+    },
   },
 } as const

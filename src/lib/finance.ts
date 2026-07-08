@@ -1,5 +1,7 @@
 import { useEffect, useSyncExternalStore } from "react";
 import { partnersStore, type Partner } from "./partners";
+import { loadFinanceFromCloud, schedulePush, setCurrentUser } from "./finance-cloud";
+import { supabase } from "@/integrations/supabase/client";
 
 export const BUDGET_CATEGORIES = [
   "Campanhas Comerciais",
@@ -263,9 +265,44 @@ let state: FinanceState = (() => {
 const listeners = new Set<() => void>();
 function emit() {
   try { localStorage.setItem(KEY, JSON.stringify(state)); } catch {}
+  schedulePush(() => state);
   listeners.forEach((l) => l());
 }
 function subscribe(l: () => void) { listeners.add(l); return () => listeners.delete(l); }
+
+// Hydrate from Supabase whenever the auth session changes.
+let hydrated = false;
+export async function hydrateFinanceFromCloud(userId: string | null) {
+  setCurrentUser(userId);
+  if (!userId) { hydrated = false; return; }
+  const cloud = await loadFinanceFromCloud();
+  if (!cloud) return;
+  const isEmpty =
+    cloud.budget.length === 0 &&
+    cloud.suppliers.length === 0 &&
+    cloud.expenses.length === 0 &&
+    cloud.invoices.length === 0 &&
+    cloud.payments.length === 0 &&
+    cloud.purchaseRequests.length === 0 &&
+    cloud.costCenters.length === 0;
+  if (isEmpty && !hydrated) {
+    // First login: push local seed/localStorage state to the cloud.
+    schedulePush(() => state);
+  } else {
+    state = cloud;
+    listeners.forEach((l) => l());
+  }
+  hydrated = true;
+}
+
+if (typeof window !== "undefined") {
+  supabase.auth.getSession().then(({ data }) => {
+    if (data.session?.user) hydrateFinanceFromCloud(data.session.user.id);
+  });
+  supabase.auth.onAuthStateChange((_evt, session) => {
+    hydrateFinanceFromCloud(session?.user?.id ?? null);
+  });
+}
 
 export const financeStore = {
   get: () => state,
