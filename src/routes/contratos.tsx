@@ -773,7 +773,7 @@ function EditContractDialog({ contract, onDone }: { contract: Contract; onDone: 
         <Field label="Categoria">
           <Select value={category} onValueChange={(v) => setCategory(v as ContractCategory)}>
             <SelectTrigger><SelectValue /></SelectTrigger>
-            <SelectContent>{CONTRACT_CATEGORIES.map((c) => <SelectItem key={c} value={c}>{c}</SelectItem>)}</SelectContent>
+            <SelectContent>{allCategories.map((c) => <SelectItem key={c} value={c}>{c}</SelectItem>)}</SelectContent>
           </Select>
         </Field>
         <div className="col-span-2"><Field label="Objeto"><Textarea rows={2} value={object} onChange={(e) => setObject(e.target.value)} /></Field></div>
