@@ -80,6 +80,7 @@ export type FinanceSupplier = {
   contractRef?: string;
   products: string[];
   rating: number; // 0-5
+  partnerId?: string;
 };
 
 export type Expense = {
