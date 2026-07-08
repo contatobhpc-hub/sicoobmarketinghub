@@ -27,6 +27,7 @@ import {
   Megaphone,
   Plus,
   Search,
+  Pencil,
   Trash2,
   Truck,
   Upload,
