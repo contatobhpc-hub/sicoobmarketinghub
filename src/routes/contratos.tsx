@@ -550,11 +550,11 @@ function ContractDetail({ contract, onClose }: { contract: Contract; onClose: ()
                   <FileText className="size-4 text-primary" /> PDF do contrato
                 </h4>
                 {pdf ? (
-                  <FileLine name={pdf.name} size={pdf.size} onRemove={() => contractsStore.removeFile(fresh.id, pdf.id)} />
+                  <FileLine file={pdf} contractId={fresh.id} />
                 ) : (
                   <p className="text-sm text-muted-foreground">Nenhum PDF anexado.</p>
                 )}
-                <UploadInput partnerId={fresh.id} kind="pdf" label="Anexar PDF do contrato" />
+                <UploadInput contractId={fresh.id} kind="pdf" label="Anexar PDF do contrato" />
               </Card>
 
               <Card className="p-4 surface-elevated">
@@ -566,15 +566,10 @@ function ContractDetail({ contract, onClose }: { contract: Contract; onClose: ()
                 )}
                 <div className="space-y-2">
                   {attachments.map((f) => (
-                    <FileLine
-                      key={f.id}
-                      name={f.name}
-                      size={f.size}
-                      onRemove={() => contractsStore.removeFile(fresh.id, f.id)}
-                    />
+                    <FileLine key={f.id} file={f} contractId={fresh.id} />
                   ))}
                 </div>
-                <UploadInput partnerId={fresh.id} kind="attachment" label="Anexar arquivo" />
+                <UploadInput contractId={fresh.id} kind="attachment" label="Anexar arquivo" />
               </Card>
             </TabsContent>
 
@@ -620,36 +615,66 @@ function Info({ label, value }: { label: string; value: string }) {
   );
 }
 
-function FileLine({ name, size, onRemove }: { name: string; size: number; onRemove: () => void }) {
+function FileLine({ file, contractId }: { file: import("@/lib/contracts").ContractFile; contractId: string }) {
+  const [busy, setBusy] = useState(false);
+  async function open() {
+    if (!file.storagePath) { toast.error("Arquivo sem link no Storage."); return; }
+    setBusy(true);
+    const { getContractFileUrl } = await import("@/lib/contract-storage");
+    const url = await getContractFileUrl(file.storagePath);
+    setBusy(false);
+    if (url) window.open(url, "_blank");
+    else toast.error("Não foi possível gerar o link.");
+  }
+  async function remove() {
+    if (file.storagePath) {
+      const { deleteContractFile } = await import("@/lib/contract-storage");
+      await deleteContractFile(file.storagePath);
+    }
+    contractsStore.removeFile(contractId, file.id);
+  }
   return (
     <div className="flex items-center gap-3 p-3 rounded-lg surface-elevated">
       <FileText className="size-4 text-muted-foreground" />
-      <div className="flex-1 min-w-0">
-        <div className="text-sm truncate">{name}</div>
-        <div className="text-[11px] text-muted-foreground">{(size / 1024).toFixed(0)} KB</div>
-      </div>
-      <Button variant="ghost" size="icon" onClick={onRemove}>
+      <button className="flex-1 min-w-0 text-left" onClick={open} disabled={busy}>
+        <div className="text-sm truncate hover:text-primary">{file.name}</div>
+        <div className="text-[11px] text-muted-foreground">{(file.size / 1024).toFixed(0)} KB{file.storagePath ? " · nuvem" : " · local"}</div>
+      </button>
+      <Button variant="ghost" size="icon" onClick={remove}>
         <Trash2 className="size-4 text-muted-foreground" />
       </Button>
     </div>
   );
 }
 
-function UploadInput({ partnerId, kind, label }: { partnerId: string; kind: "pdf" | "attachment"; label: string }) {
+function UploadInput({ contractId, kind, label }: { contractId: string; kind: "pdf" | "attachment"; label: string }) {
+  const [busy, setBusy] = useState(false);
   return (
-    <label className="mt-3 flex items-center justify-center gap-2 cursor-pointer rounded-lg border border-dashed border-border/70 p-3 text-sm text-muted-foreground hover:border-primary/40 hover:text-foreground transition-colors">
+    <label className={cn("mt-3 flex items-center justify-center gap-2 cursor-pointer rounded-lg border border-dashed border-border/70 p-3 text-sm text-muted-foreground hover:border-primary/40 hover:text-foreground transition-colors", busy && "opacity-60 pointer-events-none")}>
       <Paperclip className="size-4" />
-      <span>{label}</span>
+      <span>{busy ? "Enviando..." : label}</span>
       <input
         type="file"
         className="hidden"
         multiple={kind === "attachment"}
         accept={kind === "pdf" ? "application/pdf" : undefined}
-        onChange={(e) => {
+        onChange={async (e) => {
           const files = Array.from(e.target.files ?? []);
-          files.forEach((f) => contractsStore.addFile(partnerId, { name: f.name, size: f.size, kind }));
-          if (files.length) toast.success(`${files.length} arquivo(s) anexado(s).`);
           e.target.value = "";
+          if (!files.length) return;
+          setBusy(true);
+          const { uploadContractFile } = await import("@/lib/contract-storage");
+          let ok = 0;
+          for (const f of files) {
+            const res = await uploadContractFile(contractId, f);
+            if (res) {
+              contractsStore.addFile(contractId, { name: f.name, size: f.size, kind, storagePath: res.path });
+              ok++;
+            }
+          }
+          setBusy(false);
+          if (ok) toast.success(`${ok} arquivo(s) enviados à nuvem.`);
+          if (ok < files.length) toast.error(`${files.length - ok} falha(s) no upload.`);
         }}
       />
     </label>
