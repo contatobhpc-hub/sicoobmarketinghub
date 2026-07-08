@@ -82,6 +82,8 @@ export type FinanceSupplier = {
   products: string[];
   rating: number; // 0-5
   partnerId?: string;
+  monthlyInvestment?: number;
+  annualInvestment?: number;
 };
 
 export type Expense = {
