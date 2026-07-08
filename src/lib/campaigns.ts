@@ -143,20 +143,88 @@ const seed: Campaign[] = [
   },
 ];
 
+// Calendário de Ações Comerciais CNV 2026 (fonte da verdade).
+// Semanas: 1ª = dias 1-7, 2ª = 8-14, 3ª = 15-21, 4ª = 22-fim do mês.
+type SeedCampaign = Omit<Campaign, "createdAt"> & { createdAt?: string };
+
+const CNV_CALENDAR_2026: SeedCampaign[] = [
+  // ===== 1º SEMESTRE =====
+  { id: "cnv-consignado-jan", name: "Consignado — Janeiro/Fevereiro", type: "Produto", objective: "Conversão", description: "Campanha Consignado (3ª sem jan → 1ª sem fev).", startDate: "2026-01-15", endDate: "2026-02-07", status: "Planejamento", priority: "Média", owner: "Equipe CNV", products: ["Consignado"], budget: 0, notes: "CNV 2026", files: [], modules: ["projeto", "calendario", "conteudos", "midia_offline"] },
+  { id: "cnv-seguros-gerais-copa", name: "Seguros Gerais — Copa da Proteção", type: "Produto", objective: "Awareness", description: "Copa da Proteção (2ª-4ª sem fev).", startDate: "2026-02-08", endDate: "2026-02-28", status: "Planejamento", priority: "Média", owner: "Equipe CNV", products: ["Seguros Gerais"], budget: 0, notes: "CNV 2026", files: [], modules: ["projeto", "calendario", "conteudos"] },
+  { id: "cnv-seg-vida-mulher", name: "Seg. Vida — Dia da Mulher", type: "Sazonal", objective: "Conversão", description: "Dia da Mulher (1ª-2ª sem mar).", startDate: "2026-03-01", endDate: "2026-03-14", status: "Planejamento", priority: "Alta", owner: "Equipe CNV", products: ["Seguro de Vida"], budget: 0, notes: "CNV 2026", files: [], modules: ["projeto", "calendario", "conteudos"] },
+  { id: "cnv-consorcio-mar", name: "Consórcio — Março", type: "Produto", objective: "Conversão", description: "Consórcio (3ª-4ª sem mar).", startDate: "2026-03-15", endDate: "2026-03-31", status: "Planejamento", priority: "Média", owner: "Equipe CNV", products: ["Consórcio"], budget: 0, notes: "CNV 2026", files: [], modules: ["projeto", "calendario", "conteudos"] },
+  { id: "cnv-cartoes-experience-pj", name: "Cartões — Experience Mastercard PJ", type: "Produto", objective: "Conversão", description: "Experience Mastercard PJ (3ª sem mar → 1ª sem abr).", startDate: "2026-03-15", endDate: "2026-04-07", status: "Planejamento", priority: "Média", owner: "Equipe CNV", products: ["Cartões PJ"], budget: 0, notes: "CNV 2026", files: [], modules: ["projeto", "calendario", "conteudos"] },
+  { id: "cnv-credito-pj-apoio-1s", name: "Crédito PJ — Mov. Apoio Empresário (1º sem)", type: "Produto", objective: "Conversão", description: "Apoio ao Empresário (4ª sem mar → 1ª sem abr).", startDate: "2026-03-22", endDate: "2026-04-07", status: "Planejamento", priority: "Alta", owner: "Equipe CNV", products: ["Crédito PJ"], budget: 0, notes: "CNV 2026", files: [], modules: ["projeto", "calendario", "conteudos"] },
+  { id: "cnv-seguro-rural-maquinas", name: "Seguro Rural — Máquinas/Equipamentos/Benfeitorias e Animais", type: "Produto", objective: "Conversão", description: "Contínua (fev-jun).", startDate: "2026-02-01", endDate: "2026-06-30", status: "Planejamento", priority: "Alta", owner: "Equipe CNV", products: ["Seguro Rural"], budget: 0, notes: "CNV 2026", files: [], modules: ["projeto", "calendario", "conteudos", "midia_offline"] },
+  { id: "cnv-seg-gerais-abr", name: "Seg. Gerais — Abril", type: "Produto", objective: "Conversão", description: "Seguros Gerais (2ª sem abr).", startDate: "2026-04-08", endDate: "2026-04-14", status: "Planejamento", priority: "Média", owner: "Equipe CNV", products: ["Seguros Gerais"], budget: 0, notes: "CNV 2026", files: [], modules: ["projeto", "calendario", "conteudos"] },
+  { id: "cnv-previdencia-1s", name: "Previdência (1º sem)", type: "Produto", objective: "Conversão", description: "Previdência (2ª sem abr → 1ª sem mai).", startDate: "2026-04-08", endDate: "2026-05-07", status: "Planejamento", priority: "Média", owner: "Equipe CNV", products: ["Previdência"], budget: 0, notes: "CNV 2026", files: [], modules: ["projeto", "calendario", "conteudos"] },
+  { id: "cnv-sipag-credenciamento", name: "Sipag — Credenciamento", type: "Produto", objective: "Conversão", description: "Sipag Credenciamento (3ª sem abr → 4ª sem mai).", startDate: "2026-04-15", endDate: "2026-05-31", status: "Planejamento", priority: "Alta", owner: "Equipe CNV", products: ["Sipag"], budget: 0, notes: "CNV 2026", files: [], modules: ["projeto", "calendario", "conteudos", "midia_offline"] },
+  { id: "cnv-seg-vida-maes", name: "Seg. Vida — Dia das Mães", type: "Sazonal", objective: "Conversão", description: "Dia das Mães (1ª-2ª sem mai).", startDate: "2026-05-01", endDate: "2026-05-14", status: "Planejamento", priority: "Alta", owner: "Equipe CNV", products: ["Seguro de Vida"], budget: 0, notes: "CNV 2026", files: [], modules: ["projeto", "calendario", "conteudos"] },
+  { id: "cnv-poupanca-premiada-1s", name: "Poupança Premiada (1º sem)", type: "Produto", objective: "Awareness", description: "Poupança Premiada (mai-jun).", startDate: "2026-05-01", endDate: "2026-06-30", status: "Planejamento", priority: "Média", owner: "Equipe CNV", products: ["Poupança"], budget: 0, notes: "CNV 2026", files: [], modules: ["projeto", "calendario", "conteudos"] },
+  { id: "cnv-consorcio-jun", name: "Consórcio — Junho", type: "Produto", objective: "Conversão", description: "Consórcio (2ª-3ª sem jun).", startDate: "2026-06-08", endDate: "2026-06-21", status: "Planejamento", priority: "Média", owner: "Equipe CNV", products: ["Consórcio"], budget: 0, notes: "CNV 2026", files: [], modules: ["projeto", "calendario", "conteudos"] },
+  { id: "cnv-cartoes-visa-jun", name: "Cartões — Grande Prêmio VISA (jun)", type: "Produto", objective: "Conversão", description: "Grande Prêmio VISA (3ª-4ª sem jun).", startDate: "2026-06-15", endDate: "2026-06-30", status: "Planejamento", priority: "Média", owner: "Equipe CNV", products: ["Cartões"], budget: 0, notes: "CNV 2026", files: [], modules: ["projeto", "calendario", "conteudos"] },
+  { id: "cnv-seg-gerais-jun", name: "Seg. Gerais — Junho", type: "Produto", objective: "Conversão", description: "Seguros Gerais (4ª sem jun).", startDate: "2026-06-22", endDate: "2026-06-30", status: "Planejamento", priority: "Média", owner: "Equipe CNV", products: ["Seguros Gerais"], budget: 0, notes: "CNV 2026", files: [], modules: ["projeto", "calendario", "conteudos"] },
+  { id: "cnv-cobranca-jun", name: "Cobrança Bancária — Junho", type: "Produto", objective: "Conversão", description: "Cobrança Bancária (4ª sem jun).", startDate: "2026-06-22", endDate: "2026-06-30", status: "Planejamento", priority: "Média", owner: "Equipe CNV", products: ["Cobrança Bancária"], budget: 0, notes: "CNV 2026", files: [], modules: ["projeto", "calendario", "conteudos"] },
+
+  // ===== 2º SEMESTRE =====
+  { id: "cnv-seg-vida-empresa", name: "Seg. Vida Empresa Protegida", type: "Produto", objective: "Conversão", description: "Empresa Protegida (1ª-2ª sem jul).", startDate: "2026-07-01", endDate: "2026-07-14", status: "Planejamento", priority: "Alta", owner: "Equipe CNV", products: ["Seguro de Vida"], budget: 0, notes: "CNV 2026", files: [], modules: ["projeto", "calendario", "conteudos"] },
+  { id: "cnv-cartoes-visa-jul", name: "Cartões — Grande Prêmio VISA (jul)", type: "Produto", objective: "Conversão", description: "Grande Prêmio VISA (1ª-3ª sem jul).", startDate: "2026-07-01", endDate: "2026-07-21", status: "Planejamento", priority: "Média", owner: "Equipe CNV", products: ["Cartões"], budget: 0, notes: "CNV 2026", files: [], modules: ["projeto", "calendario", "conteudos"] },
+  { id: "cnv-investimentos-todos", name: "Investimentos — Investir é para Todos", type: "Produto", objective: "Awareness", description: "Investimentos (2ª sem jul → 4ª sem ago).", startDate: "2026-07-08", endDate: "2026-08-31", status: "Planejamento", priority: "Alta", owner: "Equipe CNV", products: ["Investimentos"], budget: 0, notes: "CNV 2026", files: [], modules: ["projeto", "calendario", "conteudos"] },
+  { id: "cnv-seg-vida-pais", name: "Seg. Vida — Dia dos Pais", type: "Sazonal", objective: "Conversão", description: "Dia dos Pais (1ª sem ago).", startDate: "2026-08-01", endDate: "2026-08-07", status: "Planejamento", priority: "Alta", owner: "Equipe CNV", products: ["Seguro de Vida"], budget: 0, notes: "CNV 2026", files: [], modules: ["projeto", "calendario", "conteudos"] },
+  { id: "cnv-seguro-rural-ago", name: "Seguro Rural — Todos os Produtos (ago)", type: "Produto", objective: "Conversão", description: "Seguro Rural (1ª-4ª sem ago).", startDate: "2026-08-01", endDate: "2026-08-31", status: "Planejamento", priority: "Alta", owner: "Equipe CNV", products: ["Seguro Rural"], budget: 0, notes: "CNV 2026", files: [], modules: ["projeto", "calendario", "conteudos", "midia_offline"] },
+  { id: "cnv-consignado-ago", name: "Consignado — Agosto", type: "Produto", objective: "Conversão", description: "Consignado (2ª sem ago).", startDate: "2026-08-08", endDate: "2026-08-14", status: "Planejamento", priority: "Média", owner: "Equipe CNV", products: ["Consignado"], budget: 0, notes: "CNV 2026", files: [], modules: ["projeto", "calendario", "conteudos"] },
+  { id: "cnv-seg-gerais-acelera", name: "Seg. Gerais — Acelera Seguros", type: "Produto", objective: "Conversão", description: "Acelera Seguros (1ª-2ª sem set).", startDate: "2026-09-01", endDate: "2026-09-14", status: "Planejamento", priority: "Alta", owner: "Equipe CNV", products: ["Seguros Gerais"], budget: 0, notes: "CNV 2026", files: [], modules: ["projeto", "calendario", "conteudos"] },
+  { id: "cnv-credito-pf-veiculos", name: "Crédito PF — Financ. Veículos", type: "Produto", objective: "Conversão", description: "Financiamento de Veículos (1ª sem set → 1ª sem out).", startDate: "2026-09-01", endDate: "2026-10-07", status: "Planejamento", priority: "Alta", owner: "Equipe CNV", products: ["Crédito PF", "Financiamento de Veículos"], budget: 0, notes: "CNV 2026", files: [], modules: ["projeto", "calendario", "conteudos", "midia_offline"] },
+  { id: "cnv-consignado-out", name: "Consignado — Outubro", type: "Produto", objective: "Conversão", description: "Consignado (2ª-3ª sem out).", startDate: "2026-10-08", endDate: "2026-10-21", status: "Planejamento", priority: "Média", owner: "Equipe CNV", products: ["Consignado"], budget: 0, notes: "CNV 2026", files: [], modules: ["projeto", "calendario", "conteudos"] },
+  { id: "cnv-credito-pj-apoio-2s", name: "Crédito PJ — Mov. Apoio Empresário (2º sem)", type: "Produto", objective: "Conversão", description: "Apoio ao Empresário (2ª sem out → 2ª sem nov).", startDate: "2026-10-08", endDate: "2026-11-14", status: "Planejamento", priority: "Alta", owner: "Equipe CNV", products: ["Crédito PJ"], budget: 0, notes: "CNV 2026", files: [], modules: ["projeto", "calendario", "conteudos"] },
+  { id: "cnv-seg-vida-rosa-azul", name: "Seg. Vida — Outubro Rosa e Novembro Azul", type: "Sazonal", objective: "Awareness", description: "Out. Rosa e Nov. Azul (4ª sem out → 1ª sem nov).", startDate: "2026-10-22", endDate: "2026-11-07", status: "Planejamento", priority: "Alta", owner: "Equipe CNV", products: ["Seguro de Vida"], budget: 0, notes: "CNV 2026", files: [], modules: ["projeto", "calendario", "conteudos"] },
+  { id: "cnv-consorcio-nov", name: "Consórcio — Novembro", type: "Produto", objective: "Conversão", description: "Consórcio (2ª-3ª sem nov).", startDate: "2026-11-08", endDate: "2026-11-21", status: "Planejamento", priority: "Média", owner: "Equipe CNV", products: ["Consórcio"], budget: 0, notes: "CNV 2026", files: [], modules: ["projeto", "calendario", "conteudos"] },
+  { id: "cnv-seguro-rural-nov", name: "Seguro Rural — Todos os Produtos (nov)", type: "Produto", objective: "Conversão", description: "Seguro Rural (2ª-4ª sem nov).", startDate: "2026-11-08", endDate: "2026-11-30", status: "Planejamento", priority: "Alta", owner: "Equipe CNV", products: ["Seguro Rural"], budget: 0, notes: "CNV 2026", files: [], modules: ["projeto", "calendario", "conteudos", "midia_offline"] },
+  { id: "cnv-seg-gerais-ferias", name: "Seg. Gerais — Férias Protegidas", type: "Sazonal", objective: "Conversão", description: "Férias Protegidas (4ª sem nov → 1ª sem dez).", startDate: "2026-11-22", endDate: "2026-12-07", status: "Planejamento", priority: "Alta", owner: "Equipe CNV", products: ["Seguros Gerais"], budget: 0, notes: "CNV 2026", files: [], modules: ["projeto", "calendario", "conteudos"] },
+  { id: "cnv-previdencia-2s", name: "Previdência (2º sem)", type: "Produto", objective: "Conversão", description: "Previdência (4ª sem nov → 4ª sem dez).", startDate: "2026-11-22", endDate: "2026-12-31", status: "Planejamento", priority: "Média", owner: "Equipe CNV", products: ["Previdência"], budget: 0, notes: "CNV 2026", files: [], modules: ["projeto", "calendario", "conteudos"] },
+  { id: "cnv-cobranca-dez", name: "Cobrança Bancária — Dezembro", type: "Produto", objective: "Conversão", description: "Cobrança Bancária (4ª sem dez).", startDate: "2026-12-22", endDate: "2026-12-31", status: "Planejamento", priority: "Média", owner: "Equipe CNV", products: ["Cobrança Bancária"], budget: 0, notes: "CNV 2026", files: [], modules: ["projeto", "calendario", "conteudos"] },
+  { id: "cnv-poupanca-premiada-2s", name: "Poupança Premiada (2º sem)", type: "Produto", objective: "Awareness", description: "Poupança Premiada (jul-dez).", startDate: "2026-07-01", endDate: "2026-12-31", status: "Planejamento", priority: "Média", owner: "Equipe CNV", products: ["Poupança"], budget: 0, notes: "CNV 2026", files: [], modules: ["projeto", "calendario", "conteudos"] },
+];
+
+function materializeCnv(): Campaign[] {
+  const base = new Date("2026-01-01T09:00:00.000Z").getTime();
+  return CNV_CALENDAR_2026.map((c, i) => ({
+    ...c,
+    createdAt: c.createdAt ?? new Date(base + i * 60000).toISOString(),
+  }));
+}
+
+function mergeCnv(existing: Campaign[]): Campaign[] {
+  const cnv = materializeCnv();
+  const byId = new Set(existing.map((c) => c.id));
+  const missing = cnv.filter((c) => !byId.has(c.id));
+  return missing.length ? [...existing, ...missing] : existing;
+}
+
 function load(): Campaign[] {
-  if (typeof window === "undefined") return seed;
+  if (typeof window === "undefined") return mergeCnv(seed);
   try {
     const raw = window.localStorage.getItem(KEY);
-    if (!raw) return seed;
-    return JSON.parse(raw) as Campaign[];
+    const current = raw ? (JSON.parse(raw) as Campaign[]) : seed;
+    return mergeCnv(current);
   } catch {
-    return seed;
+    return mergeCnv(seed);
   }
 }
 
 let state: Campaign[] = load();
 const listeners = new Set<() => void>();
-const cloudPush = enableCloudSync<Campaign[]>("campaigns", () => state, (s) => { state = s; listeners.forEach((l) => l()); });
+const cloudPush = enableCloudSync<Campaign[]>("campaigns", () => state, (s) => {
+  state = mergeCnv(s);
+  listeners.forEach((l) => l());
+});
+
+// Garante que as campanhas do calendário CNV 2026 fiquem persistidas no
+// localStorage e sincronizadas com a nuvem já no primeiro load.
+if (typeof window !== "undefined") {
+  window.localStorage.setItem(KEY, JSON.stringify(state));
+  setTimeout(() => cloudPush(), 0);
+}
 
 function persist() {
   if (typeof window === "undefined") return;
