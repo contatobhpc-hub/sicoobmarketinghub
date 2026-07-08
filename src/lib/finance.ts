@@ -1,4 +1,5 @@
-import { useSyncExternalStore } from "react";
+import { useEffect, useSyncExternalStore } from "react";
+import { partnersStore, type Partner } from "./partners";
 
 export const BUDGET_CATEGORIES = [
   "Campanhas Comerciais",
