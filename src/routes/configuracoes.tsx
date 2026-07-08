@@ -44,6 +44,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { cn } from "@/lib/utils";
 import { settingsStore, useSettings, useCurrentUser, type SettingsState, type RoleKey } from "@/lib/settings";
+import { downloadFullBackup, importFullBackup } from "@/lib/backup";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 
 export const Route = createFileRoute("/configuracoes")({
@@ -729,35 +730,32 @@ function BackupSection({ settings }: { settings: SettingsState }) {
   const fileRef = useRef<HTMLInputElement>(null);
 
   const runBackup = () => {
-    const json = settingsStore.exportBackup();
-    const blob = new Blob([json], { type: "application/json" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `marketing-hub-backup-${new Date().toISOString().slice(0, 10)}.json`;
-    document.body.appendChild(a);
-    a.click();
-    a.remove();
-    URL.revokeObjectURL(url);
+    downloadFullBackup();
     update({ lastBackupAt: new Date().toISOString() });
-    settingsStore.addLog("Executou", "Backup do workspace");
-    toast.success("Backup gerado e baixado");
+    settingsStore.addLog("Executou", "Backup completo (todos os módulos)");
+    toast.success("Backup completo gerado e baixado");
   };
 
   const onRestoreFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
+    if (!window.confirm(`Restaurar backup de "${file.name}"? Os dados atuais serão substituídos. Recarregaremos a página ao final.`)) {
+      if (fileRef.current) fileRef.current.value = "";
+      return;
+    }
     try {
       const text = await file.text();
-      settingsStore.importBackup(text);
-      settingsStore.addLog("Restaurou", `Backup: ${file.name}`);
-      toast.success("Backup restaurado com sucesso");
+      const { restored, skipped } = importFullBackup(text);
+      settingsStore.addLog("Restaurou", `Backup: ${file.name} (${restored.length} módulos)`);
+      toast.success(`Backup restaurado: ${restored.length} módulos${skipped.length ? ` (${skipped.length} ignorados)` : ""}. Recarregando…`);
+      setTimeout(() => window.location.reload(), 1200);
     } catch {
       toast.error("Arquivo de backup inválido");
     } finally {
       if (fileRef.current) fileRef.current.value = "";
     }
   };
+
 
   return (
     <div className="space-y-4">
