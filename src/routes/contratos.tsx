@@ -658,9 +658,10 @@ function UploadInput({ partnerId, kind, label }: { partnerId: string; kind: "pdf
 
 function NewContractDialog({ onClose }: { onClose: () => void }) {
   const partnerCategories = usePartnerCategories();
+  const contractCategories = useContractCategories();
   const allCategories = useMemo(
-    () => Array.from(new Set([...CONTRACT_CATEGORIES, ...partnerCategories])),
-    [partnerCategories],
+    () => Array.from(new Set([...contractCategories, ...partnerCategories])),
+    [contractCategories, partnerCategories],
   );
   const [company, setCompany] = useState("");
   const [category, setCategory] = useState<ContractCategory>("Agência");
