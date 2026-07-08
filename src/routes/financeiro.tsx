@@ -16,12 +16,10 @@ import {
   PieChart as PieChartIcon,
   Plus,
   Receipt,
-  Send,
   ShoppingCart,
   Sparkles,
   Star,
   Target,
-  Trash2,
   TrendingUp,
   Wallet,
 } from "lucide-react";
@@ -63,7 +61,6 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import { Checkbox } from "@/components/ui/checkbox";
 import { useCampaigns, formatCurrency } from "@/lib/campaigns";
 import { useEvents } from "@/lib/events";
 import {
@@ -821,262 +818,37 @@ function SuppliersSection() {
 // ============================================================
 function InvoicesSection() {
   const state = useFinance();
-  const currentMonth = new Date().toISOString().slice(0, 7);
-  const [selectedMonth, setSelectedMonth] = useState(currentMonth);
-  const [statusFilter, setStatusFilter] = useState<"todas" | "pendente" | "recebida" | "enviada" | "concluida">("todas");
-  const [supplierFilter, setSupplierFilter] = useState<string>("todos");
-
-  const months = useMemo(() => {
-    const set = new Set<string>([currentMonth]);
-    state.invoices.forEach((i) => set.add(i.date.slice(0, 7)));
-    return Array.from(set).sort().reverse();
-  }, [state.invoices, currentMonth]);
-
-  const monthInvoices = useMemo(
-    () => state.invoices.filter((i) => i.date.slice(0, 7) === selectedMonth),
-    [state.invoices, selectedMonth],
-  );
-
-  const filtered = useMemo(() => {
-    return monthInvoices.filter((i) => {
-      if (supplierFilter !== "todos" && i.supplierId !== supplierFilter) return false;
-      const received = !!i.receivedAt;
-      const sent = !!i.sentToPaymentAt;
-      switch (statusFilter) {
-        case "pendente": return !received && !sent;
-        case "recebida": return received && !sent;
-        case "enviada": return sent;
-        case "concluida": return received && sent;
-        default: return true;
-      }
-    });
-  }, [monthInvoices, statusFilter, supplierFilter]);
-
-  const kpis = useMemo(() => {
-    const total = monthInvoices.length;
-    const received = monthInvoices.filter((i) => i.receivedAt).length;
-    const sent = monthInvoices.filter((i) => i.sentToPaymentAt).length;
-    const pending = monthInvoices.filter((i) => !i.receivedAt && !i.sentToPaymentAt).length;
-    const stuck = monthInvoices.filter((i) => {
-      if (!i.receivedAt || i.sentToPaymentAt) return false;
-      const days = (Date.now() - new Date(i.receivedAt).getTime()) / 86400000;
-      return days > 3;
-    }).length;
-    return { total, received, sent, pending, stuck };
-  }, [monthInvoices]);
-
-  const isCurrent = selectedMonth === currentMonth;
-  const monthLabel = new Date(`${selectedMonth}-01T00:00:00`).toLocaleDateString("pt-BR", { month: "long", year: "numeric" });
-
   return (
-    <div className="space-y-4">
-      <Card>
-        <div className="flex flex-wrap items-start justify-between gap-3">
-          <SectionTitle
-            icon={Receipt}
-            title="Checklist Mensal de NFs"
-            subtitle="Controle recebimento da NF e envio para Contas a Pagar. Zera automaticamente todo mês."
-          />
-          <div className="flex flex-wrap items-center gap-2">
-            <Select value={selectedMonth} onValueChange={setSelectedMonth}>
-              <SelectTrigger className="h-9 w-[180px]"><SelectValue /></SelectTrigger>
-              <SelectContent>
-                {months.map((m) => (
-                  <SelectItem key={m} value={m}>
-                    {new Date(`${m}-01T00:00:00`).toLocaleDateString("pt-BR", { month: "long", year: "numeric" })}
-                    {m === currentMonth ? " (atual)" : ""}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            <NewInvoiceDialog defaultMonth={selectedMonth} />
-          </div>
-        </div>
-
-        <div className="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-5">
-          <Kpi icon={Receipt} label="Total do mês" value={String(kpis.total)} tone="info" />
-          <Kpi icon={CheckCircle2} label="Recebidas" value={String(kpis.received)} tone="success" />
-          <Kpi icon={Send} label="Enviadas" value={String(kpis.sent)} tone="success" />
-          <Kpi icon={ClipboardList} label="Pendentes" value={String(kpis.pending)} tone="warning" />
-          <Kpi icon={AlertTriangle} label="Parados >3d" value={String(kpis.stuck)} tone="danger" />
-        </div>
-
-        <div className="mt-4 flex flex-wrap items-center gap-2">
-          <Select value={statusFilter} onValueChange={(v) => setStatusFilter(v as typeof statusFilter)}>
-            <SelectTrigger className="h-9 w-[180px]"><SelectValue /></SelectTrigger>
-            <SelectContent>
-              <SelectItem value="todas">Todos os status</SelectItem>
-              <SelectItem value="pendente">Pendentes</SelectItem>
-              <SelectItem value="recebida">Recebidas (a enviar)</SelectItem>
-              <SelectItem value="enviada">Enviadas</SelectItem>
-              <SelectItem value="concluida">Concluídas</SelectItem>
-            </SelectContent>
-          </Select>
-          <Select value={supplierFilter} onValueChange={setSupplierFilter}>
-            <SelectTrigger className="h-9 w-[220px]"><SelectValue /></SelectTrigger>
-            <SelectContent>
-              <SelectItem value="todos">Todos os fornecedores</SelectItem>
-              {state.suppliers.map((s) => (
-                <SelectItem key={s.id} value={s.id}>{s.company}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          {!isCurrent && (
-            <span className="rounded-full bg-muted px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
-              Histórico — {monthLabel}
-            </span>
-          )}
-        </div>
-
-        <div className="mt-4 overflow-x-auto">
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="border-b border-border text-left text-xs uppercase tracking-wider text-muted-foreground">
-                <th className="px-3 py-2">Nº NF</th>
-                <th className="px-3 py-2">Fornecedor</th>
-                <th className="px-3 py-2">Vencimento</th>
-                <th className="px-3 py-2 text-right">Valor</th>
-                <th className="px-3 py-2 text-center">Recebida</th>
-                <th className="px-3 py-2 text-center">Enviada p/ pagamento</th>
-                <th className="px-3 py-2"></th>
+    <Card>
+      <SectionTitle icon={Receipt} title="Notas Fiscais" subtitle="Centralize NF-e, comprovantes e XML." />
+      <table className="mt-4 w-full text-sm">
+        <thead><tr className="border-b border-border text-left text-xs uppercase tracking-wider text-muted-foreground">
+          <th className="px-3 py-2">Número</th>
+          <th className="px-3 py-2">Fornecedor</th>
+          <th className="px-3 py-2">Categoria</th>
+          <th className="px-3 py-2">Data</th>
+          <th className="px-3 py-2 text-right">Valor</th>
+          <th className="px-3 py-2">Status</th>
+        </tr></thead>
+        <tbody>
+          {state.invoices.map((i) => {
+            const sup = state.suppliers.find((s) => s.id === i.supplierId);
+            return (
+              <tr key={i.id} className="border-b border-border/60">
+                <td className="px-3 py-2 font-mono text-xs">{i.number}</td>
+                <td className="px-3 py-2">{sup?.company ?? "—"}</td>
+                <td className="px-3 py-2">{i.category}</td>
+                <td className="px-3 py-2">{i.date}</td>
+                <td className="tabular px-3 py-2 text-right font-semibold">{formatBRL(i.value)}</td>
+                <td className="px-3 py-2">
+                  <StatusBadge value={i.status} />
+                </td>
               </tr>
-            </thead>
-            <tbody>
-              {filtered.length === 0 && (
-                <tr><td colSpan={7} className="px-3 py-6 text-center text-xs text-muted-foreground">Nenhuma NF para este filtro.</td></tr>
-              )}
-              {filtered.map((i) => {
-                const sup = state.suppliers.find((s) => s.id === i.supplierId);
-                const received = !!i.receivedAt;
-                const sent = !!i.sentToPaymentAt;
-                const stuck = received && !sent && (Date.now() - new Date(i.receivedAt!).getTime()) / 86400000 > 3;
-                return (
-                  <tr key={i.id} className={`border-b border-border/60 ${stuck ? "bg-[color:var(--color-danger)]/5" : ""}`}>
-                    <td className="px-3 py-2 font-mono text-xs">{i.number}</td>
-                    <td className="px-3 py-2">
-                      <div>{sup?.company ?? "—"}</div>
-                      <div className="text-[10px] text-muted-foreground">{i.category}</div>
-                    </td>
-                    <td className="px-3 py-2 text-xs">{i.dueDate ?? i.date}</td>
-                    <td className="tabular px-3 py-2 text-right font-semibold">{formatBRL(i.value)}</td>
-                    <td className="px-3 py-2">
-                      <div className="flex flex-col items-center gap-0.5">
-                        <Checkbox
-                          checked={received}
-                          onCheckedChange={() => financeStore.toggleInvoiceReceived(i.id, "Você")}
-                        />
-                        {received && (
-                          <span className="text-[10px] text-muted-foreground">
-                            {new Date(i.receivedAt!).toLocaleDateString("pt-BR")} • {i.receivedBy}
-                          </span>
-                        )}
-                      </div>
-                    </td>
-                    <td className="px-3 py-2">
-                      <div className="flex flex-col items-center gap-0.5">
-                        <Checkbox
-                          checked={sent}
-                          disabled={!received}
-                          onCheckedChange={() => financeStore.toggleInvoiceSent(i.id, "Você")}
-                        />
-                        {sent && (
-                          <span className="text-[10px] text-muted-foreground">
-                            {new Date(i.sentToPaymentAt!).toLocaleDateString("pt-BR")} • {i.sentBy}
-                          </span>
-                        )}
-                        {!received && !sent && (
-                          <span className="text-[10px] text-muted-foreground">receba primeiro</span>
-                        )}
-                      </div>
-                    </td>
-                    <td className="px-3 py-2 text-right">
-                      <Button size="sm" variant="ghost" onClick={() => financeStore.removeInvoice(i.id)}>
-                        <Trash2 className="h-3.5 w-3.5" />
-                      </Button>
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
-        </div>
-
-        <p className="mt-3 text-[11px] text-muted-foreground">
-          Dica: o checklist do mês seguinte começa vazio automaticamente. NFs de meses anteriores ficam disponíveis no seletor de mês acima.
-        </p>
-      </Card>
-    </div>
-  );
-}
-
-function NewInvoiceDialog({ defaultMonth }: { defaultMonth: string }) {
-  const state = useFinance();
-  const [open, setOpen] = useState(false);
-  const today = new Date().toISOString().slice(0, 10);
-  const initialDate = defaultMonth === today.slice(0, 7) ? today : `${defaultMonth}-01`;
-  const [form, setForm] = useState({
-    number: "",
-    supplierId: "",
-    value: 0,
-    date: initialDate,
-    dueDate: "",
-    category: "Outros" as ExpenseCategory,
-    notes: "",
-  });
-
-  return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
-        <Button size="sm"><Plus className="mr-1 h-3.5 w-3.5" />Adicionar NF</Button>
-      </DialogTrigger>
-      <DialogContent>
-        <DialogHeader><DialogTitle>Adicionar NF ao checklist</DialogTitle></DialogHeader>
-        <div className="grid grid-cols-2 gap-3">
-          <Field label="Nº da NF"><Input value={form.number} onChange={(e) => setForm({ ...form, number: e.target.value })} placeholder="NF-000000" /></Field>
-          <Field label="Fornecedor">
-            <Select value={form.supplierId} onValueChange={(v) => setForm({ ...form, supplierId: v })}>
-              <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
-              <SelectContent>
-                {state.suppliers.map((s) => (<SelectItem key={s.id} value={s.id}>{s.company}</SelectItem>))}
-              </SelectContent>
-            </Select>
-          </Field>
-          <Field label="Valor (R$)"><Input type="number" value={form.value} onChange={(e) => setForm({ ...form, value: Number(e.target.value) || 0 })} /></Field>
-          <Field label="Categoria">
-            <Select value={form.category} onValueChange={(v) => setForm({ ...form, category: v as ExpenseCategory })}>
-              <SelectTrigger><SelectValue /></SelectTrigger>
-              <SelectContent>
-                {EXPENSE_CATEGORIES.map((c) => (<SelectItem key={c} value={c}>{c}</SelectItem>))}
-              </SelectContent>
-            </Select>
-          </Field>
-          <Field label="Data emissão"><Input type="date" value={form.date} onChange={(e) => setForm({ ...form, date: e.target.value })} /></Field>
-          <Field label="Vencimento"><Input type="date" value={form.dueDate} onChange={(e) => setForm({ ...form, dueDate: e.target.value })} /></Field>
-          <Field label="Observação" className="col-span-2"><Textarea rows={2} value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })} /></Field>
-        </div>
-        <DialogFooter>
-          <Button
-            onClick={() => {
-              if (!form.number) return;
-              financeStore.addInvoice({
-                number: form.number,
-                supplierId: form.supplierId || undefined,
-                value: form.value,
-                date: form.date,
-                dueDate: form.dueDate || undefined,
-                category: form.category,
-                status: "Pendente",
-                notes: form.notes || undefined,
-              });
-              setForm({ number: "", supplierId: "", value: 0, date: initialDate, dueDate: "", category: "Outros", notes: "" });
-              setOpen(false);
-            }}
-          >
-            Adicionar
-          </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+            );
+          })}
+        </tbody>
+      </table>
+    </Card>
   );
 }
 

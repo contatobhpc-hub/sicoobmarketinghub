@@ -134,14 +134,7 @@ export type Invoice = {
   xmlName?: string;
   receiptName?: string;
   status: InvoiceStatus;
-  dueDate?: string;
-  receivedAt?: string;
-  receivedBy?: string;
-  sentToPaymentAt?: string;
-  sentBy?: string;
-  notes?: string;
 };
-
 
 export type Payment = {
   id: string;
@@ -319,36 +312,6 @@ export const financeStore = {
   },
   addInvoice: (input: Omit<Invoice, "id">) => {
     state = { ...state, invoices: [{ ...input, id: uid("nf") }, ...state.invoices] };
-    emit();
-  },
-  removeInvoice: (id: string) => {
-    state = { ...state, invoices: state.invoices.filter((i) => i.id !== id) };
-    emit();
-  },
-  toggleInvoiceReceived: (id: string, actor: string) => {
-    state = {
-      ...state,
-      invoices: state.invoices.map((i) =>
-        i.id === id
-          ? i.receivedAt
-            ? { ...i, receivedAt: undefined, receivedBy: undefined }
-            : { ...i, receivedAt: now(), receivedBy: actor }
-          : i,
-      ),
-    };
-    emit();
-  },
-  toggleInvoiceSent: (id: string, actor: string) => {
-    state = {
-      ...state,
-      invoices: state.invoices.map((i) =>
-        i.id === id
-          ? i.sentToPaymentAt
-            ? { ...i, sentToPaymentAt: undefined, sentBy: undefined }
-            : { ...i, sentToPaymentAt: now(), sentBy: actor, status: i.status === "Pendente" ? "Aprovada" : i.status }
-          : i,
-      ),
-    };
     emit();
   },
   markPaid: (paymentId: string) => {
