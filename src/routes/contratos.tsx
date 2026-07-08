@@ -142,7 +142,16 @@ function ContratosPage() {
         description="Vigência, valores, renovações e alertas automáticos."
         actions={
           <div className="flex items-center gap-2">
-            <ModuleManagementButton module="contratos" />
+            <ModuleManagementButton
+              module="contratos"
+              extraTabs={[
+                {
+                  value: "contrato-categorias",
+                  label: "Cat. Contratos",
+                  content: <ContractCategoriesTab />,
+                },
+              ]}
+            />
             <Dialog open={openNew} onOpenChange={setOpenNew}>
               <DialogTrigger asChild>
                 <Button>
