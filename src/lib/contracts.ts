@@ -238,8 +238,17 @@ export async function hydrateContractsFromCloud(userId: string | null) {
   setCloudSyncUser(userId);
   if (!userId) { cloudHydrated = false; return; }
   const cloud = await loadModuleState<Contract[]>("contracts");
-  if (cloud && Array.isArray(cloud) && cloud.length > 0) {
-    state = cloud;
+  const local = typeof window !== "undefined" ? load() : [];
+  const cloudArr = Array.isArray(cloud) ? cloud : [];
+  // Keep whichever side has more data; push local up when it's richer so
+  // a device that lost its cloud copy doesn't overwrite a fuller local one.
+  if (local.length > cloudArr.length) {
+    state = local;
+    listeners.forEach((l) => l());
+    scheduleModulePush("contracts", () => state);
+  } else if (cloudArr.length > 0) {
+    state = cloudArr;
+    save(state);
     listeners.forEach((l) => l());
   } else if (!cloudHydrated) {
     scheduleModulePush("contracts", () => state);

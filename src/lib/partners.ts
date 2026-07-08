@@ -316,13 +316,21 @@ export async function hydratePartnersFromCloud(userId: string | null) {
   setCloudSyncUser(userId);
   if (!userId) { cloudHydrated = false; return; }
   const cloud = await loadModuleState<Partner[]>("partners");
-  if (cloud && Array.isArray(cloud) && cloud.length > 0) {
-    state = cloud;
+  const local = typeof window !== "undefined" ? load() : [];
+  const cloudArr = Array.isArray(cloud) ? cloud : [];
+  if (local.length > cloudArr.length) {
+    // Local has richer data — promote it to the cloud instead of overwriting it.
+    state = local;
     hydrated = true;
     listeners.forEach((l) => l());
+    scheduleModulePush("partners", () => state);
+  } else if (cloudArr.length > 0) {
+    state = cloudArr;
+    hydrated = true;
+    save(state);
+    listeners.forEach((l) => l());
   } else if (!cloudHydrated) {
-    // First login with empty cloud: push local seed/localStorage
-    if (typeof window !== "undefined") state = load();
+    state = local;
     hydrated = true;
     scheduleModulePush("partners", () => state);
     listeners.forEach((l) => l());
