@@ -674,7 +674,7 @@ function NewContractDialog({ onClose }: { onClose: () => void }) {
           <Select value={category} onValueChange={(v) => setCategory(v as ContractCategory)}>
             <SelectTrigger><SelectValue /></SelectTrigger>
             <SelectContent>
-              {CONTRACT_CATEGORIES.map((c) => <SelectItem key={c} value={c}>{c}</SelectItem>)}
+              {allCategories.map((c) => <SelectItem key={c} value={c}>{c}</SelectItem>)}
             </SelectContent>
           </Select>
         </Field>
