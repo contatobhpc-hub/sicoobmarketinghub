@@ -81,6 +81,11 @@ export const Route = createFileRoute("/contratos")({
 
 function ContratosPage() {
   const contracts = useContracts();
+  const partnerCategories = usePartnerCategories();
+  const allCategories = useMemo(
+    () => Array.from(new Set([...CONTRACT_CATEGORIES, ...partnerCategories])),
+    [partnerCategories],
+  );
   const [query, setQuery] = useState("");
   const [status, setStatus] = useState<ContractStatus | "todos">("todos");
   const [category, setCategory] = useState<ContractCategory | "todas">("todas");
