@@ -817,6 +817,15 @@ function SuppliersSection() {
                   <Button
                     size="icon"
                     variant="ghost"
+                    className="h-7 w-7 text-muted-foreground hover:text-foreground"
+                    onClick={() => setEditId(s.id)}
+                    title="Editar fornecedor"
+                  >
+                    <Pencil className="h-3.5 w-3.5" />
+                  </Button>
+                  <Button
+                    size="icon"
+                    variant="ghost"
                     className="h-7 w-7 text-muted-foreground hover:text-destructive"
                     onClick={() => {
                       if (!window.confirm(`Remover fornecedor "${s.company}"?`)) return;
