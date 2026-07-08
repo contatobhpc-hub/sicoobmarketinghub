@@ -58,6 +58,7 @@ import {
   type ContractStatus,
   alertLevel,
   alertTone,
+  contractCategoriesStore,
   contractsStore,
   daysUntil,
   formatBRL,
@@ -65,6 +66,7 @@ import {
   formatRelative,
   statusTone,
   useContract,
+  useContractCategories,
   useContracts,
 } from "@/lib/contracts";
 import { usePartnerCategories } from "@/lib/partners";
