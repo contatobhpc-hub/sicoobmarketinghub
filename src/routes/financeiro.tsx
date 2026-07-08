@@ -219,7 +219,7 @@ function DashboardSection() {
       if (e.supplierId) map.set(e.supplierId, (map.get(e.supplierId) ?? 0) + expenseTotal(e));
     });
     return state.suppliers
-      .map((s) => ({ name: s.company, value: map.get(s.id) ?? 0 }))
+      .map((s) => ({ name: s.company, value: Math.max(map.get(s.id) ?? 0, s.annualInvestment ?? 0) }))
       .sort((a, b) => b.value - a.value)
       .slice(0, 10);
   }, [state.suppliers, state.expenses]);
