@@ -14,6 +14,7 @@ import {
   FileText,
   Megaphone,
   PieChart as PieChartIcon,
+  Pencil,
   Plus,
   Receipt,
   Send,
@@ -79,6 +80,7 @@ import {
   formatBRL,
   useFinance,
   type ExpenseCategory,
+  type FinanceSupplier,
   type PaymentMethod,
   type PRStatus,
   type Urgency,
@@ -780,6 +782,8 @@ function PurchaseRequestsSection() {
 function SuppliersSection() {
   const state = useFinance();
   const [openNew, setOpenNew] = useState(false);
+  const [editId, setEditId] = useState<string | null>(null);
+  const editing = editId ? state.suppliers.find((s) => s.id === editId) ?? null : null;
   return (
     <Card>
       <div className="flex items-center justify-between gap-2">
@@ -813,6 +817,15 @@ function SuppliersSection() {
                   <Button
                     size="icon"
                     variant="ghost"
+                    className="h-7 w-7 text-muted-foreground hover:text-foreground"
+                    onClick={() => setEditId(s.id)}
+                    title="Editar fornecedor"
+                  >
+                    <Pencil className="h-3.5 w-3.5" />
+                  </Button>
+                  <Button
+                    size="icon"
+                    variant="ghost"
                     className="h-7 w-7 text-muted-foreground hover:text-destructive"
                     onClick={() => {
                       if (!window.confirm(`Remover fornecedor "${s.company}"?`)) return;
@@ -837,7 +850,66 @@ function SuppliersSection() {
           );
         })}
       </div>
+      <Dialog open={!!editing} onOpenChange={(o) => !o && setEditId(null)}>
+        {editing && <EditSupplierDialog supplier={editing} onClose={() => setEditId(null)} />}
+      </Dialog>
     </Card>
+  );
+}
+
+function EditSupplierDialog({ supplier, onClose }: { supplier: FinanceSupplier; onClose: () => void }) {
+  const [form, setForm] = useState({
+    company: supplier.company,
+    category: supplier.category,
+    city: supplier.city,
+    contact: supplier.contact,
+    phone: supplier.phone,
+    email: supplier.email,
+    contractRef: supplier.contractRef ?? "",
+    rating: supplier.rating,
+    products: supplier.products.join(", "),
+  });
+  return (
+    <DialogContent className="sm:max-w-lg">
+      <DialogHeader><DialogTitle>Editar fornecedor</DialogTitle></DialogHeader>
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <Field label="Empresa"><Input value={form.company} onChange={(e) => setForm({ ...form, company: e.target.value })} /></Field>
+        <Field label="Categoria"><Input value={form.category} onChange={(e) => setForm({ ...form, category: e.target.value })} /></Field>
+        <Field label="Cidade"><Input value={form.city} onChange={(e) => setForm({ ...form, city: e.target.value })} /></Field>
+        <Field label="Contato"><Input value={form.contact} onChange={(e) => setForm({ ...form, contact: e.target.value })} /></Field>
+        <Field label="Telefone"><Input value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} /></Field>
+        <Field label="E-mail"><Input value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} /></Field>
+        <Field label="Contrato"><Input value={form.contractRef} onChange={(e) => setForm({ ...form, contractRef: e.target.value })} /></Field>
+        <Field label="Avaliação (0-5)"><Input type="number" min={0} max={5} step={0.1} value={form.rating} onChange={(e) => setForm({ ...form, rating: Number(e.target.value) })} /></Field>
+        <div className="sm:col-span-2">
+          <Field label="Produtos / serviços (separe por vírgula)">
+            <Input value={form.products} onChange={(e) => setForm({ ...form, products: e.target.value })} />
+          </Field>
+        </div>
+      </div>
+      <DialogFooter>
+        <Button variant="ghost" onClick={onClose}>Cancelar</Button>
+        <Button
+          disabled={!form.company.trim()}
+          onClick={() => {
+            financeStore.updateSupplier(supplier.id, {
+              company: form.company.trim(),
+              category: form.category || "Outros",
+              city: form.city,
+              contact: form.contact,
+              phone: form.phone,
+              email: form.email,
+              contractRef: form.contractRef || undefined,
+              rating: Math.min(5, Math.max(0, form.rating || 0)),
+              products: form.products.split(",").map((p) => p.trim()).filter(Boolean),
+            });
+            onClose();
+          }}
+        >
+          Salvar alterações
+        </Button>
+      </DialogFooter>
+    </DialogContent>
   );
 }
 
