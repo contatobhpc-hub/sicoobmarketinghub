@@ -14,6 +14,7 @@ import {
   FileText,
   Megaphone,
   PieChart as PieChartIcon,
+  Pencil,
   Plus,
   Receipt,
   Send,
