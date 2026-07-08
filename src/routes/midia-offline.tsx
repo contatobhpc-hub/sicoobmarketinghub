@@ -27,6 +27,7 @@ import {
   Megaphone,
   Plus,
   Search,
+  Pencil,
   Trash2,
   Truck,
   Upload,
@@ -252,21 +253,32 @@ function MediaCard({ m, onClick }: { m: OfflineMedia; onClick: () => void }) {
           </p>
         </div>
         <div className="flex flex-col items-end gap-1 text-right text-xs text-muted-foreground">
-          <Button
-            size="icon"
-            variant="ghost"
-            className="size-7 text-muted-foreground opacity-0 transition group-hover:opacity-100 hover:text-red-400"
-            onClick={(e) => {
-              e.stopPropagation();
-              if (confirm(`Remover a mídia "${m.title}"?`)) {
-                offlineMediaStore.remove(m.id);
-                toast.success("Mídia removida.");
-              }
-            }}
-            aria-label="Remover mídia"
-          >
-            <Trash2 className="size-4" />
-          </Button>
+          <div className="flex items-center gap-1 opacity-0 transition group-hover:opacity-100">
+            <Button
+              size="icon"
+              variant="ghost"
+              className="size-7 text-muted-foreground hover:text-primary"
+              onClick={(e) => { e.stopPropagation(); onClick(); }}
+              aria-label="Editar mídia"
+            >
+              <Pencil className="size-4" />
+            </Button>
+            <Button
+              size="icon"
+              variant="ghost"
+              className="size-7 text-muted-foreground hover:text-red-400"
+              onClick={(e) => {
+                e.stopPropagation();
+                if (confirm(`Remover a mídia "${m.title}"?`)) {
+                  offlineMediaStore.remove(m.id);
+                  toast.success("Mídia removida.");
+                }
+              }}
+              aria-label="Remover mídia"
+            >
+              <Trash2 className="size-4" />
+            </Button>
+          </div>
           <div>{fmtBRL(m.value)}</div>
           <div>{m.supplier}</div>
         </div>
@@ -469,20 +481,31 @@ function ListView({ items, onOpen }: { items: OfflineMedia[]; onOpen: (id: strin
                 </span>
               )}
             </button>
-            <Button
-              size="icon"
-              variant="ghost"
-              className="mr-2 size-8 text-muted-foreground opacity-0 transition group-hover:opacity-100 hover:text-red-400"
-              onClick={() => {
-                if (confirm(`Remover a mídia "${m.title}"?`)) {
-                  offlineMediaStore.remove(m.id);
-                  toast.success("Mídia removida.");
-                }
-              }}
-              aria-label="Remover mídia"
-            >
-              <Trash2 className="size-4" />
-            </Button>
+            <div className="mr-2 flex items-center gap-1 opacity-0 transition group-hover:opacity-100">
+              <Button
+                size="icon"
+                variant="ghost"
+                className="size-8 text-muted-foreground hover:text-primary"
+                onClick={() => onOpen(m.id)}
+                aria-label="Editar mídia"
+              >
+                <Pencil className="size-4" />
+              </Button>
+              <Button
+                size="icon"
+                variant="ghost"
+                className="size-8 text-muted-foreground hover:text-red-400"
+                onClick={() => {
+                  if (confirm(`Remover a mídia "${m.title}"?`)) {
+                    offlineMediaStore.remove(m.id);
+                    toast.success("Mídia removida.");
+                  }
+                }}
+                aria-label="Remover mídia"
+              >
+                <Trash2 className="size-4" />
+              </Button>
+            </div>
           </div>
         );
 
