@@ -251,10 +251,26 @@ function MediaCard({ m, onClick }: { m: OfflineMedia; onClick: () => void }) {
             <MapPin className="size-3" /> {m.city} · {m.location}
           </p>
         </div>
-        <div className="text-right text-xs text-muted-foreground">
+        <div className="flex flex-col items-end gap-1 text-right text-xs text-muted-foreground">
+          <Button
+            size="icon"
+            variant="ghost"
+            className="size-7 text-muted-foreground opacity-0 transition group-hover:opacity-100 hover:text-red-400"
+            onClick={(e) => {
+              e.stopPropagation();
+              if (confirm(`Remover a mídia "${m.title}"?`)) {
+                offlineMediaStore.remove(m.id);
+                toast.success("Mídia removida.");
+              }
+            }}
+            aria-label="Remover mídia"
+          >
+            <Trash2 className="size-4" />
+          </Button>
           <div>{fmtBRL(m.value)}</div>
-          <div className="mt-1">{m.supplier}</div>
+          <div>{m.supplier}</div>
         </div>
+
       </div>
       <div className="mt-3 flex items-center justify-between gap-2 text-xs">
         <span className="text-muted-foreground">
