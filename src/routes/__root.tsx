@@ -153,14 +153,7 @@ function AuthGate({ children }: { children: ReactNode }) {
 
   if (isAuthRoute) return <>{children}</>;
 
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-background text-muted-foreground text-sm">
-        Carregando…
-      </div>
-    );
-  }
-  if (!session) {
+  if (!loading && !session) {
     return null;
   }
   return <>{children}</>;
