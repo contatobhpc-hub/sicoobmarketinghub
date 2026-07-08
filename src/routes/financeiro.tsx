@@ -779,10 +779,22 @@ function PurchaseRequestsSection() {
 // ============================================================
 function SuppliersSection() {
   const state = useFinance();
+  const [openNew, setOpenNew] = useState(false);
   return (
     <Card>
-      <SectionTitle icon={Star} title="Fornecedores" subtitle="Histórico financeiro, contratos e ranking." />
+      <div className="flex items-center justify-between gap-2">
+        <SectionTitle icon={Star} title="Fornecedores" subtitle="Histórico financeiro, contratos e ranking." />
+        <Dialog open={openNew} onOpenChange={setOpenNew}>
+          <DialogTrigger asChild>
+            <Button size="sm" className="gap-1"><Plus className="h-4 w-4" /> Novo fornecedor</Button>
+          </DialogTrigger>
+          <NewSupplierDialog onClose={() => setOpenNew(false)} />
+        </Dialog>
+      </div>
       <div className="mt-4 grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-3">
+        {state.suppliers.length === 0 && (
+          <p className="text-sm text-muted-foreground">Nenhum fornecedor cadastrado.</p>
+        )}
         {state.suppliers.map((s) => {
           const total = state.expenses.filter((e) => e.supplierId === s.id).reduce((a, e) => a + expenseTotal(e), 0);
           const count = state.expenses.filter((e) => e.supplierId === s.id).length;
@@ -793,9 +805,22 @@ function SuppliersSection() {
                   <p className="text-sm font-semibold">{s.company}</p>
                   <p className="text-[11px] text-muted-foreground">{s.category} • {s.city}</p>
                 </div>
-                <div className="flex items-center gap-1 rounded-full bg-[color:var(--color-warning)]/10 px-2 py-0.5 text-xs text-[color:var(--color-warning)]">
-                  <Star className="h-3 w-3 fill-current" />
-                  {s.rating.toFixed(1)}
+                <div className="flex items-center gap-1">
+                  <div className="flex items-center gap-1 rounded-full bg-[color:var(--color-warning)]/10 px-2 py-0.5 text-xs text-[color:var(--color-warning)]">
+                    <Star className="h-3 w-3 fill-current" />
+                    {s.rating.toFixed(1)}
+                  </div>
+                  <Button
+                    size="icon"
+                    variant="ghost"
+                    className="h-7 w-7 text-muted-foreground hover:text-destructive"
+                    onClick={() => {
+                      if (!window.confirm(`Remover fornecedor "${s.company}"?`)) return;
+                      financeStore.removeSupplier(s.id);
+                    }}
+                  >
+                    <Trash2 className="h-3.5 w-3.5" />
+                  </Button>
                 </div>
               </div>
               <div className="mt-3 space-y-1 text-xs">
@@ -813,6 +838,56 @@ function SuppliersSection() {
         })}
       </div>
     </Card>
+  );
+}
+
+function NewSupplierDialog({ onClose }: { onClose: () => void }) {
+  const [form, setForm] = useState({
+    company: "",
+    category: "",
+    city: "",
+    contact: "",
+    phone: "",
+    email: "",
+    contractRef: "",
+    rating: 5,
+  });
+  return (
+    <DialogContent className="sm:max-w-lg">
+      <DialogHeader><DialogTitle>Novo fornecedor</DialogTitle></DialogHeader>
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <Field label="Empresa"><Input value={form.company} onChange={(e) => setForm({ ...form, company: e.target.value })} /></Field>
+        <Field label="Categoria"><Input value={form.category} onChange={(e) => setForm({ ...form, category: e.target.value })} /></Field>
+        <Field label="Cidade"><Input value={form.city} onChange={(e) => setForm({ ...form, city: e.target.value })} /></Field>
+        <Field label="Contato"><Input value={form.contact} onChange={(e) => setForm({ ...form, contact: e.target.value })} /></Field>
+        <Field label="Telefone"><Input value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} /></Field>
+        <Field label="E-mail"><Input value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} /></Field>
+        <Field label="Contrato (opcional)"><Input value={form.contractRef} onChange={(e) => setForm({ ...form, contractRef: e.target.value })} /></Field>
+        <Field label="Avaliação (0-5)"><Input type="number" min={0} max={5} step={0.1} value={form.rating} onChange={(e) => setForm({ ...form, rating: Number(e.target.value) })} /></Field>
+      </div>
+      <DialogFooter>
+        <Button variant="ghost" onClick={onClose}>Cancelar</Button>
+        <Button
+          disabled={!form.company.trim()}
+          onClick={() => {
+            financeStore.addSupplier({
+              company: form.company.trim(),
+              category: form.category || "Outros",
+              city: form.city,
+              contact: form.contact,
+              phone: form.phone,
+              email: form.email,
+              contractRef: form.contractRef || undefined,
+              products: [],
+              rating: Math.min(5, Math.max(0, form.rating || 0)),
+            });
+            onClose();
+          }}
+        >
+          Cadastrar
+        </Button>
+      </DialogFooter>
+    </DialogContent>
   );
 }
 
