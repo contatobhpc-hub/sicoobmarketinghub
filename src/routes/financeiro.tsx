@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   AlertTriangle,
   ArrowDownRight,
@@ -976,6 +976,10 @@ function InvoicesSection() {
   const [selectedMonth, setSelectedMonth] = useState(currentMonth);
   const [statusFilter, setStatusFilter] = useState<"todas" | "pendente" | "recebida" | "enviada" | "concluida">("todas");
   const [supplierFilter, setSupplierFilter] = useState<string>("todos");
+
+  useEffect(() => {
+    financeStore.syncMonthlyInvoicesFromSuppliers(selectedMonth);
+  }, [selectedMonth, state.suppliers]);
 
   const months = useMemo(() => {
     const set = new Set<string>([currentMonth]);

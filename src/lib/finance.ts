@@ -429,6 +429,37 @@ export const financeStore = {
       emit();
     }
   },
+  syncMonthlyInvoicesFromSuppliers: (month: string) => {
+    // month = "YYYY-MM"
+    let changed = false;
+    const next = [...state.invoices];
+    for (const s of state.suppliers) {
+      const value = s.monthlyInvestment ?? 0;
+      if (value <= 0) continue;
+      const number = `AUTO-${s.id}-${month}`;
+      const existingIdx = next.findIndex((i) => i.number === number);
+      if (existingIdx === -1) {
+        next.unshift({
+          id: uid("nf"),
+          number,
+          supplierId: s.id,
+          date: `${month}-01`,
+          value,
+          category: "Outros",
+          status: "Pendente",
+          notes: `Gerada automaticamente a partir do investimento mensal de ${s.company}.`,
+        });
+        changed = true;
+      } else if (next[existingIdx].value !== value) {
+        next[existingIdx] = { ...next[existingIdx], value };
+        changed = true;
+      }
+    }
+    if (changed) {
+      state = { ...state, invoices: next };
+      emit();
+    }
+  },
 };
 
 if (typeof window !== "undefined") {
