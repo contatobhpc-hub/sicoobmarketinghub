@@ -373,9 +373,71 @@ export const financeStore = {
     };
     emit();
   },
+  syncFromPartners: (partners: Partner[]) => {
+    let changed = false;
+    const next = [...state.suppliers];
+    for (const p of partners) {
+      const idx = next.findIndex(
+        (s) => (s.partnerId && s.partnerId === p.id) || s.company.toLowerCase() === p.company.toLowerCase(),
+      );
+      if (idx === -1) {
+        next.unshift({
+          id: uid("sup"),
+          company: p.company,
+          category: p.category || "Outros",
+          city: p.city || "",
+          contact: p.contact || "",
+          phone: p.phone || "",
+          email: p.email || "",
+          contractRef: p.contractId,
+          products: [],
+          rating: 5,
+          partnerId: p.id,
+        });
+        changed = true;
+      } else {
+        const s = next[idx];
+        const patch: FinanceSupplier = {
+          ...s,
+          partnerId: p.id,
+          company: p.company,
+          category: p.category || s.category,
+          city: p.city || s.city,
+          contact: p.contact || s.contact,
+          phone: p.phone || s.phone,
+          email: p.email || s.email,
+          contractRef: p.contractId ?? s.contractRef,
+        };
+        if (JSON.stringify(patch) !== JSON.stringify(s)) {
+          next[idx] = patch;
+          changed = true;
+        }
+      }
+    }
+    if (changed) {
+      state = { ...state, suppliers: next };
+      emit();
+    }
+  },
 };
 
+if (typeof window !== "undefined") {
+  partnersStore.hydrate();
+  financeStore.syncFromPartners(partnersStore.get());
+  partnersStore.subscribe(() => {
+    financeStore.syncFromPartners(partnersStore.get());
+  });
+}
+
 export function useFinance() {
+  useEffect(() => {
+    partnersStore.hydrate();
+    financeStore.syncFromPartners(partnersStore.get());
+    const unsub = partnersStore.subscribe(() => {
+      financeStore.syncFromPartners(partnersStore.get());
+    });
+    return () => { unsub(); };
+  }, []);
   return useSyncExternalStore(subscribe, financeStore.get, financeStore.get);
 }
 
