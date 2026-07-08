@@ -80,6 +80,7 @@ import {
   formatBRL,
   useFinance,
   type ExpenseCategory,
+  type FinanceSupplier,
   type PaymentMethod,
   type PRStatus,
   type Urgency,
