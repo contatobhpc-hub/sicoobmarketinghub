@@ -977,6 +977,10 @@ function InvoicesSection() {
   const [statusFilter, setStatusFilter] = useState<"todas" | "pendente" | "recebida" | "enviada" | "concluida">("todas");
   const [supplierFilter, setSupplierFilter] = useState<string>("todos");
 
+  useEffect(() => {
+    financeStore.syncMonthlyInvoicesFromSuppliers(selectedMonth);
+  }, [selectedMonth, state.suppliers]);
+
   const months = useMemo(() => {
     const set = new Set<string>([currentMonth]);
     state.invoices.forEach((i) => set.add(i.date.slice(0, 7)));
