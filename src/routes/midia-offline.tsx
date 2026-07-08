@@ -51,8 +51,24 @@ import {
   type OfflineMediaStatus,
 } from "@/lib/offline-media";
 
-const catTone = (c: string) =>
-  CATEGORY_TONE[c] ?? "bg-slate-500/15 text-slate-300 border-slate-500/30";
+const FALLBACK_TONES = [
+  "bg-indigo-500/15 text-indigo-300 border-indigo-500/30",
+  "bg-fuchsia-500/15 text-fuchsia-300 border-fuchsia-500/30",
+  "bg-rose-500/15 text-rose-300 border-rose-500/30",
+  "bg-orange-500/15 text-orange-300 border-orange-500/30",
+  "bg-amber-500/15 text-amber-300 border-amber-500/30",
+  "bg-lime-500/15 text-lime-300 border-lime-500/30",
+  "bg-emerald-500/15 text-emerald-300 border-emerald-500/30",
+  "bg-cyan-500/15 text-cyan-300 border-cyan-500/30",
+  "bg-sky-500/15 text-sky-300 border-sky-500/30",
+  "bg-violet-500/15 text-violet-300 border-violet-500/30",
+];
+const catTone = (c: string) => {
+  if (CATEGORY_TONE[c]) return CATEGORY_TONE[c];
+  let h = 0;
+  for (let i = 0; i < c.length; i++) h = (h * 31 + c.charCodeAt(i)) >>> 0;
+  return FALLBACK_TONES[h % FALLBACK_TONES.length];
+};
 
 export const Route = createFileRoute("/midia-offline")({
   head: () => ({
