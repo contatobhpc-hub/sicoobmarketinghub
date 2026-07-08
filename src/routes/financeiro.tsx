@@ -81,6 +81,7 @@ import {
   useFinance,
   type ExpenseCategory,
   type FinanceSupplier,
+  type Invoice,
   type PaymentMethod,
   type PRStatus,
   type Urgency,
@@ -976,6 +977,8 @@ function InvoicesSection() {
   const [selectedMonth, setSelectedMonth] = useState(currentMonth);
   const [statusFilter, setStatusFilter] = useState<"todas" | "pendente" | "recebida" | "enviada" | "concluida">("todas");
   const [supplierFilter, setSupplierFilter] = useState<string>("todos");
+  const [editId, setEditId] = useState<string | null>(null);
+  const editing = state.invoices.find((i) => i.id === editId) ?? null;
 
   useEffect(() => {
     financeStore.syncMonthlyInvoicesFromSuppliers(selectedMonth);
@@ -1145,6 +1148,9 @@ function InvoicesSection() {
                       </div>
                     </td>
                     <td className="px-3 py-2 text-right">
+                      <Button size="sm" variant="ghost" onClick={() => setEditId(i.id)}>
+                        <Pencil className="h-3.5 w-3.5" />
+                      </Button>
                       <Button size="sm" variant="ghost" onClick={() => financeStore.removeInvoice(i.id)}>
                         <Trash2 className="h-3.5 w-3.5" />
                       </Button>
@@ -1160,7 +1166,81 @@ function InvoicesSection() {
           Dica: o checklist do mês seguinte começa vazio automaticamente. NFs de meses anteriores ficam disponíveis no seletor de mês acima.
         </p>
       </Card>
+      <Dialog open={!!editing} onOpenChange={(o) => { if (!o) setEditId(null); }}>
+        <DialogContent>
+          {editing && <EditInvoiceForm invoice={editing} onClose={() => setEditId(null)} suppliers={state.suppliers} />}
+        </DialogContent>
+      </Dialog>
     </div>
+  );
+}
+
+function EditInvoiceForm({ invoice, onClose, suppliers }: { invoice: Invoice; onClose: () => void; suppliers: FinanceSupplier[] }) {
+  const [form, setForm] = useState({
+    number: invoice.number,
+    supplierId: invoice.supplierId ?? "",
+    value: invoice.value,
+    date: invoice.date,
+    dueDate: invoice.dueDate ?? "",
+    category: invoice.category,
+    status: invoice.status,
+    notes: invoice.notes ?? "",
+  });
+  return (
+    <>
+      <DialogHeader><DialogTitle>Editar NF {invoice.number}</DialogTitle></DialogHeader>
+      <div className="grid grid-cols-2 gap-3">
+        <Field label="Nº da NF"><Input value={form.number} onChange={(e) => setForm({ ...form, number: e.target.value })} /></Field>
+        <Field label="Fornecedor">
+          <Select value={form.supplierId} onValueChange={(v) => setForm({ ...form, supplierId: v })}>
+            <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
+            <SelectContent>
+              {suppliers.map((s) => (<SelectItem key={s.id} value={s.id}>{s.company}</SelectItem>))}
+            </SelectContent>
+          </Select>
+        </Field>
+        <Field label="Valor (R$)"><Input type="number" value={form.value} onChange={(e) => setForm({ ...form, value: Number(e.target.value) || 0 })} /></Field>
+        <Field label="Categoria">
+          <Select value={form.category} onValueChange={(v) => setForm({ ...form, category: v as ExpenseCategory })}>
+            <SelectTrigger><SelectValue /></SelectTrigger>
+            <SelectContent>
+              {EXPENSE_CATEGORIES.map((c) => (<SelectItem key={c} value={c}>{c}</SelectItem>))}
+            </SelectContent>
+          </Select>
+        </Field>
+        <Field label="Data emissão"><Input type="date" value={form.date} onChange={(e) => setForm({ ...form, date: e.target.value })} /></Field>
+        <Field label="Vencimento"><Input type="date" value={form.dueDate} onChange={(e) => setForm({ ...form, dueDate: e.target.value })} /></Field>
+        <Field label="Status">
+          <Select value={form.status} onValueChange={(v) => setForm({ ...form, status: v as Invoice["status"] })}>
+            <SelectTrigger><SelectValue /></SelectTrigger>
+            <SelectContent>
+              {(["Pendente", "Aprovada", "Paga", "Cancelada"] as const).map((s) => (<SelectItem key={s} value={s}>{s}</SelectItem>))}
+            </SelectContent>
+          </Select>
+        </Field>
+        <Field label="Observação" className="col-span-2"><Textarea rows={2} value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })} /></Field>
+      </div>
+      <DialogFooter>
+        <Button variant="outline" onClick={onClose}>Cancelar</Button>
+        <Button
+          onClick={() => {
+            financeStore.updateInvoice(invoice.id, {
+              number: form.number,
+              supplierId: form.supplierId || undefined,
+              value: form.value,
+              date: form.date,
+              dueDate: form.dueDate || undefined,
+              category: form.category,
+              status: form.status,
+              notes: form.notes || undefined,
+            });
+            onClose();
+          }}
+        >
+          Salvar
+        </Button>
+      </DialogFooter>
+    </>
   );
 }
 

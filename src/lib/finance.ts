@@ -346,6 +346,10 @@ export const financeStore = {
     state = { ...state, invoices: state.invoices.filter((i) => i.id !== id) };
     emit();
   },
+  updateInvoice: (id: string, patch: Partial<Omit<Invoice, "id">>) => {
+    state = { ...state, invoices: state.invoices.map((i) => (i.id === id ? { ...i, ...patch } : i)) };
+    emit();
+  },
   toggleInvoiceReceived: (id: string, actor: string) => {
     state = {
       ...state,
