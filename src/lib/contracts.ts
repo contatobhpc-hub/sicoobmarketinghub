@@ -330,7 +330,7 @@ export const contractsStore = {
         changed = true;
       } else {
         const c = next[existingIdx];
-        if (!c.partnerId || c.company !== p.company || c.endDate !== endDate || c.value !== value) {
+        if (!c.partnerId || c.company !== p.company || c.endDate !== endDate || c.value !== value || c.category !== category) {
           next[existingIdx] = { ...c, partnerId: p.id, company: p.company, endDate, value, category };
           changed = true;
         }
