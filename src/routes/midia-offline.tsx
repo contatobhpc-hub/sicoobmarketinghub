@@ -837,7 +837,7 @@ function EditMediaDialog({ media, onClose }: { media: OfflineMedia; onClose: () 
   const categories = useOfflineMediaCategories();
   const [form, setForm] = useState({
     title: media.title,
-    category: media.category,
+    categories: (media.categories && media.categories.length ? media.categories : [media.category]) as OfflineMediaCategory[],
     city: media.city,
     location: media.location,
     supplier: media.supplier,
@@ -856,8 +856,15 @@ function EditMediaDialog({ media, onClose }: { media: OfflineMedia; onClose: () 
       toast.error("Preencha título, cidade, local, fornecedor e responsável.");
       return;
     }
+    if (form.categories.length === 0) {
+      toast.error("Selecione ao menos uma categoria.");
+      return;
+    }
+    const { categories: cats, ...rest } = form;
     offlineMediaStore.update(media.id, {
-      ...form,
+      ...rest,
+      category: cats[0],
+      categories: cats,
       campaign: form.campaign || undefined,
     }, "Informações atualizadas.");
     toast.success("Mídia atualizada.");
@@ -875,16 +882,11 @@ function EditMediaDialog({ media, onClose }: { media: OfflineMedia; onClose: () 
           <Label>Título</Label>
           <Input value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} />
         </div>
-        <div>
-          <Label>Categoria</Label>
-          <Select value={form.category} onValueChange={(v) => setForm({ ...form, category: v as OfflineMediaCategory })}>
-            <SelectTrigger><SelectValue /></SelectTrigger>
-            <SelectContent>
-              {categories.map((c) => <SelectItem key={c} value={c}>{c}</SelectItem>)}
-            </SelectContent>
-          </Select>
+        <div className="col-span-2">
+          <Label>Categorias <span className="text-muted-foreground">(selecione uma ou mais)</span></Label>
+          <CategoryPicker value={form.categories} options={categories} onChange={(v) => setForm({ ...form, categories: v })} />
         </div>
-        <div>
+        <div className="col-span-2">
           <Label>Status</Label>
           <Select value={form.status} onValueChange={(v) => setForm({ ...form, status: v as OfflineMediaStatus })}>
             <SelectTrigger><SelectValue /></SelectTrigger>
