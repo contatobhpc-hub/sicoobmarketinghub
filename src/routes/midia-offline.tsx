@@ -265,7 +265,7 @@ function MediaCard({ m, onClick, onEdit }: { m: OfflineMedia; onClick: () => voi
       <div className="flex items-start justify-between gap-2">
         <div className="min-w-0">
           <div className="flex items-center gap-2">
-            <Badge variant="outline" className={CATEGORY_TONE[m.category]}>{m.category}</Badge>
+            <Badge variant="outline" className={catTone(m.category)}>{m.category}</Badge>
             <Badge variant="outline" className={STATUS_TONE[m.status]}>{m.status}</Badge>
           </div>
           <h3 className="mt-2 truncate font-medium">{m.title}</h3>
@@ -482,7 +482,7 @@ function ListView({ items, onOpen, onEdit }: { items: OfflineMedia[]; onOpen: (i
               onClick={() => onOpen(m.id)}
               className="flex flex-1 items-center gap-3 px-4 py-3 text-left text-sm"
             >
-              <Badge variant="outline" className={`${CATEGORY_TONE[m.category]} shrink-0`}>{m.category}</Badge>
+              <Badge variant="outline" className={`${catTone(m.category)} shrink-0`}>{m.category}</Badge>
               <div className="min-w-0 flex-1">
                 <div className="truncate font-medium">{m.title}</div>
                 <div className="truncate text-xs text-muted-foreground">{m.city} · {m.location} · {m.supplier}</div>
@@ -550,7 +550,7 @@ function MediaDetail({ media }: { media: OfflineMedia }) {
     <>
       <SheetHeader className="space-y-2 pr-8">
         <div className="flex flex-wrap items-center gap-2">
-          <Badge variant="outline" className={CATEGORY_TONE[media.category]}>{media.category}</Badge>
+          <Badge variant="outline" className={catTone(media.category)}>{media.category}</Badge>
           <Badge variant="outline" className={STATUS_TONE[media.status]}>{media.status}</Badge>
         </div>
         <SheetTitle className="font-display text-xl">{media.title}</SheetTitle>
