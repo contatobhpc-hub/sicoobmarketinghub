@@ -454,7 +454,7 @@ function CalendarView({ items, onOpen }: { items: OfflineMedia[]; onOpen: (id: s
   );
 }
 
-function ListView({ items, onOpen }: { items: OfflineMedia[]; onOpen: (id: string) => void }) {
+function ListView({ items, onOpen, onEdit }: { items: OfflineMedia[]; onOpen: (id: string) => void; onEdit: (id: string) => void }) {
   if (items.length === 0) return <EmptyState />;
   return (
     <Card className="divide-y divide-border/40 p-0">
