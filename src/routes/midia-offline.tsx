@@ -27,6 +27,7 @@ import {
   Megaphone,
   Plus,
   Search,
+  Trash2,
   Truck,
   Upload,
   User as UserIcon,
