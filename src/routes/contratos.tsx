@@ -67,6 +67,7 @@ import {
   useContract,
   useContracts,
 } from "@/lib/contracts";
+import { usePartnerCategories } from "@/lib/partners";
 
 export const Route = createFileRoute("/contratos")({
   head: () => ({
