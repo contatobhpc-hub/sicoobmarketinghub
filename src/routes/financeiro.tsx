@@ -845,8 +845,9 @@ function SuppliersSection() {
                 <p><span className="text-muted-foreground">Email:</span> {s.email}</p>
                 <p><span className="text-muted-foreground">Contrato:</span> {s.contractRef ?? "Sem contrato vinculado"}</p>
               </div>
-              <div className="mt-3 grid grid-cols-2 gap-2 border-t border-border pt-3">
-                <MiniStat label="Contratado" value={formatBRL(total)} />
+              <div className="mt-3 grid grid-cols-3 gap-2 border-t border-border pt-3">
+                <MiniStat label="Investimento/mês" value={formatBRL(monthly)} />
+                <MiniStat label="Anual" value={formatBRL(total)} />
                 <MiniStat label="Serviços" value={String(count)} />
               </div>
             </div>
