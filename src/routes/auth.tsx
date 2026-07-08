@@ -43,10 +43,9 @@ function AuthPage() {
         if (error) throw error;
         toast.success("Conta criada! Verifique seu e-mail se a confirmação estiver habilitada.");
       } else {
-        const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+        const { error } = await supabase.auth.signInWithPassword({ email, password });
         if (error) throw error;
         toast.success("Bem-vindo!");
-        if (data.session) nav({ to: "/", replace: true });
       }
     } catch (err) {
       toast.error((err as Error).message);
