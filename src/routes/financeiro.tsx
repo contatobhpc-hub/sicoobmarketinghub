@@ -782,6 +782,8 @@ function PurchaseRequestsSection() {
 function SuppliersSection() {
   const state = useFinance();
   const [openNew, setOpenNew] = useState(false);
+  const [editId, setEditId] = useState<string | null>(null);
+  const editing = editId ? state.suppliers.find((s) => s.id === editId) ?? null : null;
   return (
     <Card>
       <div className="flex items-center justify-between gap-2">
