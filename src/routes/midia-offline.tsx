@@ -96,6 +96,7 @@ function MidiaOfflinePage() {
   }, [items]);
 
   const selected = openId ? items.find((m) => m.id === openId) ?? null : null;
+  const editing = editId ? items.find((m) => m.id === editId) ?? null : null;
 
   return (
     <AppShell>
