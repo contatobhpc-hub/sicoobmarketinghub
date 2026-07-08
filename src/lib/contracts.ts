@@ -23,7 +23,7 @@ export const CONTRACT_CATEGORIES = [
   "Consultoria",
   "Outros",
 ] as const;
-export type ContractCategory = (typeof CONTRACT_CATEGORIES)[number];
+export type ContractCategory = string;
 
 export const ALERT_DAYS = [90, 60, 30, 15, 7, 1] as const;
 export type AlertDay = (typeof ALERT_DAYS)[number];
@@ -341,11 +341,8 @@ export const contractsStore = {
 };
 
 function mapPartnerCategory(c: string): ContractCategory {
-  if ((CONTRACT_CATEGORIES as readonly string[]).includes(c)) return c as ContractCategory;
-  if (c === "Rádio") return "Mídia";
-  if (c === "Patrocinador") return "Patrocínio";
-  if (c === "Brindes") return "Fornecedor";
-  return "Outros";
+  // Preserve original partner category so contratos e parceiros exibam a mesma taxonomia.
+  return (c && c.trim()) || "Outros";
 }
 function mapPartnerStatus(s: PartnerStatus): ContractStatus {
   switch (s) {

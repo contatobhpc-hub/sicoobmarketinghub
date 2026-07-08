@@ -67,6 +67,7 @@ import {
   useContract,
   useContracts,
 } from "@/lib/contracts";
+import { usePartnerCategories } from "@/lib/partners";
 
 export const Route = createFileRoute("/contratos")({
   head: () => ({
@@ -80,6 +81,11 @@ export const Route = createFileRoute("/contratos")({
 
 function ContratosPage() {
   const contracts = useContracts();
+  const partnerCategories = usePartnerCategories();
+  const allCategories = useMemo(
+    () => Array.from(new Set([...CONTRACT_CATEGORIES, ...partnerCategories])),
+    [partnerCategories],
+  );
   const [query, setQuery] = useState("");
   const [status, setStatus] = useState<ContractStatus | "todos">("todos");
   const [category, setCategory] = useState<ContractCategory | "todas">("todas");
@@ -207,7 +213,7 @@ function ContratosPage() {
             <SelectTrigger className="w-[160px]"><SelectValue /></SelectTrigger>
             <SelectContent>
               <SelectItem value="todas">Todas as categorias</SelectItem>
-              {CONTRACT_CATEGORIES.map((c) => <SelectItem key={c} value={c}>{c}</SelectItem>)}
+              {allCategories.map((c) => <SelectItem key={c} value={c}>{c}</SelectItem>)}
             </SelectContent>
           </Select>
         </div>
@@ -639,6 +645,11 @@ function UploadInput({ partnerId, kind, label }: { partnerId: string; kind: "pdf
 }
 
 function NewContractDialog({ onClose }: { onClose: () => void }) {
+  const partnerCategories = usePartnerCategories();
+  const allCategories = useMemo(
+    () => Array.from(new Set([...CONTRACT_CATEGORIES, ...partnerCategories])),
+    [partnerCategories],
+  );
   const [company, setCompany] = useState("");
   const [category, setCategory] = useState<ContractCategory>("Agência");
   const [object, setObject] = useState("");
@@ -663,7 +674,7 @@ function NewContractDialog({ onClose }: { onClose: () => void }) {
           <Select value={category} onValueChange={(v) => setCategory(v as ContractCategory)}>
             <SelectTrigger><SelectValue /></SelectTrigger>
             <SelectContent>
-              {CONTRACT_CATEGORIES.map((c) => <SelectItem key={c} value={c}>{c}</SelectItem>)}
+              {allCategories.map((c) => <SelectItem key={c} value={c}>{c}</SelectItem>)}
             </SelectContent>
           </Select>
         </Field>
@@ -735,6 +746,11 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
 }
 
 function EditContractDialog({ contract, onDone }: { contract: Contract; onDone: () => void }) {
+  const partnerCategories = usePartnerCategories();
+  const allCategories = useMemo(
+    () => Array.from(new Set([...CONTRACT_CATEGORIES, ...partnerCategories, contract.category])),
+    [partnerCategories, contract.category],
+  );
   const [company, setCompany] = useState(contract.company);
   const [category, setCategory] = useState<ContractCategory>(contract.category);
   const [object, setObject] = useState(contract.object);
@@ -757,7 +773,7 @@ function EditContractDialog({ contract, onDone }: { contract: Contract; onDone: 
         <Field label="Categoria">
           <Select value={category} onValueChange={(v) => setCategory(v as ContractCategory)}>
             <SelectTrigger><SelectValue /></SelectTrigger>
-            <SelectContent>{CONTRACT_CATEGORIES.map((c) => <SelectItem key={c} value={c}>{c}</SelectItem>)}</SelectContent>
+            <SelectContent>{allCategories.map((c) => <SelectItem key={c} value={c}>{c}</SelectItem>)}</SelectContent>
           </Select>
         </Field>
         <div className="col-span-2"><Field label="Objeto"><Textarea rows={2} value={object} onChange={(e) => setObject(e.target.value)} /></Field></div>
