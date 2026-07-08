@@ -492,7 +492,7 @@ function ListView({ items, onOpen, onEdit }: { items: OfflineMedia[]; onOpen: (i
                 size="icon"
                 variant="ghost"
                 className="size-8 text-muted-foreground hover:text-primary"
-                onClick={() => onOpen(m.id)}
+                onClick={() => onEdit(m.id)}
                 aria-label="Editar mídia"
               >
                 <Pencil className="size-4" />
