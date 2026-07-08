@@ -315,6 +315,10 @@ export const financeStore = {
     state = { ...state, suppliers: [{ ...input, id: uid("sup") }, ...state.suppliers] };
     emit();
   },
+  updateSupplier: (id: string, patch: Partial<Omit<FinanceSupplier, "id">>) => {
+    state = { ...state, suppliers: state.suppliers.map((s) => (s.id === id ? { ...s, ...patch } : s)) };
+    emit();
+  },
   removeSupplier: (id: string) => {
     state = {
       ...state,
