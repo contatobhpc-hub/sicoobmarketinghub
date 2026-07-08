@@ -724,7 +724,7 @@ function NewMediaDialog({ onClose }: { onClose: () => void }) {
           <Select value={form.category} onValueChange={(v) => setForm({ ...form, category: v as OfflineMediaCategory })}>
             <SelectTrigger><SelectValue /></SelectTrigger>
             <SelectContent>
-              {OFFLINE_MEDIA_CATEGORIES.map((c) => <SelectItem key={c} value={c}>{c}</SelectItem>)}
+              {categories.map((c) => <SelectItem key={c} value={c}>{c}</SelectItem>)}
             </SelectContent>
           </Select>
         </div>
