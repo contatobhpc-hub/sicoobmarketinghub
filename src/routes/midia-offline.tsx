@@ -444,32 +444,48 @@ function ListView({ items, onOpen }: { items: OfflineMedia[]; onOpen: (id: strin
         const a = removalAlert(m);
         const d = daysUntil(m.removalDate);
         return (
-          <button
-            key={m.id}
-            onClick={() => onOpen(m.id)}
-            className="flex w-full items-center gap-3 px-4 py-3 text-left text-sm transition hover:bg-muted/30"
-          >
-            <Badge variant="outline" className={`${CATEGORY_TONE[m.category]} shrink-0`}>{m.category}</Badge>
-            <div className="min-w-0 flex-1">
-              <div className="truncate font-medium">{m.title}</div>
-              <div className="truncate text-xs text-muted-foreground">{m.city} · {m.location} · {m.supplier}</div>
-            </div>
-            <div className="hidden w-32 text-xs text-muted-foreground md:block">
-              {fmtDate(m.installDate)} → {fmtDate(m.removalDate)}
-            </div>
-            <Badge variant="outline" className={`${STATUS_TONE[m.status]} hidden md:inline-flex`}>{m.status}</Badge>
-            <div className="w-20 text-right text-xs">{fmtBRL(m.value)}</div>
-            {a !== "ok" && (
-              <span
-                className={`hidden rounded-full px-2 py-0.5 text-[11px] md:inline ${
-                  a === "expired" ? "bg-red-500/15 text-red-300" : a === "urgent" ? "bg-orange-500/15 text-orange-300" : "bg-amber-500/15 text-amber-300"
-                }`}
-              >
-                {a === "expired" ? `vencida ${-d}d` : `${d}d`}
-              </span>
-            )}
-          </button>
+          <div key={m.id} className="group flex items-center transition hover:bg-muted/30">
+            <button
+              onClick={() => onOpen(m.id)}
+              className="flex flex-1 items-center gap-3 px-4 py-3 text-left text-sm"
+            >
+              <Badge variant="outline" className={`${CATEGORY_TONE[m.category]} shrink-0`}>{m.category}</Badge>
+              <div className="min-w-0 flex-1">
+                <div className="truncate font-medium">{m.title}</div>
+                <div className="truncate text-xs text-muted-foreground">{m.city} · {m.location} · {m.supplier}</div>
+              </div>
+              <div className="hidden w-32 text-xs text-muted-foreground md:block">
+                {fmtDate(m.installDate)} → {fmtDate(m.removalDate)}
+              </div>
+              <Badge variant="outline" className={`${STATUS_TONE[m.status]} hidden md:inline-flex`}>{m.status}</Badge>
+              <div className="w-20 text-right text-xs">{fmtBRL(m.value)}</div>
+              {a !== "ok" && (
+                <span
+                  className={`hidden rounded-full px-2 py-0.5 text-[11px] md:inline ${
+                    a === "expired" ? "bg-red-500/15 text-red-300" : a === "urgent" ? "bg-orange-500/15 text-orange-300" : "bg-amber-500/15 text-amber-300"
+                  }`}
+                >
+                  {a === "expired" ? `vencida ${-d}d` : `${d}d`}
+                </span>
+              )}
+            </button>
+            <Button
+              size="icon"
+              variant="ghost"
+              className="mr-2 size-8 text-muted-foreground opacity-0 transition group-hover:opacity-100 hover:text-red-400"
+              onClick={() => {
+                if (confirm(`Remover a mídia "${m.title}"?`)) {
+                  offlineMediaStore.remove(m.id);
+                  toast.success("Mídia removida.");
+                }
+              }}
+              aria-label="Remover mídia"
+            >
+              <Trash2 className="size-4" />
+            </Button>
+          </div>
         );
+
       })}
     </Card>
   );
