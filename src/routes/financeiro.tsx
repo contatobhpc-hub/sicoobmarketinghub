@@ -1148,6 +1148,9 @@ function InvoicesSection() {
                       </div>
                     </td>
                     <td className="px-3 py-2 text-right">
+                      <Button size="sm" variant="ghost" onClick={() => setEditId(i.id)}>
+                        <Pencil className="h-3.5 w-3.5" />
+                      </Button>
                       <Button size="sm" variant="ghost" onClick={() => financeStore.removeInvoice(i.id)}>
                         <Trash2 className="h-3.5 w-3.5" />
                       </Button>
