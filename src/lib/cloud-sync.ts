@@ -64,7 +64,6 @@ export function scheduleModulePush<T>(module: string, getter: () => T, delay = 7
 }
 
 // Convenience: hooks a module store to auth + cloud. Returns a `push` fn to call from emit().
-import { supabase } from "@/integrations/supabase/client";
 const attached = new Set<string>();
 export function enableCloudSync<T>(
   module: string,
