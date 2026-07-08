@@ -683,6 +683,7 @@ function InfoRow({
 }
 
 function NewMediaDialog({ onClose }: { onClose: () => void }) {
+  const categories = useOfflineMediaCategories();
   const [form, setForm] = useState({
     title: "",
     category: "Outdoor" as OfflineMediaCategory,
