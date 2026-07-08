@@ -264,7 +264,7 @@ function MediaCard({ m, onClick, onEdit }: { m: OfflineMedia; onClick: () => voi
               size="icon"
               variant="ghost"
               className="size-7 text-muted-foreground hover:text-primary"
-              onClick={(e) => { e.stopPropagation(); onClick(); }}
+              onClick={(e) => { e.stopPropagation(); onEdit(); }}
               aria-label="Editar mídia"
             >
               <Pencil className="size-4" />
