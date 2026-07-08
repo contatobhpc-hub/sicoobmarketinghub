@@ -102,7 +102,7 @@ function MidiaOfflinePage() {
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
     return items.filter((m) => {
-      if (cat !== "all" && m.category !== cat) return false;
+      if (cat !== "all" && !getCats(m).includes(cat)) return false;
       if (status !== "all" && m.status !== status) return false;
       if (!q) return true;
       return [m.title, m.city, m.location, m.supplier, m.campaign ?? "", m.owner].join(" ").toLowerCase().includes(q);
@@ -282,8 +282,10 @@ function MediaCard({ m, onClick, onEdit }: { m: OfflineMedia; onClick: () => voi
     >
       <div className="flex items-start justify-between gap-2">
         <div className="min-w-0">
-          <div className="flex items-center gap-2">
-            <Badge variant="outline" className={catTone(m.category)}>{m.category}</Badge>
+          <div className="flex flex-wrap items-center gap-1.5">
+            {getCats(m).map((c) => (
+              <Badge key={c} variant="outline" className={catTone(c)}>{c}</Badge>
+            ))}
             <Badge variant="outline" className={STATUS_TONE[m.status]}>{m.status}</Badge>
           </div>
           <h3 className="mt-2 truncate font-medium">{m.title}</h3>
@@ -500,7 +502,11 @@ function ListView({ items, onOpen, onEdit }: { items: OfflineMedia[]; onOpen: (i
               onClick={() => onOpen(m.id)}
               className="flex flex-1 items-center gap-3 px-4 py-3 text-left text-sm"
             >
-              <Badge variant="outline" className={`${catTone(m.category)} shrink-0`}>{m.category}</Badge>
+              <div className="flex shrink-0 flex-wrap gap-1">
+                {getCats(m).map((c) => (
+                  <Badge key={c} variant="outline" className={catTone(c)}>{c}</Badge>
+                ))}
+              </div>
               <div className="min-w-0 flex-1">
                 <div className="truncate font-medium">{m.title}</div>
                 <div className="truncate text-xs text-muted-foreground">{m.city} · {m.location} · {m.supplier}</div>
@@ -568,7 +574,9 @@ function MediaDetail({ media }: { media: OfflineMedia }) {
     <>
       <SheetHeader className="space-y-2 pr-8">
         <div className="flex flex-wrap items-center gap-2">
-          <Badge variant="outline" className={catTone(media.category)}>{media.category}</Badge>
+          {getCats(media).map((c) => (
+            <Badge key={c} variant="outline" className={catTone(c)}>{c}</Badge>
+          ))}
           <Badge variant="outline" className={STATUS_TONE[media.status]}>{media.status}</Badge>
         </div>
         <SheetTitle className="font-display text-xl">{media.title}</SheetTitle>
