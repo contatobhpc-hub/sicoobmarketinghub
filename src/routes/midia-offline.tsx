@@ -69,6 +69,8 @@ const catTone = (c: string) => {
   for (let i = 0; i < c.length; i++) h = (h * 31 + c.charCodeAt(i)) >>> 0;
   return FALLBACK_TONES[h % FALLBACK_TONES.length];
 };
+const getCats = (m: OfflineMedia): OfflineMediaCategory[] =>
+  m.categories && m.categories.length ? m.categories : [m.category];
 
 export const Route = createFileRoute("/midia-offline")({
   head: () => ({
@@ -100,7 +102,7 @@ function MidiaOfflinePage() {
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
     return items.filter((m) => {
-      if (cat !== "all" && m.category !== cat) return false;
+      if (cat !== "all" && !getCats(m).includes(cat)) return false;
       if (status !== "all" && m.status !== status) return false;
       if (!q) return true;
       return [m.title, m.city, m.location, m.supplier, m.campaign ?? "", m.owner].join(" ").toLowerCase().includes(q);
@@ -280,8 +282,10 @@ function MediaCard({ m, onClick, onEdit }: { m: OfflineMedia; onClick: () => voi
     >
       <div className="flex items-start justify-between gap-2">
         <div className="min-w-0">
-          <div className="flex items-center gap-2">
-            <Badge variant="outline" className={catTone(m.category)}>{m.category}</Badge>
+          <div className="flex flex-wrap items-center gap-1.5">
+            {getCats(m).map((c) => (
+              <Badge key={c} variant="outline" className={catTone(c)}>{c}</Badge>
+            ))}
             <Badge variant="outline" className={STATUS_TONE[m.status]}>{m.status}</Badge>
           </div>
           <h3 className="mt-2 truncate font-medium">{m.title}</h3>
@@ -498,7 +502,11 @@ function ListView({ items, onOpen, onEdit }: { items: OfflineMedia[]; onOpen: (i
               onClick={() => onOpen(m.id)}
               className="flex flex-1 items-center gap-3 px-4 py-3 text-left text-sm"
             >
-              <Badge variant="outline" className={`${catTone(m.category)} shrink-0`}>{m.category}</Badge>
+              <div className="flex shrink-0 flex-wrap gap-1">
+                {getCats(m).map((c) => (
+                  <Badge key={c} variant="outline" className={catTone(c)}>{c}</Badge>
+                ))}
+              </div>
               <div className="min-w-0 flex-1">
                 <div className="truncate font-medium">{m.title}</div>
                 <div className="truncate text-xs text-muted-foreground">{m.city} · {m.location} · {m.supplier}</div>
@@ -566,7 +574,9 @@ function MediaDetail({ media }: { media: OfflineMedia }) {
     <>
       <SheetHeader className="space-y-2 pr-8">
         <div className="flex flex-wrap items-center gap-2">
-          <Badge variant="outline" className={catTone(media.category)}>{media.category}</Badge>
+          {getCats(media).map((c) => (
+            <Badge key={c} variant="outline" className={catTone(c)}>{c}</Badge>
+          ))}
           <Badge variant="outline" className={STATUS_TONE[media.status]}>{media.status}</Badge>
         </div>
         <SheetTitle className="font-display text-xl">{media.title}</SheetTitle>
@@ -698,11 +708,44 @@ function InfoRow({
   );
 }
 
+function CategoryPicker({
+  value,
+  options,
+  onChange,
+}: {
+  value: string[];
+  options: string[];
+  onChange: (v: string[]) => void;
+}) {
+  const toggle = (c: string) => {
+    onChange(value.includes(c) ? value.filter((x) => x !== c) : [...value, c]);
+  };
+  return (
+    <div className="flex flex-wrap gap-1.5 rounded-md border border-border/60 bg-card/40 p-2">
+      {options.map((c) => {
+        const active = value.includes(c);
+        return (
+          <button
+            key={c}
+            type="button"
+            onClick={() => toggle(c)}
+            className={`rounded-full border px-2.5 py-1 text-xs transition ${
+              active ? catTone(c) : "border-border/60 text-muted-foreground hover:text-foreground"
+            }`}
+          >
+            {c}
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
 function NewMediaDialog({ onClose }: { onClose: () => void }) {
   const categories = useOfflineMediaCategories();
   const [form, setForm] = useState({
     title: "",
-    category: "Outdoor" as OfflineMediaCategory,
+    categories: ["Outdoor"] as OfflineMediaCategory[],
     city: "",
     location: "",
     supplier: "",
@@ -719,7 +762,12 @@ function NewMediaDialog({ onClose }: { onClose: () => void }) {
       toast.error("Preencha título, cidade, local, fornecedor e responsável.");
       return;
     }
-    offlineMediaStore.add(form);
+    if (form.categories.length === 0) {
+      toast.error("Selecione ao menos uma categoria.");
+      return;
+    }
+    const { categories: cats, ...rest } = form;
+    offlineMediaStore.add({ ...rest, category: cats[0], categories: cats });
     toast.success("Mídia cadastrada");
     onClose();
   }
@@ -735,15 +783,11 @@ function NewMediaDialog({ onClose }: { onClose: () => void }) {
           <Label>Título</Label>
           <Input value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} placeholder="Ex.: Outdoor BR-365 entrada" />
         </div>
-        <div>
-          <Label>Categoria</Label>
-          <Select value={form.category} onValueChange={(v) => setForm({ ...form, category: v as OfflineMediaCategory })}>
-            <SelectTrigger><SelectValue /></SelectTrigger>
-            <SelectContent>
-              {categories.map((c) => <SelectItem key={c} value={c}>{c}</SelectItem>)}
-            </SelectContent>
-          </Select>
+        <div className="col-span-2">
+          <Label>Categorias <span className="text-muted-foreground">(selecione uma ou mais)</span></Label>
+          <CategoryPicker value={form.categories} options={categories} onChange={(v) => setForm({ ...form, categories: v })} />
         </div>
+
         <div>
           <Label>Cidade</Label>
           <Input value={form.city} onChange={(e) => setForm({ ...form, city: e.target.value })} placeholder="Patos de Minas/MG" />
@@ -793,7 +837,7 @@ function EditMediaDialog({ media, onClose }: { media: OfflineMedia; onClose: () 
   const categories = useOfflineMediaCategories();
   const [form, setForm] = useState({
     title: media.title,
-    category: media.category,
+    categories: (media.categories && media.categories.length ? media.categories : [media.category]) as OfflineMediaCategory[],
     city: media.city,
     location: media.location,
     supplier: media.supplier,
@@ -812,8 +856,15 @@ function EditMediaDialog({ media, onClose }: { media: OfflineMedia; onClose: () 
       toast.error("Preencha título, cidade, local, fornecedor e responsável.");
       return;
     }
+    if (form.categories.length === 0) {
+      toast.error("Selecione ao menos uma categoria.");
+      return;
+    }
+    const { categories: cats, ...rest } = form;
     offlineMediaStore.update(media.id, {
-      ...form,
+      ...rest,
+      category: cats[0],
+      categories: cats,
       campaign: form.campaign || undefined,
     }, "Informações atualizadas.");
     toast.success("Mídia atualizada.");
@@ -831,16 +882,11 @@ function EditMediaDialog({ media, onClose }: { media: OfflineMedia; onClose: () 
           <Label>Título</Label>
           <Input value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} />
         </div>
-        <div>
-          <Label>Categoria</Label>
-          <Select value={form.category} onValueChange={(v) => setForm({ ...form, category: v as OfflineMediaCategory })}>
-            <SelectTrigger><SelectValue /></SelectTrigger>
-            <SelectContent>
-              {categories.map((c) => <SelectItem key={c} value={c}>{c}</SelectItem>)}
-            </SelectContent>
-          </Select>
+        <div className="col-span-2">
+          <Label>Categorias <span className="text-muted-foreground">(selecione uma ou mais)</span></Label>
+          <CategoryPicker value={form.categories} options={categories} onChange={(v) => setForm({ ...form, categories: v })} />
         </div>
-        <div>
+        <div className="col-span-2">
           <Label>Status</Label>
           <Select value={form.status} onValueChange={(v) => setForm({ ...form, status: v as OfflineMediaStatus })}>
             <SelectTrigger><SelectValue /></SelectTrigger>
