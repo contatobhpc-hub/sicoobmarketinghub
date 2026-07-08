@@ -977,6 +977,8 @@ function InvoicesSection() {
   const [selectedMonth, setSelectedMonth] = useState(currentMonth);
   const [statusFilter, setStatusFilter] = useState<"todas" | "pendente" | "recebida" | "enviada" | "concluida">("todas");
   const [supplierFilter, setSupplierFilter] = useState<string>("todos");
+  const [editId, setEditId] = useState<string | null>(null);
+  const editing = state.invoices.find((i) => i.id === editId) ?? null;
 
   useEffect(() => {
     financeStore.syncMonthlyInvoicesFromSuppliers(selectedMonth);
