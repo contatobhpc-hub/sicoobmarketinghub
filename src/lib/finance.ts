@@ -82,6 +82,8 @@ export type FinanceSupplier = {
   products: string[];
   rating: number; // 0-5
   partnerId?: string;
+  monthlyInvestment?: number;
+  annualInvestment?: number;
 };
 
 export type Expense = {
@@ -397,6 +399,8 @@ export const financeStore = {
           products: [],
           rating: 5,
           partnerId: p.id,
+          monthlyInvestment: p.investmentMonth || 0,
+          annualInvestment: Math.round((p.investmentMonth || 0) * 12),
         });
         changed = true;
       } else {
@@ -411,6 +415,8 @@ export const financeStore = {
           phone: p.phone || s.phone,
           email: p.email || s.email,
           contractRef: p.contractId ?? s.contractRef,
+          monthlyInvestment: p.investmentMonth || 0,
+          annualInvestment: Math.round((p.investmentMonth || 0) * 12),
         };
         if (JSON.stringify(patch) !== JSON.stringify(s)) {
           next[idx] = patch;

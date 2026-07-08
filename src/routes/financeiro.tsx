@@ -219,7 +219,7 @@ function DashboardSection() {
       if (e.supplierId) map.set(e.supplierId, (map.get(e.supplierId) ?? 0) + expenseTotal(e));
     });
     return state.suppliers
-      .map((s) => ({ name: s.company, value: map.get(s.id) ?? 0 }))
+      .map((s) => ({ name: s.company, value: Math.max(map.get(s.id) ?? 0, s.annualInvestment ?? 0) }))
       .sort((a, b) => b.value - a.value)
       .slice(0, 10);
   }, [state.suppliers, state.expenses]);
@@ -800,8 +800,11 @@ function SuppliersSection() {
           <p className="text-sm text-muted-foreground">Nenhum fornecedor cadastrado.</p>
         )}
         {state.suppliers.map((s) => {
-          const total = state.expenses.filter((e) => e.supplierId === s.id).reduce((a, e) => a + expenseTotal(e), 0);
+          const expensesTotal = state.expenses.filter((e) => e.supplierId === s.id).reduce((a, e) => a + expenseTotal(e), 0);
           const count = state.expenses.filter((e) => e.supplierId === s.id).length;
+          const monthly = s.monthlyInvestment ?? 0;
+          const annual = s.annualInvestment ?? monthly * 12;
+          const total = Math.max(expensesTotal, annual);
           return (
             <div key={s.id} className="rounded-xl border border-border bg-surface/40 p-4">
               <div className="flex items-start justify-between gap-2">
@@ -842,8 +845,9 @@ function SuppliersSection() {
                 <p><span className="text-muted-foreground">Email:</span> {s.email}</p>
                 <p><span className="text-muted-foreground">Contrato:</span> {s.contractRef ?? "Sem contrato vinculado"}</p>
               </div>
-              <div className="mt-3 grid grid-cols-2 gap-2 border-t border-border pt-3">
-                <MiniStat label="Contratado" value={formatBRL(total)} />
+              <div className="mt-3 grid grid-cols-3 gap-2 border-t border-border pt-3">
+                <MiniStat label="Investimento/mês" value={formatBRL(monthly)} />
+                <MiniStat label="Anual" value={formatBRL(total)} />
                 <MiniStat label="Serviços" value={String(count)} />
               </div>
             </div>
