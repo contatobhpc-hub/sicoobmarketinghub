@@ -72,6 +72,7 @@ function MidiaOfflinePage() {
   const [cat, setCat] = useState<"all" | OfflineMediaCategory>("all");
   const [status, setStatus] = useState<"all" | OfflineMediaStatus>("all");
   const [openId, setOpenId] = useState<string | null>(null);
+  const [editId, setEditId] = useState<string | null>(null);
   const [creating, setCreating] = useState(false);
 
   const filtered = useMemo(() => {
