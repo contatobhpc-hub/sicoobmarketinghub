@@ -72,7 +72,7 @@ export function useContractCategories() {
 export const ALERT_DAYS = [90, 60, 30, 15, 7, 1] as const;
 export type AlertDay = (typeof ALERT_DAYS)[number];
 
-export type ContractFile = { id: string; name: string; size: number; kind: "pdf" | "attachment" };
+export type ContractFile = { id: string; name: string; size: number; kind: "pdf" | "attachment"; storagePath?: string };
 export type ContractChecklistItem = { id: string; text: string; done: boolean };
 export type ContractTimelineEntry = {
   id: string;
