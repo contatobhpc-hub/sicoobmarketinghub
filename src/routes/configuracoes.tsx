@@ -44,6 +44,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { cn } from "@/lib/utils";
 import { settingsStore, useSettings, useCurrentUser, type SettingsState, type RoleKey } from "@/lib/settings";
+import { downloadFullBackup, importFullBackup } from "@/lib/backup";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 
 export const Route = createFileRoute("/configuracoes")({
