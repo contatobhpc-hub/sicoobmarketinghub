@@ -1,5 +1,7 @@
 import { useEffect, useSyncExternalStore } from "react";
 import { partnersStore, type Partner, type PartnerStatus } from "./partners";
+import { supabase } from "@/integrations/supabase/client";
+import { loadModuleState, scheduleModulePush, setCloudSyncUser } from "./cloud-sync";
 
 export const CONTRACT_STATUSES = [
   "Rascunho",
@@ -229,7 +231,30 @@ function save(s: Contract[]) {
 
 let state: Contract[] = load();
 const listeners = new Set<() => void>();
-function emit() { save(state); listeners.forEach((l) => l()); }
+function emit() { save(state); scheduleModulePush("contracts", () => state); listeners.forEach((l) => l()); }
+
+let cloudHydrated = false;
+export async function hydrateContractsFromCloud(userId: string | null) {
+  setCloudSyncUser(userId);
+  if (!userId) { cloudHydrated = false; return; }
+  const cloud = await loadModuleState<Contract[]>("contracts");
+  if (cloud && Array.isArray(cloud) && cloud.length > 0) {
+    state = cloud;
+    listeners.forEach((l) => l());
+  } else if (!cloudHydrated) {
+    scheduleModulePush("contracts", () => state);
+  }
+  cloudHydrated = true;
+}
+
+if (typeof window !== "undefined") {
+  supabase.auth.getSession().then(({ data }) => {
+    if (data.session?.user) hydrateContractsFromCloud(data.session.user.id);
+  });
+  supabase.auth.onAuthStateChange((_evt, session) => {
+    hydrateContractsFromCloud(session?.user?.id ?? null);
+  });
+}
 
 function pushTimeline(c: Contract, e: Omit<ContractTimelineEntry, "id" | "createdAt" | "signature">): Contract {
   const ts = now();

@@ -45,6 +45,7 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { cn } from "@/lib/utils";
 import { settingsStore, useSettings, useCurrentUser, type SettingsState, type RoleKey } from "@/lib/settings";
 import { downloadFullBackup, importFullBackup } from "@/lib/backup";
+import { ContasSection } from "@/components/accounts-section";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 
 export const Route = createFileRoute("/configuracoes")({
@@ -59,6 +60,7 @@ export const Route = createFileRoute("/configuracoes")({
 
 type SectionKey =
   | "empresa"
+  | "contas"
   | "usuarios"
   | "permissoes"
   | "papeis"
@@ -91,7 +93,8 @@ const GROUPS: Group[] = [
     label: "Workspace",
     items: [
       { key: "empresa", label: "Empresa", icon: Building2 },
-      { key: "usuarios", label: "Usuários", icon: Users },
+      { key: "contas", label: "Contas de acesso", icon: ShieldCheck },
+      { key: "usuarios", label: "Usuários (mock)", icon: Users },
       { key: "permissoes", label: "Permissões", icon: KeyRound },
       { key: "papeis", label: "Papéis", icon: ShieldCheck },
     ],
@@ -231,6 +234,8 @@ function SectionContent({ section, settings }: { section: SectionKey; settings: 
   switch (section) {
     case "empresa":
       return <EmpresaSection settings={settings} />;
+    case "contas":
+      return <ContasSection />;
     case "usuarios":
       return <UsuariosSection settings={settings} />;
     case "permissoes":

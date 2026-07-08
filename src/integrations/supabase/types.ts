@@ -14,6 +14,27 @@ export type Database = {
   }
   public: {
     Tables: {
+      app_state: {
+        Row: {
+          data: Json
+          module: string
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          data?: Json
+          module: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          data?: Json
+          module?: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: []
+      }
       finance_budget: {
         Row: {
           approved: number
