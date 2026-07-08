@@ -92,6 +92,7 @@ export type OfflineMedia = {
   id: string;
   title: string;
   category: OfflineMediaCategory;
+  categories?: OfflineMediaCategory[];
   city: string;
   location: string;
   supplier: string;
