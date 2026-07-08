@@ -69,6 +69,8 @@ const catTone = (c: string) => {
   for (let i = 0; i < c.length; i++) h = (h * 31 + c.charCodeAt(i)) >>> 0;
   return FALLBACK_TONES[h % FALLBACK_TONES.length];
 };
+const getCats = (m: OfflineMedia): OfflineMediaCategory[] =>
+  m.categories && m.categories.length ? m.categories : [m.category];
 
 export const Route = createFileRoute("/midia-offline")({
   head: () => ({
