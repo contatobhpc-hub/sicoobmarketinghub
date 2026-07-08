@@ -1,4 +1,6 @@
 import { useEffect, useSyncExternalStore } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import { loadModuleState, scheduleModulePush, setCloudSyncUser } from "./cloud-sync";
 
 export const PARTNER_STATUSES = [
   "Prospect",
@@ -304,7 +306,37 @@ let hydrated = false;
 const listeners = new Set<() => void>();
 function emit() {
   save(state);
+  scheduleModulePush("partners", () => state);
   listeners.forEach((l) => l());
+}
+
+// Cloud hydration on auth session
+let cloudHydrated = false;
+export async function hydratePartnersFromCloud(userId: string | null) {
+  setCloudSyncUser(userId);
+  if (!userId) { cloudHydrated = false; return; }
+  const cloud = await loadModuleState<Partner[]>("partners");
+  if (cloud && Array.isArray(cloud) && cloud.length > 0) {
+    state = cloud;
+    hydrated = true;
+    listeners.forEach((l) => l());
+  } else if (!cloudHydrated) {
+    // First login with empty cloud: push local seed/localStorage
+    if (typeof window !== "undefined") state = load();
+    hydrated = true;
+    scheduleModulePush("partners", () => state);
+    listeners.forEach((l) => l());
+  }
+  cloudHydrated = true;
+}
+
+if (typeof window !== "undefined") {
+  supabase.auth.getSession().then(({ data }) => {
+    if (data.session?.user) hydratePartnersFromCloud(data.session.user.id);
+  });
+  supabase.auth.onAuthStateChange((_evt, session) => {
+    hydratePartnersFromCloud(session?.user?.id ?? null);
+  });
 }
 
 function hydrateFromStorage() {
