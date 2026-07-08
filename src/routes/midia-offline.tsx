@@ -708,11 +708,44 @@ function InfoRow({
   );
 }
 
+function CategoryPicker({
+  value,
+  options,
+  onChange,
+}: {
+  value: string[];
+  options: string[];
+  onChange: (v: string[]) => void;
+}) {
+  const toggle = (c: string) => {
+    onChange(value.includes(c) ? value.filter((x) => x !== c) : [...value, c]);
+  };
+  return (
+    <div className="flex flex-wrap gap-1.5 rounded-md border border-border/60 bg-card/40 p-2">
+      {options.map((c) => {
+        const active = value.includes(c);
+        return (
+          <button
+            key={c}
+            type="button"
+            onClick={() => toggle(c)}
+            className={`rounded-full border px-2.5 py-1 text-xs transition ${
+              active ? catTone(c) : "border-border/60 text-muted-foreground hover:text-foreground"
+            }`}
+          >
+            {c}
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
 function NewMediaDialog({ onClose }: { onClose: () => void }) {
   const categories = useOfflineMediaCategories();
   const [form, setForm] = useState({
     title: "",
-    category: "Outdoor" as OfflineMediaCategory,
+    categories: ["Outdoor"] as OfflineMediaCategory[],
     city: "",
     location: "",
     supplier: "",
@@ -729,7 +762,12 @@ function NewMediaDialog({ onClose }: { onClose: () => void }) {
       toast.error("Preencha título, cidade, local, fornecedor e responsável.");
       return;
     }
-    offlineMediaStore.add(form);
+    if (form.categories.length === 0) {
+      toast.error("Selecione ao menos uma categoria.");
+      return;
+    }
+    const { categories: cats, ...rest } = form;
+    offlineMediaStore.add({ ...rest, category: cats[0], categories: cats });
     toast.success("Mídia cadastrada");
     onClose();
   }
@@ -745,15 +783,11 @@ function NewMediaDialog({ onClose }: { onClose: () => void }) {
           <Label>Título</Label>
           <Input value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} placeholder="Ex.: Outdoor BR-365 entrada" />
         </div>
-        <div>
-          <Label>Categoria</Label>
-          <Select value={form.category} onValueChange={(v) => setForm({ ...form, category: v as OfflineMediaCategory })}>
-            <SelectTrigger><SelectValue /></SelectTrigger>
-            <SelectContent>
-              {categories.map((c) => <SelectItem key={c} value={c}>{c}</SelectItem>)}
-            </SelectContent>
-          </Select>
+        <div className="col-span-2">
+          <Label>Categorias <span className="text-muted-foreground">(selecione uma ou mais)</span></Label>
+          <CategoryPicker value={form.categories} options={categories} onChange={(v) => setForm({ ...form, categories: v })} />
         </div>
+
         <div>
           <Label>Cidade</Label>
           <Input value={form.city} onChange={(e) => setForm({ ...form, city: e.target.value })} placeholder="Patos de Minas/MG" />
