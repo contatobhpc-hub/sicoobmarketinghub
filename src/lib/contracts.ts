@@ -25,6 +25,48 @@ export const CONTRACT_CATEGORIES = [
 ] as const;
 export type ContractCategory = string;
 
+/* ---------- Contract categories store (dynamic, per-module) ---------- */
+const CC_KEY = "mhub.contract-categories.v1";
+let ccState: string[] = [...CONTRACT_CATEGORIES];
+const ccListeners = new Set<() => void>();
+if (typeof window !== "undefined") {
+  try {
+    const raw = window.localStorage.getItem(CC_KEY);
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      if (Array.isArray(parsed) && parsed.every((v) => typeof v === "string") && parsed.length) {
+        ccState = parsed;
+      }
+    }
+  } catch { /* ignore */ }
+}
+function ccEmit() {
+  if (typeof window !== "undefined") {
+    try { window.localStorage.setItem(CC_KEY, JSON.stringify(ccState)); } catch { /* ignore */ }
+  }
+  for (const l of ccListeners) l();
+}
+export const contractCategoriesStore = {
+  get: () => ccState,
+  subscribe(l: () => void) { ccListeners.add(l); return () => ccListeners.delete(l); },
+  add(name: string) {
+    const v = name.trim();
+    if (!v) return false;
+    if (ccState.some((c) => c.toLowerCase() === v.toLowerCase())) return false;
+    ccState = [...ccState, v];
+    ccEmit();
+    return true;
+  },
+  remove(name: string) {
+    if (!ccState.includes(name)) return;
+    ccState = ccState.filter((c) => c !== name);
+    ccEmit();
+  },
+};
+export function useContractCategories() {
+  return useSyncExternalStore(contractCategoriesStore.subscribe, () => ccState, () => ccState);
+}
+
 export const ALERT_DAYS = [90, 60, 30, 15, 7, 1] as const;
 export type AlertDay = (typeof ALERT_DAYS)[number];
 

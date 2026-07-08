@@ -58,6 +58,7 @@ import {
   type ContractStatus,
   alertLevel,
   alertTone,
+  contractCategoriesStore,
   contractsStore,
   daysUntil,
   formatBRL,
@@ -65,6 +66,7 @@ import {
   formatRelative,
   statusTone,
   useContract,
+  useContractCategories,
   useContracts,
 } from "@/lib/contracts";
 import { usePartnerCategories } from "@/lib/partners";
@@ -82,9 +84,10 @@ export const Route = createFileRoute("/contratos")({
 function ContratosPage() {
   const contracts = useContracts();
   const partnerCategories = usePartnerCategories();
+  const contractCategories = useContractCategories();
   const allCategories = useMemo(
-    () => Array.from(new Set([...CONTRACT_CATEGORIES, ...partnerCategories])),
-    [partnerCategories],
+    () => Array.from(new Set([...contractCategories, ...partnerCategories])),
+    [contractCategories, partnerCategories],
   );
   const [query, setQuery] = useState("");
   const [status, setStatus] = useState<ContractStatus | "todos">("todos");
@@ -139,7 +142,16 @@ function ContratosPage() {
         description="Vigência, valores, renovações e alertas automáticos."
         actions={
           <div className="flex items-center gap-2">
-            <ModuleManagementButton module="contratos" />
+            <ModuleManagementButton
+              module="contratos"
+              extraTabs={[
+                {
+                  value: "contrato-categorias",
+                  label: "Cat. Contratos",
+                  content: <ContractCategoriesTab />,
+                },
+              ]}
+            />
             <Dialog open={openNew} onOpenChange={setOpenNew}>
               <DialogTrigger asChild>
                 <Button>
@@ -646,9 +658,10 @@ function UploadInput({ partnerId, kind, label }: { partnerId: string; kind: "pdf
 
 function NewContractDialog({ onClose }: { onClose: () => void }) {
   const partnerCategories = usePartnerCategories();
+  const contractCategories = useContractCategories();
   const allCategories = useMemo(
-    () => Array.from(new Set([...CONTRACT_CATEGORIES, ...partnerCategories])),
-    [partnerCategories],
+    () => Array.from(new Set([...contractCategories, ...partnerCategories])),
+    [contractCategories, partnerCategories],
   );
   const [company, setCompany] = useState("");
   const [category, setCategory] = useState<ContractCategory>("Agência");
@@ -747,9 +760,10 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
 
 function EditContractDialog({ contract, onDone }: { contract: Contract; onDone: () => void }) {
   const partnerCategories = usePartnerCategories();
+  const contractCategories = useContractCategories();
   const allCategories = useMemo(
-    () => Array.from(new Set([...CONTRACT_CATEGORIES, ...partnerCategories, contract.category])),
-    [partnerCategories, contract.category],
+    () => Array.from(new Set([...contractCategories, ...partnerCategories, contract.category])),
+    [contractCategories, partnerCategories, contract.category],
   );
   const [company, setCompany] = useState(contract.company);
   const [category, setCategory] = useState<ContractCategory>(contract.category);
@@ -821,6 +835,63 @@ function EditContractDialog({ contract, onDone }: { contract: Contract; onDone: 
           Salvar
         </Button>
       </DialogFooter>
+    </>
+  );
+}
+
+function ContractCategoriesTab() {
+  const categories = useContractCategories();
+  const [name, setName] = useState("");
+
+  const add = () => {
+    const v = name.trim();
+    if (!v) return;
+    const ok = contractCategoriesStore.add(v);
+    if (!ok) {
+      toast.error("Categoria já existe");
+      return;
+    }
+    toast.success(`Categoria "${v}" adicionada`);
+    setName("");
+  };
+  const remove = (c: string) => {
+    if (!window.confirm(`Remover categoria "${c}"?`)) return;
+    contractCategoriesStore.remove(c);
+    toast.success(`Categoria "${c}" removida`);
+  };
+
+  return (
+    <>
+      <div className="flex gap-2">
+        <Input
+          placeholder="Nova categoria de contrato"
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          onKeyDown={(e) => e.key === "Enter" && add()}
+        />
+        <Button onClick={add} size="sm" className="gap-1">
+          <Plus className="h-4 w-4" /> Adicionar
+        </Button>
+      </div>
+      {categories.length === 0 ? (
+        <p className="text-sm text-muted-foreground py-4 text-center">Nenhuma categoria.</p>
+      ) : (
+        <ul className="mt-3 max-h-72 divide-y divide-border overflow-y-auto rounded-md border border-border">
+          {categories.map((c) => (
+            <li key={c} className="flex items-center justify-between px-3 py-2">
+              <Badge variant="secondary" className="truncate">{c}</Badge>
+              <Button
+                size="icon"
+                variant="ghost"
+                className="h-7 w-7 text-muted-foreground hover:text-destructive"
+                onClick={() => remove(c)}
+              >
+                <Trash2 className="h-4 w-4" />
+              </Button>
+            </li>
+          ))}
+        </ul>
+      )}
     </>
   );
 }
