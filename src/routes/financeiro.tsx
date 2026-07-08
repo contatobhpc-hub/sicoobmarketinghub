@@ -800,8 +800,11 @@ function SuppliersSection() {
           <p className="text-sm text-muted-foreground">Nenhum fornecedor cadastrado.</p>
         )}
         {state.suppliers.map((s) => {
-          const total = state.expenses.filter((e) => e.supplierId === s.id).reduce((a, e) => a + expenseTotal(e), 0);
+          const expensesTotal = state.expenses.filter((e) => e.supplierId === s.id).reduce((a, e) => a + expenseTotal(e), 0);
           const count = state.expenses.filter((e) => e.supplierId === s.id).length;
+          const monthly = s.monthlyInvestment ?? 0;
+          const annual = s.annualInvestment ?? monthly * 12;
+          const total = Math.max(expensesTotal, annual);
           return (
             <div key={s.id} className="rounded-xl border border-border bg-surface/40 p-4">
               <div className="flex items-start justify-between gap-2">
