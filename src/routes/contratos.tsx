@@ -746,6 +746,11 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
 }
 
 function EditContractDialog({ contract, onDone }: { contract: Contract; onDone: () => void }) {
+  const partnerCategories = usePartnerCategories();
+  const allCategories = useMemo(
+    () => Array.from(new Set([...CONTRACT_CATEGORIES, ...partnerCategories, contract.category])),
+    [partnerCategories, contract.category],
+  );
   const [company, setCompany] = useState(contract.company);
   const [category, setCategory] = useState<ContractCategory>(contract.category);
   const [object, setObject] = useState(contract.object);
