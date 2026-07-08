@@ -760,9 +760,10 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
 
 function EditContractDialog({ contract, onDone }: { contract: Contract; onDone: () => void }) {
   const partnerCategories = usePartnerCategories();
+  const contractCategories = useContractCategories();
   const allCategories = useMemo(
-    () => Array.from(new Set([...CONTRACT_CATEGORIES, ...partnerCategories, contract.category])),
-    [partnerCategories, contract.category],
+    () => Array.from(new Set([...contractCategories, ...partnerCategories, contract.category])),
+    [contractCategories, partnerCategories, contract.category],
   );
   const [company, setCompany] = useState(contract.company);
   const [category, setCategory] = useState<ContractCategory>(contract.category);
