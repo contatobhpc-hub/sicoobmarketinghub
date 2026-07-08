@@ -37,17 +37,22 @@ import { toast } from "sonner";
 
 import {
   CATEGORY_TONE,
-  OFFLINE_MEDIA_CATEGORIES,
+  
   OFFLINE_MEDIA_STATUSES,
   STATUS_TONE,
   daysUntil,
+  offlineMediaCategoriesStore,
   offlineMediaStore,
   removalAlert,
   useOfflineMedia,
+  useOfflineMediaCategories,
   type OfflineMedia,
   type OfflineMediaCategory,
   type OfflineMediaStatus,
 } from "@/lib/offline-media";
+
+const catTone = (c: string) =>
+  CATEGORY_TONE[c] ?? "bg-slate-500/15 text-slate-300 border-slate-500/30";
 
 export const Route = createFileRoute("/midia-offline")({
   head: () => ({
@@ -67,6 +72,7 @@ const fmtDate = (d: string) =>
 
 function MidiaOfflinePage() {
   const items = useOfflineMedia();
+  const categories = useOfflineMediaCategories();
   const [view, setView] = useState<ViewMode>("cards");
   const [query, setQuery] = useState("");
   const [cat, setCat] = useState<"all" | OfflineMediaCategory>("all");
@@ -105,7 +111,16 @@ function MidiaOfflinePage() {
         description="Outdoor, painéis, faixas e materiais físicos. Mapa, calendário e alertas automáticos de retirada."
         actions={
           <div className="flex items-center gap-2">
-            <ModuleManagementButton module="midia-offline" />
+            <ModuleManagementButton
+              module="midia-offline"
+              extraTabs={[
+                {
+                  value: "cat-offline",
+                  label: "Categorias offline",
+                  content: <OfflineCategoriesManager />,
+                },
+              ]}
+            />
             <Dialog open={creating} onOpenChange={setCreating}>
               <DialogTrigger asChild>
                 <Button>
@@ -140,7 +155,7 @@ function MidiaOfflinePage() {
             <SelectTrigger className="w-44"><SelectValue placeholder="Categoria" /></SelectTrigger>
             <SelectContent>
               <SelectItem value="all">Todas as categorias</SelectItem>
-              {OFFLINE_MEDIA_CATEGORIES.map((c) => <SelectItem key={c} value={c}>{c}</SelectItem>)}
+              {categories.map((c) => <SelectItem key={c} value={c}>{c}</SelectItem>)}
             </SelectContent>
           </Select>
           <Select value={status} onValueChange={(v) => setStatus(v as typeof status)}>
@@ -250,7 +265,7 @@ function MediaCard({ m, onClick, onEdit }: { m: OfflineMedia; onClick: () => voi
       <div className="flex items-start justify-between gap-2">
         <div className="min-w-0">
           <div className="flex items-center gap-2">
-            <Badge variant="outline" className={CATEGORY_TONE[m.category]}>{m.category}</Badge>
+            <Badge variant="outline" className={catTone(m.category)}>{m.category}</Badge>
             <Badge variant="outline" className={STATUS_TONE[m.status]}>{m.status}</Badge>
           </div>
           <h3 className="mt-2 truncate font-medium">{m.title}</h3>
@@ -467,7 +482,7 @@ function ListView({ items, onOpen, onEdit }: { items: OfflineMedia[]; onOpen: (i
               onClick={() => onOpen(m.id)}
               className="flex flex-1 items-center gap-3 px-4 py-3 text-left text-sm"
             >
-              <Badge variant="outline" className={`${CATEGORY_TONE[m.category]} shrink-0`}>{m.category}</Badge>
+              <Badge variant="outline" className={`${catTone(m.category)} shrink-0`}>{m.category}</Badge>
               <div className="min-w-0 flex-1">
                 <div className="truncate font-medium">{m.title}</div>
                 <div className="truncate text-xs text-muted-foreground">{m.city} · {m.location} · {m.supplier}</div>
@@ -535,7 +550,7 @@ function MediaDetail({ media }: { media: OfflineMedia }) {
     <>
       <SheetHeader className="space-y-2 pr-8">
         <div className="flex flex-wrap items-center gap-2">
-          <Badge variant="outline" className={CATEGORY_TONE[media.category]}>{media.category}</Badge>
+          <Badge variant="outline" className={catTone(media.category)}>{media.category}</Badge>
           <Badge variant="outline" className={STATUS_TONE[media.status]}>{media.status}</Badge>
         </div>
         <SheetTitle className="font-display text-xl">{media.title}</SheetTitle>
@@ -668,6 +683,7 @@ function InfoRow({
 }
 
 function NewMediaDialog({ onClose }: { onClose: () => void }) {
+  const categories = useOfflineMediaCategories();
   const [form, setForm] = useState({
     title: "",
     category: "Outdoor" as OfflineMediaCategory,
@@ -708,7 +724,7 @@ function NewMediaDialog({ onClose }: { onClose: () => void }) {
           <Select value={form.category} onValueChange={(v) => setForm({ ...form, category: v as OfflineMediaCategory })}>
             <SelectTrigger><SelectValue /></SelectTrigger>
             <SelectContent>
-              {OFFLINE_MEDIA_CATEGORIES.map((c) => <SelectItem key={c} value={c}>{c}</SelectItem>)}
+              {categories.map((c) => <SelectItem key={c} value={c}>{c}</SelectItem>)}
             </SelectContent>
           </Select>
         </div>
@@ -758,6 +774,7 @@ function NewMediaDialog({ onClose }: { onClose: () => void }) {
 }
 
 function EditMediaDialog({ media, onClose }: { media: OfflineMedia; onClose: () => void }) {
+  const categories = useOfflineMediaCategories();
   const [form, setForm] = useState({
     title: media.title,
     category: media.category,
@@ -803,7 +820,7 @@ function EditMediaDialog({ media, onClose }: { media: OfflineMedia; onClose: () 
           <Select value={form.category} onValueChange={(v) => setForm({ ...form, category: v as OfflineMediaCategory })}>
             <SelectTrigger><SelectValue /></SelectTrigger>
             <SelectContent>
-              {OFFLINE_MEDIA_CATEGORIES.map((c) => <SelectItem key={c} value={c}>{c}</SelectItem>)}
+              {categories.map((c) => <SelectItem key={c} value={c}>{c}</SelectItem>)}
             </SelectContent>
           </Select>
         </div>
@@ -862,5 +879,59 @@ function EditMediaDialog({ media, onClose }: { media: OfflineMedia; onClose: () 
         <Button onClick={submit}>Salvar alterações</Button>
       </DialogFooter>
     </DialogContent>
+  );
+}
+
+function OfflineCategoriesManager() {
+  const categories = useOfflineMediaCategories();
+  const [value, setValue] = useState("");
+  const add = () => {
+    const v = value.trim();
+    if (!v) return;
+    if (!offlineMediaCategoriesStore.add(v)) {
+      toast.error("Categoria já existe");
+      return;
+    }
+    toast.success(`Categoria "${v}" adicionada`);
+    setValue("");
+  };
+  const remove = (c: string) => {
+    if (!window.confirm(`Remover categoria "${c}"?`)) return;
+    offlineMediaCategoriesStore.remove(c);
+    toast.success(`Categoria "${c}" removida`);
+  };
+  return (
+    <div className="space-y-3">
+      <div className="flex gap-2">
+        <Input
+          placeholder="Nova categoria de mídia offline"
+          value={value}
+          onChange={(e) => setValue(e.target.value)}
+          onKeyDown={(e) => e.key === "Enter" && add()}
+        />
+        <Button size="sm" onClick={add} className="gap-1">
+          <Plus className="h-4 w-4" /> Adicionar
+        </Button>
+      </div>
+      {categories.length === 0 ? (
+        <p className="text-sm text-muted-foreground py-4 text-center">Nenhuma categoria.</p>
+      ) : (
+        <ul className="max-h-72 divide-y divide-border overflow-y-auto rounded-md border border-border">
+          {categories.map((c) => (
+            <li key={c} className="flex items-center justify-between px-3 py-2">
+              <Badge variant="outline" className={catTone(c)}>{c}</Badge>
+              <Button
+                size="icon"
+                variant="ghost"
+                className="h-7 w-7 text-muted-foreground hover:text-destructive"
+                onClick={() => remove(c)}
+              >
+                <Trash2 className="h-4 w-4" />
+              </Button>
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
   );
 }

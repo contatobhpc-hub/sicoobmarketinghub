@@ -1,6 +1,6 @@
 import { useSyncExternalStore } from "react";
 
-export const OFFLINE_MEDIA_CATEGORIES = [
+export const OFFLINE_MEDIA_DEFAULT_CATEGORIES = [
   "Outdoor",
   "Painel LED",
   "TV",
@@ -12,7 +12,62 @@ export const OFFLINE_MEDIA_CATEGORIES = [
   "Backdrop",
   "Relógio Digital",
 ] as const;
-export type OfflineMediaCategory = (typeof OFFLINE_MEDIA_CATEGORIES)[number];
+export type OfflineMediaCategory = string;
+
+// Backwards-compat alias.
+export const OFFLINE_MEDIA_CATEGORIES = OFFLINE_MEDIA_DEFAULT_CATEGORIES;
+
+const CATEGORIES_KEY = "mhub.offline-media.categories.v1";
+
+function loadCategories(): string[] {
+  if (typeof window === "undefined") return [...OFFLINE_MEDIA_DEFAULT_CATEGORIES];
+  try {
+    const raw = window.localStorage.getItem(CATEGORIES_KEY);
+    if (!raw) return [...OFFLINE_MEDIA_DEFAULT_CATEGORIES];
+    const arr = JSON.parse(raw) as string[];
+    return Array.isArray(arr) && arr.length ? arr : [...OFFLINE_MEDIA_DEFAULT_CATEGORIES];
+  } catch {
+    return [...OFFLINE_MEDIA_DEFAULT_CATEGORIES];
+  }
+}
+let categoriesState: string[] = loadCategories();
+const categoriesListeners = new Set<() => void>();
+function emitCategories() {
+  if (typeof window !== "undefined") {
+    try {
+      window.localStorage.setItem(CATEGORIES_KEY, JSON.stringify(categoriesState));
+    } catch {
+      /* ignore */
+    }
+  }
+  categoriesListeners.forEach((l) => l());
+}
+export const offlineMediaCategoriesStore = {
+  get: () => categoriesState,
+  subscribe(l: () => void) {
+    categoriesListeners.add(l);
+    return () => categoriesListeners.delete(l);
+  },
+  add(v: string) {
+    const value = v.trim();
+    if (!value) return false;
+    if (categoriesState.some((c) => c.toLowerCase() === value.toLowerCase())) return false;
+    categoriesState = [...categoriesState, value];
+    emitCategories();
+    return true;
+  },
+  remove(v: string) {
+    categoriesState = categoriesState.filter((c) => c !== v);
+    emitCategories();
+  },
+};
+export function useOfflineMediaCategories() {
+  return useSyncExternalStore(
+    offlineMediaCategoriesStore.subscribe,
+    offlineMediaCategoriesStore.get,
+    offlineMediaCategoriesStore.get,
+  );
+}
 
 export const OFFLINE_MEDIA_STATUSES = [
   "Planejado",
