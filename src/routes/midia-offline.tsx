@@ -228,18 +228,18 @@ function RemovalAlerts({ items, onOpen }: { items: OfflineMedia[]; onOpen: (id: 
   );
 }
 
-function CardsView({ items, onOpen }: { items: OfflineMedia[]; onOpen: (id: string) => void }) {
+function CardsView({ items, onOpen, onEdit }: { items: OfflineMedia[]; onOpen: (id: string) => void; onEdit: (id: string) => void }) {
   if (items.length === 0) return <EmptyState />;
   return (
     <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-3">
       {items.map((m) => (
-        <MediaCard key={m.id} m={m} onClick={() => onOpen(m.id)} />
+        <MediaCard key={m.id} m={m} onClick={() => onOpen(m.id)} onEdit={() => onEdit(m.id)} />
       ))}
     </div>
   );
 }
 
-function MediaCard({ m, onClick }: { m: OfflineMedia; onClick: () => void }) {
+function MediaCard({ m, onClick, onEdit }: { m: OfflineMedia; onClick: () => void; onEdit: () => void }) {
   const alert = removalAlert(m);
   const d = daysUntil(m.removalDate);
   return (
