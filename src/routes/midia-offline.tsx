@@ -756,3 +756,111 @@ function NewMediaDialog({ onClose }: { onClose: () => void }) {
     </DialogContent>
   );
 }
+
+function EditMediaDialog({ media, onClose }: { media: OfflineMedia; onClose: () => void }) {
+  const [form, setForm] = useState({
+    title: media.title,
+    category: media.category,
+    city: media.city,
+    location: media.location,
+    supplier: media.supplier,
+    campaign: media.campaign ?? "",
+    installDate: media.installDate,
+    removalDate: media.removalDate,
+    status: media.status,
+    owner: media.owner,
+    value: media.value,
+    costCenter: media.costCenter,
+    notes: media.notes,
+  });
+
+  function submit() {
+    if (!form.title || !form.city || !form.location || !form.supplier || !form.owner) {
+      toast.error("Preencha título, cidade, local, fornecedor e responsável.");
+      return;
+    }
+    offlineMediaStore.update(media.id, {
+      ...form,
+      campaign: form.campaign || undefined,
+    }, "Informações atualizadas.");
+    toast.success("Mídia atualizada.");
+    onClose();
+  }
+
+  return (
+    <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+      <DialogHeader>
+        <DialogTitle>Editar mídia</DialogTitle>
+        <DialogDescription>Atualize as informações desta peça.</DialogDescription>
+      </DialogHeader>
+      <div className="grid grid-cols-2 gap-3">
+        <div className="col-span-2">
+          <Label>Título</Label>
+          <Input value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} />
+        </div>
+        <div>
+          <Label>Categoria</Label>
+          <Select value={form.category} onValueChange={(v) => setForm({ ...form, category: v as OfflineMediaCategory })}>
+            <SelectTrigger><SelectValue /></SelectTrigger>
+            <SelectContent>
+              {OFFLINE_MEDIA_CATEGORIES.map((c) => <SelectItem key={c} value={c}>{c}</SelectItem>)}
+            </SelectContent>
+          </Select>
+        </div>
+        <div>
+          <Label>Status</Label>
+          <Select value={form.status} onValueChange={(v) => setForm({ ...form, status: v as OfflineMediaStatus })}>
+            <SelectTrigger><SelectValue /></SelectTrigger>
+            <SelectContent>
+              {OFFLINE_MEDIA_STATUSES.map((s) => <SelectItem key={s} value={s}>{s}</SelectItem>)}
+            </SelectContent>
+          </Select>
+        </div>
+        <div>
+          <Label>Cidade</Label>
+          <Input value={form.city} onChange={(e) => setForm({ ...form, city: e.target.value })} />
+        </div>
+        <div>
+          <Label>Fornecedor</Label>
+          <Input value={form.supplier} onChange={(e) => setForm({ ...form, supplier: e.target.value })} />
+        </div>
+        <div className="col-span-2">
+          <Label>Local</Label>
+          <Input value={form.location} onChange={(e) => setForm({ ...form, location: e.target.value })} />
+        </div>
+        <div>
+          <Label>Campanha</Label>
+          <Input value={form.campaign} onChange={(e) => setForm({ ...form, campaign: e.target.value })} />
+        </div>
+        <div>
+          <Label>Responsável</Label>
+          <Input value={form.owner} onChange={(e) => setForm({ ...form, owner: e.target.value })} />
+        </div>
+        <div>
+          <Label>Data de instalação</Label>
+          <Input type="date" value={form.installDate} onChange={(e) => setForm({ ...form, installDate: e.target.value })} />
+        </div>
+        <div>
+          <Label>Data de retirada</Label>
+          <Input type="date" value={form.removalDate} onChange={(e) => setForm({ ...form, removalDate: e.target.value })} />
+        </div>
+        <div>
+          <Label>Valor (R$)</Label>
+          <Input type="number" value={form.value} onChange={(e) => setForm({ ...form, value: Number(e.target.value) || 0 })} />
+        </div>
+        <div>
+          <Label>Centro de custo</Label>
+          <Input value={form.costCenter} onChange={(e) => setForm({ ...form, costCenter: e.target.value })} />
+        </div>
+        <div className="col-span-2">
+          <Label>Observações</Label>
+          <Textarea rows={3} value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })} />
+        </div>
+      </div>
+      <DialogFooter>
+        <Button variant="outline" onClick={onClose}>Cancelar</Button>
+        <Button onClick={submit}>Salvar alterações</Button>
+      </DialogFooter>
+    </DialogContent>
+  );
+}
