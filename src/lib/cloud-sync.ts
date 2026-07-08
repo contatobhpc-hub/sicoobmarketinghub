@@ -62,3 +62,26 @@ export function scheduleModulePush<T>(module: string, getter: () => T, delay = 7
     }, delay),
   );
 }
+
+// Convenience: hooks a module store to auth + cloud. Returns a `push` fn to call from emit().
+const attached = new Set<string>();
+export function enableCloudSync<T>(
+  module: string,
+  getState: () => T,
+  replaceState: (s: T) => void,
+) {
+  const push = () => scheduleModulePush(module, getState);
+  if (typeof window === "undefined") return push;
+  if (attached.has(module)) return push;
+  attached.add(module);
+  const hydrate = async (userId: string | null) => {
+    setCloudSyncUser(userId);
+    if (!userId) return;
+    const cloud = await loadModuleState<T>(module);
+    if (cloud != null) replaceState(cloud);
+    else scheduleModulePush(module, getState);
+  };
+  supabase.auth.getSession().then(({ data }) => hydrate(data.session?.user?.id ?? null));
+  supabase.auth.onAuthStateChange((_e, s) => hydrate(s?.user?.id ?? null));
+  return push;
+}

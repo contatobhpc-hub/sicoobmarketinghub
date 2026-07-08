@@ -1,4 +1,5 @@
 import { useSyncExternalStore } from "react";
+import { enableCloudSync } from "./cloud-sync";
 
 export const EVENT_CATEGORIES = [
   "Campanha",
@@ -130,11 +131,12 @@ function load(): CalendarEvent[] {
 
 let state = load();
 const listeners = new Set<() => void>();
+const cloudPush = enableCloudSync<CalendarEvent[]>("calendar", () => state, (s) => { state = s; listeners.forEach((l) => l()); });
 function persist() {
   if (typeof window === "undefined") return;
   window.localStorage.setItem(KEY, JSON.stringify(state));
 }
-function emit() { persist(); listeners.forEach((l) => l()); }
+function emit() { persist(); cloudPush(); listeners.forEach((l) => l()); }
 
 function pushTimeline(e: CalendarEvent, msg: string, author = "Você"): CalendarEvent {
   return {

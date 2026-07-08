@@ -1,4 +1,5 @@
 import { useSyncExternalStore } from "react";
+import { enableCloudSync } from "./cloud-sync";
 
 export const PROJECT_STATUSES = [
   "Backlog",
@@ -178,6 +179,7 @@ function load(): Project[] {
 
 let state: Project[] = load();
 const listeners = new Set<() => void>();
+const cloudPush = enableCloudSync<Project[]>("projects", () => state, (s) => { state = s; listeners.forEach((l) => l()); });
 
 function persist() {
   if (typeof window === "undefined") return;
@@ -185,6 +187,7 @@ function persist() {
 }
 function emit() {
   persist();
+  cloudPush();
   listeners.forEach((l) => l());
 }
 
