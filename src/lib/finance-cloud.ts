@@ -166,9 +166,10 @@ async function pushNow(state: FinanceState) {
     .from("app_state")
     .upsert(
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      { module: "finance", data: state as any, updated_by: currentUser },
-      { onConflict: "module" },
+      { module: "finance", data: state as any, updated_by: currentUser, user_id: currentUser },
+      { onConflict: "user_id,module" },
     );
+
   if (snapshotError) {
     console.error("[finance-cloud] snapshot", snapshotError);
     return false;
