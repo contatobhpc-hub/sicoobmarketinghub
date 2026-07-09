@@ -1,5 +1,5 @@
 import { useSyncExternalStore } from "react";
-import { enableCloudSync } from "./cloud-sync";
+import { enableTableSync } from "./table-sync";
 import { calendarStore, type CalendarEvent } from "./calendar";
 import { isRememberedDeletion, rememberDeletion, normalizeDeletionText } from "./deletions";
 
