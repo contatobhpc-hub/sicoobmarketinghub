@@ -1,6 +1,6 @@
 import { useEffect, useSyncExternalStore } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { loadModuleState, scheduleModulePush, setCloudSyncUser } from "./cloud-sync";
+import { loadModuleRecord, readLocalMutationAt, readLocalSavedAt, scheduleModulePush, setCloudSyncUser } from "./cloud-sync";
 import { isRememberedDeletion, rememberDeletion } from "./deletions";
 
 export const PARTNER_STATUSES = [
@@ -321,11 +321,14 @@ let cloudHydrated = false;
 export async function hydratePartnersFromCloud(userId: string | null) {
   setCloudSyncUser(userId);
   if (!userId) { cloudHydrated = false; return; }
-  const cloud = await loadModuleState<Partner[]>("partners");
+  const cloud = await loadModuleRecord<Partner[]>("partners");
   const local = typeof window !== "undefined" ? load() : [];
-  const cloudArr = Array.isArray(cloud) ? normalizePartners(cloud) : [];
-  if (local.length > cloudArr.length) {
-    // Local has richer data — promote it to the cloud instead of overwriting it.
+  const cloudArr = Array.isArray(cloud?.data) ? normalizePartners(cloud.data) : [];
+  const localDirtyAt = readLocalMutationAt("partners");
+  const localSavedAt = readLocalSavedAt("partners");
+  const cloudUpdatedAt = cloud?.updated_at ? Date.parse(cloud.updated_at) : 0;
+  if (localDirtyAt > 0 || localSavedAt > cloudUpdatedAt || local.length > cloudArr.length) {
+    // Local has newer/richer data — promote it to the cloud instead of overwriting it.
     state = local;
     hydrated = true;
     listeners.forEach((l) => l());
