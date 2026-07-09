@@ -226,56 +226,33 @@ function save(s: Partner[]) {
 let state: Partner[] = [];
 let hydrated = false;
 const listeners = new Set<() => void>();
+const cloudPush = enableTableSync<Partner>(
+  {
+    table: "partners",
+    key: "partners",
+    cols: (p) => ({
+      company: p.company,
+      category: p.category,
+      status: p.status,
+      contract_end: p.contractEnd || null,
+    }),
+  },
+  {
+    getState: () => state,
+    replaceState: (items) => {
+      state = normalizePartners(items);
+      hydrated = true;
+      save(state);
+      listeners.forEach((l) => l());
+    },
+  },
+);
 function emit() {
   save(state);
-  scheduleModulePush("partners", () => state);
+  cloudPush();
   listeners.forEach((l) => l());
 }
 
-// Cloud hydration on auth session
-let cloudHydrated = false;
-export async function hydratePartnersFromCloud(userId: string | null) {
-  setCloudSyncUser(userId);
-  if (!userId) { cloudHydrated = false; return; }
-  const cloud = await loadModuleRecord<Partner[]>("partners");
-  const local = typeof window !== "undefined" ? load() : [];
-  const cloudArr = Array.isArray(cloud?.data) ? normalizePartners(cloud.data) : [];
-  const localDirtyAt = readLocalMutationAt("partners");
-  const localSavedAt = readLocalSavedAt("partners");
-  const cloudUpdatedAt = cloud?.updated_at ? Date.parse(cloud.updated_at) : 0;
-  if (localDirtyAt > 0 || (localSavedAt > 0 && localSavedAt > cloudUpdatedAt)) {
-    // Local has newer/richer data — promote it to the cloud instead of overwriting it.
-    state = local;
-    hydrated = true;
-    listeners.forEach((l) => l());
-    scheduleModulePush("partners", () => state);
-  } else if (cloudArr.length > 0) {
-    state = cloudArr;
-    hydrated = true;
-    save(state);
-    listeners.forEach((l) => l());
-  } else if (!cloudHydrated) {
-    state = local;
-    hydrated = true;
-    if (local.length) scheduleModulePush("partners", () => state);
-    listeners.forEach((l) => l());
-  }
-  cloudHydrated = true;
-}
-
-if (typeof window !== "undefined") {
-  supabase.auth
-    .getSession()
-    .then(({ data }) => {
-      if (data.session?.user) void hydratePartnersFromCloud(data.session.user.id);
-    })
-    .catch((error) => console.error("[partners] auth session", error));
-  supabase.auth.onAuthStateChange((_evt, session) => {
-    setTimeout(() => {
-      void hydratePartnersFromCloud(session?.user?.id ?? null);
-    }, 0);
-  });
-}
 
 function hydrateFromStorage() {
   if (hydrated || typeof window === "undefined") return;
