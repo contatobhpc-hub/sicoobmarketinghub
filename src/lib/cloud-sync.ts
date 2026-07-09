@@ -82,11 +82,12 @@ export function clearLocalMutation(module: string, markSaved = true) {
 }
 
 export async function loadModuleRecord<T>(module: string): Promise<ModuleRecord<T> | null> {
-  const { data, error } = await supabase
+  let query = supabase
     .from("app_state")
     .select("data, updated_at")
-    .eq("module", module)
-    .maybeSingle();
+    .eq("module", module);
+  if (currentUserId) query = query.eq("user_id", currentUserId);
+  const { data, error } = await query.maybeSingle();
   if (error) {
     console.error(`[cloud-sync:${module}] load`, error);
     return null;
@@ -94,6 +95,7 @@ export async function loadModuleRecord<T>(module: string): Promise<ModuleRecord<
   if (!data) return null;
   return { data: (data.data ?? null) as T | null, updated_at: data.updated_at as string | null };
 }
+
 
 export async function loadModuleState<T>(module: string): Promise<T | null> {
   const record = await loadModuleRecord<T>(module);
