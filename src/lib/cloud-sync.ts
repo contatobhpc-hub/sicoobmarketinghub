@@ -19,7 +19,7 @@ const savedKey = (module: string) => `mhub.cloud-sync.${module}.savedAt.v1`;
 function stateWeight(value: unknown): number {
   if (Array.isArray(value)) return value.length;
   if (!value || typeof value !== "object") return value == null ? 0 : 1;
-  return Object.values(value as Record<string, unknown>).reduce((total, item) => total + stateWeight(item), 0);
+  return Object.values(value as Record<string, unknown>).reduce<number>((total, item) => total + stateWeight(item), 0);
 }
 
 export function hasMeaningfulState(value: unknown) {
