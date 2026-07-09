@@ -240,13 +240,13 @@ function pruneDeletedContracts(list: Contract[]) {
 }
 
 function load(): Contract[] {
-  if (typeof window === "undefined") return seed;
+  if (typeof window === "undefined") return [];
   try {
     const raw = window.localStorage.getItem(KEY);
-    if (!raw) return seed;
+    if (!raw) return [];
     return pruneDeletedContracts(JSON.parse(raw) as Contract[]);
   } catch {
-    return seed;
+    return [];
   }
 }
 function save(s: Contract[]) {
@@ -270,7 +270,7 @@ export async function hydrateContractsFromCloud(userId: string | null) {
   const cloudUpdatedAt = cloud?.updated_at ? Date.parse(cloud.updated_at) : 0;
   // Keep local when it is newer/richer so the cloud cannot restore deleted rows
   // or overwrite edits made while the previous push was still pending.
-  if (localDirtyAt > 0 || localSavedAt > cloudUpdatedAt || local.length > cloudArr.length) {
+  if (localDirtyAt > 0 || (localSavedAt > 0 && localSavedAt > cloudUpdatedAt)) {
     state = local;
     listeners.forEach((l) => l());
     scheduleModulePush("contracts", () => state);
@@ -279,7 +279,7 @@ export async function hydrateContractsFromCloud(userId: string | null) {
     save(state);
     listeners.forEach((l) => l());
   } else if (!cloudHydrated) {
-    scheduleModulePush("contracts", () => state);
+    if (state.length) scheduleModulePush("contracts", () => state);
   }
   cloudHydrated = true;
 }

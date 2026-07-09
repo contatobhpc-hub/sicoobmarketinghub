@@ -277,7 +277,7 @@ function normalizePartner(value: unknown, index: number): Partner | null {
 }
 
 function normalizePartners(value: unknown): Partner[] {
-  if (!Array.isArray(value)) return seed;
+  if (!Array.isArray(value)) return [];
   const normalized = value
     .map((partner, index) => normalizePartner(partner, index))
     .filter((partner): partner is Partner => partner !== null);
@@ -289,13 +289,13 @@ function isPartnerDeleted(partner: Pick<Partner, "id" | "company">) {
 }
 
 function load(): Partner[] {
-  if (typeof window === "undefined") return seed;
+  if (typeof window === "undefined") return [];
   try {
     const raw = window.localStorage.getItem(KEY);
-    if (!raw) return seed;
+    if (!raw) return [];
     return normalizePartners(JSON.parse(raw));
   } catch {
-    return seed;
+    return [];
   }
 }
 function save(s: Partner[]) {
@@ -307,7 +307,7 @@ function save(s: Partner[]) {
   }
 }
 
-let state: Partner[] = seed;
+let state: Partner[] = [];
 let hydrated = false;
 const listeners = new Set<() => void>();
 function emit() {
@@ -327,7 +327,7 @@ export async function hydratePartnersFromCloud(userId: string | null) {
   const localDirtyAt = readLocalMutationAt("partners");
   const localSavedAt = readLocalSavedAt("partners");
   const cloudUpdatedAt = cloud?.updated_at ? Date.parse(cloud.updated_at) : 0;
-  if (localDirtyAt > 0 || localSavedAt > cloudUpdatedAt || local.length > cloudArr.length) {
+  if (localDirtyAt > 0 || (localSavedAt > 0 && localSavedAt > cloudUpdatedAt)) {
     // Local has newer/richer data — promote it to the cloud instead of overwriting it.
     state = local;
     hydrated = true;
@@ -341,7 +341,7 @@ export async function hydratePartnersFromCloud(userId: string | null) {
   } else if (!cloudHydrated) {
     state = local;
     hydrated = true;
-    scheduleModulePush("partners", () => state);
+    if (local.length) scheduleModulePush("partners", () => state);
     listeners.forEach((l) => l());
   }
   cloudHydrated = true;
@@ -374,7 +374,7 @@ function pushTimeline(p: Partner, e: Omit<PartnerTimelineEntry, "id" | "createdA
 
 export const partnersStore = {
   get: () => state,
-  getServerSnapshot: () => seed,
+  getServerSnapshot: () => [],
   hydrate: hydrateFromStorage,
   subscribe(l: () => void) {
     listeners.add(l);
