@@ -1,5 +1,5 @@
 import { useSyncExternalStore } from "react";
-import { enableCloudSync } from "./cloud-sync";
+import { enableEntitySync } from "./entity-sync";
 
 export const PROJECT_STATUSES = [
   "Backlog",
@@ -179,7 +179,7 @@ function load(): Project[] {
 
 let state: Project[] = load();
 const listeners = new Set<() => void>();
-const cloudPush = enableCloudSync<Project[]>("projects", () => state, (s) => { state = s; listeners.forEach((l) => l()); });
+const cloudPush = enableEntitySync<Project>({ module: "projects" }, { getState: () => state, replaceState: (s) => { state = s; listeners.forEach((l) => l()); } });
 
 function persist() {
   if (typeof window === "undefined") return;

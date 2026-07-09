@@ -1,5 +1,5 @@
 import { useSyncExternalStore } from "react";
-import { enableCloudSync } from "./cloud-sync";
+import { enableEntitySync } from "./entity-sync";
 
 export const INVENTORY_CATEGORIES = [
   "Vestuário",
@@ -163,7 +163,7 @@ function save(s: InventoryItem[]) {
 
 let state: InventoryItem[] = load();
 const listeners = new Set<() => void>();
-const cloudPush = enableCloudSync<InventoryItem[]>("inventory", () => state, (s) => { state = s; listeners.forEach((l) => l()); });
+const cloudPush = enableEntitySync<InventoryItem>({ module: "inventory" }, { getState: () => state, replaceState: (s) => { state = s; listeners.forEach((l) => l()); } });
 function emit() {
   save(state);
   cloudPush();

@@ -1,5 +1,5 @@
 import { useSyncExternalStore } from "react";
-import { enableCloudSync } from "./cloud-sync";
+import { enableEntitySync } from "./entity-sync";
 
 export const WORKFLOW_TRIGGERS = [
   { id: "campaign.created", label: "Campanha criada", module: "Campanhas" },
@@ -222,7 +222,7 @@ function save(s: Workflow[]) {
 
 let state: Workflow[] = load();
 const listeners = new Set<() => void>();
-const cloudPush = enableCloudSync<Workflow[]>("workflows", () => state, (s) => { state = s; listeners.forEach((l) => l()); });
+const cloudPush = enableEntitySync<Workflow>({ module: "workflows" }, { getState: () => state, replaceState: (s) => { state = s; listeners.forEach((l) => l()); } });
 function emit() {
   save(state);
   cloudPush();
