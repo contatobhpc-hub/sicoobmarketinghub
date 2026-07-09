@@ -161,11 +161,7 @@ export function enableCloudSync<T>(
     if (!userId) return;
     const record = await loadModuleRecord<T>(module);
     if (!record || record.data == null) {
-      const localDirtyAt = readLocalMutationAt(module);
-      const localState = getState();
-      if (localDirtyAt > 0 || hasMeaningfulState(localState)) {
-        scheduleModulePush(module, getState);
-      }
+      if (readLocalMutationAt(module) > 0) scheduleModulePush(module, getState);
       return;
     }
     const localDirtyAt = readLocalMutationAt(module);
