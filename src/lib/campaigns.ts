@@ -158,10 +158,11 @@ function materializeCnv(): Campaign[] {
 }
 
 function mergeCnv(existing: Campaign[]): Campaign[] {
+  const pruned = pruneRemoved(existing);
   const cnv = materializeCnv();
-  const byId = new Set(existing.map((c) => c.id));
+  const byId = new Set(pruned.map((c) => c.id));
   const missing = cnv.filter((c) => !byId.has(c.id));
-  return missing.length ? [...existing, ...missing] : existing;
+  return missing.length ? [...pruned, ...missing] : pruned;
 }
 
 function load(): Campaign[] {
@@ -181,6 +182,7 @@ const cloudPush = enableCloudSync<Campaign[]>("campaigns", () => state, (s) => {
   state = mergeCnv(s);
   listeners.forEach((l) => l());
 });
+
 
 // Garante que as campanhas do calendário CNV 2026 fiquem persistidas no
 // localStorage e sincronizadas com a nuvem já no primeiro load.
