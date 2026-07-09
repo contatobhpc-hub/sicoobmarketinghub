@@ -72,15 +72,15 @@ const DEFAULT_PROMPTS: AiPrompt[] = [
 ];
 
 function load(): State {
-  if (typeof window === "undefined") return { conversations: [], prompts: DEFAULT_PROMPTS, activeId: null };
+  if (typeof window === "undefined") return { conversations: [], prompts: [], activeId: null };
   try {
     const raw = localStorage.getItem(KEY);
-    if (!raw) return { conversations: [], prompts: DEFAULT_PROMPTS, activeId: null };
+    if (!raw) return { conversations: [], prompts: [], activeId: null };
     const s = JSON.parse(raw) as State;
-    if (!s.prompts || s.prompts.length === 0) s.prompts = DEFAULT_PROMPTS;
+    if (!s.prompts) s.prompts = [];
     return s;
   } catch {
-    return { conversations: [], prompts: DEFAULT_PROMPTS, activeId: null };
+    return { conversations: [], prompts: [], activeId: null };
   }
 }
 

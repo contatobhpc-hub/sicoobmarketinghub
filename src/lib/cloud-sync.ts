@@ -71,10 +71,10 @@ function shouldKeepLocalState<T>(local: T, cloud: T, cloudUpdatedAt: number, loc
   return [...localIds].every((id) => cloudIds.has(id));
 }
 
-export function clearLocalMutation(module: string) {
+export function clearLocalMutation(module: string, markSaved = true) {
   if (typeof window === "undefined") return;
   try {
-    window.localStorage.setItem(savedKey(module), String(Date.now()));
+    if (markSaved) window.localStorage.setItem(savedKey(module), String(Date.now()));
     window.localStorage.removeItem(dirtyKey(module));
   } catch {
     // ignore quota/storage errors
@@ -176,7 +176,7 @@ export function enableCloudSync<T>(
       return;
     }
     replaceState(record.data);
-    clearLocalMutation(module);
+    clearLocalMutation(module, false);
   };
   supabase.auth
     .getSession()
