@@ -362,10 +362,6 @@ function pruneFinanceState(next: FinanceState): FinanceState {
   };
 }
 
-function financeWeight(next: FinanceState) {
-  return next.budget.length + next.costCenters.length + next.suppliers.length + next.expenses.length + next.purchaseRequests.length + next.invoices.length + next.payments.length;
-}
-
 let state: FinanceState = (() => {
   if (typeof window === "undefined") return emptyFinanceState();
   try {
