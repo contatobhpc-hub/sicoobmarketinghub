@@ -1,5 +1,6 @@
 import { useSyncExternalStore } from "react";
 import { enableCloudSync } from "./cloud-sync";
+import { calendarStore, type CalendarEvent } from "./calendar";
 
 export const CAMPAIGN_TYPES = [
   "Institucional",
@@ -223,7 +224,7 @@ const cloudPush = enableCloudSync<Campaign[]>("campaigns", () => state, (s) => {
 // localStorage e sincronizadas com a nuvem já no primeiro load.
 if (typeof window !== "undefined") {
   window.localStorage.setItem(KEY, JSON.stringify(state));
-  setTimeout(() => cloudPush(), 0);
+  setTimeout(() => { cloudPush(); syncAllToCalendar(); }, 0);
 }
 
 function persist() {
@@ -234,8 +235,63 @@ function persist() {
 function emit() {
   persist();
   cloudPush();
+  syncAllToCalendar();
   listeners.forEach((l) => l());
 }
+
+function campaignEventIds(id: string) {
+  return { startId: `cam-${id}-start`, endId: `cam-${id}-end` };
+}
+
+function buildCampaignEvent(c: Campaign, kind: "start" | "end"): CalendarEvent {
+  const { startId, endId } = campaignEventIds(c.id);
+  const isStart = kind === "start";
+  return {
+    id: isStart ? startId : endId,
+    title: `${isStart ? "Início" : "Término"} — ${c.name}`,
+    category: "Campanha",
+    status:
+      c.status === "Concluída" ? "Concluído" :
+      c.status === "Cancelada" ? "Cancelado" :
+      c.status === "Pausada" ? "Planejado" :
+      c.status === "Em andamento" ? "Em andamento" : "Planejado",
+    priority: c.priority === "Crítica" ? "Crítica" : c.priority === "Alta" ? "Alta" : c.priority === "Média" ? "Média" : "Baixa",
+    date: isStart ? c.startDate : c.endDate,
+    description: `${c.description || ""}\n\nCampanha vinculada (${c.type} · ${c.objective}).`.trim(),
+    owners: c.owner ? [c.owner] : [],
+    campaignId: c.id,
+    files: [],
+    checklist: [],
+    comments: [],
+    timeline: [],
+  };
+}
+
+let syncScheduled = false;
+function syncAllToCalendar() {
+  if (typeof window === "undefined") return;
+  if (syncScheduled) return;
+  syncScheduled = true;
+  setTimeout(() => {
+    syncScheduled = false;
+    const validIds = new Set<string>();
+    for (const c of state) {
+      if (!c.startDate || !c.endDate) continue;
+      const { startId, endId } = campaignEventIds(c.id);
+      validIds.add(startId);
+      validIds.add(endId);
+      calendarStore.upsert(buildCampaignEvent(c, "start"));
+      if (c.endDate !== c.startDate) calendarStore.upsert(buildCampaignEvent(c, "end"));
+    }
+    // clean up orphan campaign-linked events
+    const orphans = calendarStore
+      .get()
+      .filter((e) => e.id.startsWith("cam-") && (e.id.endsWith("-start") || e.id.endsWith("-end")) && !validIds.has(e.id))
+      .map((e) => e.id);
+    if (orphans.length) calendarStore.removeMany(orphans);
+  }, 0);
+}
+
 
 export const campaignsStore = {
   get: () => state,

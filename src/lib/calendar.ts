@@ -178,6 +178,21 @@ export const calendarStore = {
     emit();
   },
   remove(id: string) { state = state.filter((e) => e.id !== id); emit(); },
+  upsert(ev: CalendarEvent) {
+    const existing = state.find((e) => e.id === ev.id);
+    if (existing) {
+      state = state.map((e) => (e.id === ev.id ? { ...existing, ...ev, timeline: existing.timeline, comments: existing.comments, checklist: existing.checklist, files: existing.files } : e));
+    } else {
+      state = [ev, ...state];
+    }
+    emit();
+  },
+  removeMany(ids: string[]) {
+    const set = new Set(ids);
+    const before = state.length;
+    state = state.filter((e) => !set.has(e.id));
+    if (state.length !== before) emit();
+  },
   toggleChecklist(id: string, itemId: string) {
     state = state.map((e) => {
       if (e.id !== id) return e;
