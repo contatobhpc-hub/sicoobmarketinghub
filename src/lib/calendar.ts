@@ -148,12 +148,22 @@ const seed: CalendarEvent[] = [
   ...COPOM_2026.map((c) => buildCopom(c.month, c.day)),
 ];
 
+function mergeCopom(events: CalendarEvent[]): CalendarEvent[] {
+  const existing = new Set(
+    events.filter((e) => e.title === "Reunião do COPOM 2026").map((e) => e.date),
+  );
+  const missing = COPOM_2026
+    .map((c) => buildCopom(c.month, c.day))
+    .filter((e) => !existing.has(e.date));
+  return missing.length ? [...missing, ...events] : events;
+}
+
 function load(): CalendarEvent[] {
   if (typeof window === "undefined") return seed;
   try {
     const raw = window.localStorage.getItem(KEY);
     if (!raw) return seed;
-    return JSON.parse(raw) as CalendarEvent[];
+    return mergeCopom(JSON.parse(raw) as CalendarEvent[]);
   } catch {
     return seed;
   }
