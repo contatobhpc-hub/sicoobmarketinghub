@@ -338,7 +338,7 @@ function readBackups(): OfflineMediaBackup[] {
 
 function mediaSignature(items: OfflineMedia[]) {
   return items
-    .map((item) => `${item.id}:${item.title}:${item.updatedAt ?? item.createdAt ?? ""}`)
+    .map((item) => `${item.id}:${item.title}:${item.createdAt ?? ""}`)
     .sort()
     .join("|");
 }
