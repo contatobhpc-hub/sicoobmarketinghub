@@ -140,8 +140,61 @@ const GROUPS: Group[] = [
 
 function ConfiguracoesPage() {
   const settings = useSettings();
+  const { user } = useAuth();
   const [section, setSection] = useState<SectionKey>("empresa");
   const [query, setQuery] = useState("");
+
+  // Sincroniza a lista de membros com o usuário autenticado real.
+  // Remove os membros semente (Bruno Almeida, Carla, Marina, Diretoria)
+  // e garante que o usuário logado apareça como Administrador / gestor.
+  useEffect(() => {
+    if (!user) return;
+    let cancelled = false;
+    (async () => {
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("full_name")
+        .eq("id", user.id)
+        .maybeSingle();
+      if (cancelled) return;
+      const name =
+        profile?.full_name?.trim() ||
+        (user.user_metadata?.full_name as string | undefined)?.trim() ||
+        user.email ||
+        "Usuário";
+      const email = user.email ?? "";
+      const authMemberId = `auth-${user.id}`;
+      const SEED_EMAILS = new Set([
+        "bruno@credibelo.coop.br",
+        "carla@credibelo.coop.br",
+        "marina@credibelo.coop.br",
+        "diretoria@credibelo.coop.br",
+      ]);
+      const current = settingsStore.get().members;
+      const withoutSeeds = current.filter((m) => !SEED_EMAILS.has(m.email));
+      const existing = withoutSeeds.find((m) => m.id === authMemberId);
+      const nextMembers = existing
+        ? withoutSeeds.map((m) =>
+            m.id === authMemberId ? { ...m, name, email, role: "Administrador" as const, status: "Ativo" as const } : m,
+          )
+        : [
+            ...withoutSeeds,
+            { id: authMemberId, name, email, role: "Administrador" as RoleKey, status: "Ativo" as const },
+          ];
+      const changed =
+        nextMembers.length !== current.length ||
+        nextMembers.some((m, i) => current[i]?.id !== m.id || current[i]?.name !== m.name);
+      if (changed) settingsStore.patchSection("members", nextMembers);
+      if (settingsStore.get().currentUserId !== authMemberId) {
+        settingsStore.setCurrentUser(authMemberId);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [user]);
+
+
 
   const filteredGroups = useMemo(() => {
     if (!query.trim()) return GROUPS;
