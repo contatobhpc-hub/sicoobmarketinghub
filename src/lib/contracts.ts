@@ -168,47 +168,28 @@ function save(s: Contract[]) {
 
 let state: Contract[] = load();
 const listeners = new Set<() => void>();
-function emit() { save(state); scheduleModulePush("contracts", () => state); listeners.forEach((l) => l()); }
+const cloudPush = enableTableSync<Contract>(
+  {
+    table: "contracts",
+    key: "contracts",
+    cols: (c) => ({
+      title: c.company,
+      partner_id: c.partnerId || null,
+      status: c.status,
+      end_date: c.endDate || null,
+    }),
+  },
+  {
+    getState: () => state,
+    replaceState: (items) => {
+      state = pruneDeletedContracts(items);
+      save(state);
+      listeners.forEach((l) => l());
+    },
+  },
+);
+function emit() { save(state); cloudPush(); listeners.forEach((l) => l()); }
 
-let cloudHydrated = false;
-export async function hydrateContractsFromCloud(userId: string | null) {
-  setCloudSyncUser(userId);
-  if (!userId) { cloudHydrated = false; return; }
-  const cloud = await loadModuleRecord<Contract[]>("contracts");
-  const local = typeof window !== "undefined" ? load() : [];
-  const cloudArr = Array.isArray(cloud?.data) ? pruneDeletedContracts(cloud.data) : [];
-  const localDirtyAt = readLocalMutationAt("contracts");
-  const localSavedAt = readLocalSavedAt("contracts");
-  const cloudUpdatedAt = cloud?.updated_at ? Date.parse(cloud.updated_at) : 0;
-  // Keep local when it is newer/richer so the cloud cannot restore deleted rows
-  // or overwrite edits made while the previous push was still pending.
-  if (localDirtyAt > 0 || (localSavedAt > 0 && localSavedAt > cloudUpdatedAt)) {
-    state = local;
-    listeners.forEach((l) => l());
-    scheduleModulePush("contracts", () => state);
-  } else if (cloudArr.length > 0) {
-    state = cloudArr;
-    save(state);
-    listeners.forEach((l) => l());
-  } else if (!cloudHydrated) {
-    if (state.length) scheduleModulePush("contracts", () => state);
-  }
-  cloudHydrated = true;
-}
-
-if (typeof window !== "undefined") {
-  supabase.auth
-    .getSession()
-    .then(({ data }) => {
-      if (data.session?.user) void hydrateContractsFromCloud(data.session.user.id);
-    })
-    .catch((error) => console.error("[contracts] auth session", error));
-  supabase.auth.onAuthStateChange((_evt, session) => {
-    setTimeout(() => {
-      void hydrateContractsFromCloud(session?.user?.id ?? null);
-    }, 0);
-  });
-}
 
 function pushTimeline(c: Contract, e: Omit<ContractTimelineEntry, "id" | "createdAt" | "signature">): Contract {
   const ts = now();
