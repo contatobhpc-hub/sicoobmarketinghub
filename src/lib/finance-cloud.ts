@@ -30,10 +30,14 @@ function isFinanceState(value: unknown): value is FinanceState {
   );
 }
 
+function financeStateHasRows(state: FinanceState) {
+  return state.budget.length + state.costCenters.length + state.suppliers.length + state.expenses.length + state.purchaseRequests.length + state.invoices.length + state.payments.length > 0;
+}
+
 // ---------- Load from cloud ----------
 export async function loadFinanceFromCloud(): Promise<FinanceState | null> {
   const snapshot = await loadModuleState<FinanceState>("finance");
-  if (isFinanceState(snapshot)) return snapshot;
+  if (isFinanceState(snapshot) && financeStateHasRows(snapshot)) return snapshot;
 
   const [budget, cc, sup, exp, pr, inv, pay] = await Promise.all([
     supabase.from("finance_budget").select("*"),
