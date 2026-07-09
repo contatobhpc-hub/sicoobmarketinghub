@@ -1,4 +1,6 @@
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/use-auth";
 import { toast } from "sonner";
 import { createFileRoute } from "@tanstack/react-router";
 import {
@@ -59,6 +61,7 @@ export const Route = createFileRoute("/configuracoes")({
 });
 
 type SectionKey =
+  | "perfil"
   | "empresa"
   | "contas"
   | "usuarios"
@@ -92,6 +95,7 @@ const GROUPS: Group[] = [
   {
     label: "Workspace",
     items: [
+      { key: "perfil", label: "Meu perfil", icon: Users },
       { key: "empresa", label: "Empresa", icon: Building2 },
       { key: "contas", label: "Contas de acesso", icon: ShieldCheck },
       { key: "usuarios", label: "Usuários", icon: Users },
@@ -232,6 +236,8 @@ function ConfiguracoesPage() {
 
 function SectionContent({ section, settings }: { section: SectionKey; settings: SettingsState }) {
   switch (section) {
+    case "perfil":
+      return <MeuPerfilSection />;
     case "empresa":
       return <EmpresaSection settings={settings} />;
     case "contas":
@@ -920,6 +926,69 @@ function ToggleRow({ label, checked, onChange }: { label: string; checked: boole
     <div className="flex items-center justify-between rounded-lg border border-border bg-surface/60 p-3">
       <span className="text-sm">{label}</span>
       <Switch checked={checked} onCheckedChange={onChange} />
+    </div>
+  );
+}
+
+function MeuPerfilSection() {
+  const { user } = useAuth();
+  const [fullName, setFullName] = useState("");
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    let active = true;
+    if (!user) { setLoading(false); return; }
+    (async () => {
+      const { data, error } = await supabase
+        .from("profiles")
+        .select("full_name")
+        .eq("id", user.id)
+        .maybeSingle();
+      if (!active) return;
+      if (error) console.error(error);
+      setFullName(data?.full_name ?? (user.user_metadata?.full_name as string | undefined) ?? "");
+      setLoading(false);
+    })();
+    return () => { active = false; };
+  }, [user]);
+
+  async function save() {
+    if (!user) return;
+    const name = fullName.trim();
+    if (!name) return toast.error("Informe seu nome");
+    setSaving(true);
+    try {
+      const { error: pErr } = await supabase
+        .from("profiles")
+        .update({ full_name: name })
+        .eq("id", user.id);
+      if (pErr) throw pErr;
+      const { error: uErr } = await supabase.auth.updateUser({ data: { full_name: name } });
+      if (uErr) throw uErr;
+      toast.success("Perfil atualizado");
+    } catch (e) {
+      console.error(e);
+      toast.error("Não foi possível salvar");
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  if (!user) return <p className="text-sm text-muted-foreground">Faça login para editar seu perfil.</p>;
+  if (loading) return <p className="text-sm text-muted-foreground">Carregando…</p>;
+
+  return (
+    <div className="grid max-w-xl grid-cols-1 gap-4">
+      <Field label="Nome de usuário">
+        <Input value={fullName} onChange={(e) => setFullName(e.target.value)} placeholder="Seu nome completo" />
+      </Field>
+      <Field label="E-mail">
+        <Input value={user.email ?? ""} disabled />
+      </Field>
+      <div>
+        <Button onClick={save} disabled={saving}>{saving ? "Salvando…" : "Salvar alterações"}</Button>
+      </div>
     </div>
   );
 }
