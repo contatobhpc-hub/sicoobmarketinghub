@@ -507,11 +507,18 @@ export const financeStore = {
         name: removed.number,
         key: invoiceDeletionKey(removed),
       });
-      if (supplier && month && removed.number.startsWith("AUTO-")) {
-        rememberDeletion(DELETED_INVOICES_KEY, {
-          name: removed.number,
-          key: autoInvoiceDeletionKey(supplier, month),
-        });
+      if (month && removed.number.startsWith("AUTO-")) {
+        if (supplier) {
+          rememberDeletion(DELETED_INVOICES_KEY, {
+            name: removed.number,
+            key: autoInvoiceDeletionKey(supplier, month),
+          });
+        }
+        if (removed.supplierId) {
+          rememberDeletion(DELETED_INVOICES_KEY, {
+            key: `auto-supplier:${removed.supplierId}:${month}`,
+          });
+        }
       }
     }
     state = { ...state, invoices: state.invoices.filter((i) => i.id !== id) };
