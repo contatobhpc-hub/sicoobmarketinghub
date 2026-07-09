@@ -507,11 +507,18 @@ export const financeStore = {
         name: removed.number,
         key: invoiceDeletionKey(removed),
       });
-      if (supplier && month && removed.number.startsWith("AUTO-")) {
-        rememberDeletion(DELETED_INVOICES_KEY, {
-          name: removed.number,
-          key: autoInvoiceDeletionKey(supplier, month),
-        });
+      if (month && removed.number.startsWith("AUTO-")) {
+        if (supplier) {
+          rememberDeletion(DELETED_INVOICES_KEY, {
+            name: removed.number,
+            key: autoInvoiceDeletionKey(supplier, month),
+          });
+        }
+        if (removed.supplierId) {
+          rememberDeletion(DELETED_INVOICES_KEY, {
+            key: `auto-supplier:${removed.supplierId}:${month}`,
+          });
+        }
       }
     }
     state = { ...state, invoices: state.invoices.filter((i) => i.id !== id) };
@@ -622,6 +629,7 @@ export const financeStore = {
       if (isRememberedDeletion(DELETED_INVOICES_KEY, { name: number, key: `auto:${number}` })) continue;
       if (isRememberedDeletion(DELETED_INVOICES_KEY, { name: legacyNumber, key: `auto:${legacyNumber}` })) continue;
       if (isRememberedDeletion(DELETED_INVOICES_KEY, { name: number, key: autoInvoiceDeletionKey(s, month) })) continue;
+      if (isRememberedDeletion(DELETED_INVOICES_KEY, { key: `auto-supplier:${s.id}:${month}` })) continue;
       const existingIdx = next.findIndex(
         (i) =>
           i.number === number ||
