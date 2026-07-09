@@ -15,10 +15,25 @@ export function setCurrentUser(userId: string | null) {
   currentUser = userId;
 }
 
+function isFinanceState(value: unknown): value is FinanceState {
+  if (!value || typeof value !== "object") return false;
+  const candidate = value as Partial<Record<keyof FinanceState, unknown>>;
+  return (
+    typeof candidate.year === "number" &&
+    Array.isArray(candidate.budget) &&
+    Array.isArray(candidate.costCenters) &&
+    Array.isArray(candidate.suppliers) &&
+    Array.isArray(candidate.expenses) &&
+    Array.isArray(candidate.purchaseRequests) &&
+    Array.isArray(candidate.invoices) &&
+    Array.isArray(candidate.payments)
+  );
+}
+
 // ---------- Load from cloud ----------
 export async function loadFinanceFromCloud(): Promise<FinanceState | null> {
   const snapshot = await loadModuleState<FinanceState>("finance");
-  if (snapshot) return snapshot;
+  if (isFinanceState(snapshot)) return snapshot;
 
   const [budget, cc, sup, exp, pr, inv, pay] = await Promise.all([
     supabase.from("finance_budget").select("*"),
