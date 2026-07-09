@@ -1,5 +1,6 @@
 import { useSyncExternalStore } from "react";
 import { enableCloudSync } from "./cloud-sync";
+import { isRememberedDeletion, rememberDeletion } from "./deletions";
 
 export const OFFLINE_MEDIA_DEFAULT_CATEGORIES = [
   "Outdoor",
@@ -20,27 +21,62 @@ export const OFFLINE_MEDIA_CATEGORIES = OFFLINE_MEDIA_DEFAULT_CATEGORIES;
 
 const CATEGORIES_KEY = "mhub.offline-media.categories.v1";
 
+function normalizeText(value?: string | null) {
+  return (value ?? "")
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .trim()
+    .toLowerCase();
+}
+
+function normalizeCategoryList(values: unknown) {
+  if (!Array.isArray(values)) return [];
+  const seen = new Set<string>();
+  return values
+    .filter((value): value is string => typeof value === "string")
+    .map((value) => value.trim())
+    .filter((value) => {
+      const key = normalizeText(value);
+      if (!key || seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    });
+}
+
 function loadCategories(): string[] {
   if (typeof window === "undefined") return [...OFFLINE_MEDIA_DEFAULT_CATEGORIES];
   try {
     const raw = window.localStorage.getItem(CATEGORIES_KEY);
     if (!raw) return [...OFFLINE_MEDIA_DEFAULT_CATEGORIES];
-    const arr = JSON.parse(raw) as string[];
-    return Array.isArray(arr) && arr.length ? arr : [...OFFLINE_MEDIA_DEFAULT_CATEGORIES];
+    const arr = normalizeCategoryList(JSON.parse(raw));
+    return arr.length ? arr : [...OFFLINE_MEDIA_DEFAULT_CATEGORIES];
   } catch {
     return [...OFFLINE_MEDIA_DEFAULT_CATEGORIES];
   }
 }
 let categoriesState: string[] = loadCategories();
 const categoriesListeners = new Set<() => void>();
-function emitCategories() {
-  if (typeof window !== "undefined") {
-    try {
-      window.localStorage.setItem(CATEGORIES_KEY, JSON.stringify(categoriesState));
-    } catch {
-      /* ignore */
-    }
+function saveCategories() {
+  if (typeof window === "undefined") return;
+  try {
+    window.localStorage.setItem(CATEGORIES_KEY, JSON.stringify(categoriesState));
+  } catch {
+    /* ignore */
   }
+}
+const categoryCloudPush = enableCloudSync<string[]>("offline-media-categories", () => categoriesState, (incoming) => {
+  const next = normalizeCategoryList(incoming);
+  if (!next.length && categoriesState.length) {
+    categoryCloudPush();
+    return;
+  }
+  categoriesState = next.length ? next : [...OFFLINE_MEDIA_DEFAULT_CATEGORIES];
+  saveCategories();
+  categoriesListeners.forEach((l) => l());
+});
+function emitCategories() {
+  saveCategories();
+  categoryCloudPush();
   categoriesListeners.forEach((l) => l());
 }
 export const offlineMediaCategoriesStore = {
@@ -117,6 +153,8 @@ export type OfflineMedia = {
 };
 
 const KEY = "mhub.offline-media.v1";
+const BACKUP_KEY = "mhub.offline-media.backups.v1";
+const DELETED_KEY = "mhub.offline-media.deleted.v1";
 const uid = (p = "om") => `${p}-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 6)}`;
 const now = () => new Date().toISOString();
 const inDays = (d: number) => new Date(Date.now() + d * 86400000).toISOString().slice(0, 10);
@@ -245,20 +283,107 @@ const seed: OfflineMedia[] = [
   },
 ];
 
-function load(): OfflineMedia[] {
-  if (typeof window === "undefined") return seed;
+type OfflineMediaBackup = { savedAt: string; reason: string; items: OfflineMedia[] };
+
+const SEED_TITLES = new Set(seed.map((m) => normalizeText(m.title)));
+
+function mediaDeletionKey(m: Pick<OfflineMedia, "title" | "city" | "location">) {
+  return `${m.title}|${m.city}|${m.location}`;
+}
+
+function hasUserMedia(items: OfflineMedia[]) {
+  return items.some((item) => !SEED_TITLES.has(normalizeText(item.title)));
+}
+
+function pruneDeleted(items: OfflineMedia[]) {
+  return items.filter(
+    (item) =>
+      !isRememberedDeletion(DELETED_KEY, {
+        id: item.id,
+        name: item.title,
+        key: mediaDeletionKey(item),
+      }),
+  );
+}
+
+function sanitizeMediaArray(value: unknown): OfflineMedia[] | null {
+  if (!Array.isArray(value)) return null;
+  return pruneDeleted(
+    value.filter(
+      (item): item is OfflineMedia =>
+        !!item &&
+        typeof item === "object" &&
+        typeof (item as OfflineMedia).id === "string" &&
+        typeof (item as OfflineMedia).title === "string",
+    ),
+  );
+}
+
+function readBackups(): OfflineMediaBackup[] {
+  if (typeof window === "undefined") return [];
   try {
-    const raw = window.localStorage.getItem(KEY);
-    if (!raw) return seed;
-    return JSON.parse(raw) as OfflineMedia[];
+    const parsed = JSON.parse(window.localStorage.getItem(BACKUP_KEY) || "[]");
+    if (!Array.isArray(parsed)) return [];
+    return parsed.filter(
+      (entry): entry is OfflineMediaBackup =>
+        !!entry &&
+        typeof entry === "object" &&
+        typeof (entry as OfflineMediaBackup).savedAt === "string" &&
+        Array.isArray((entry as OfflineMediaBackup).items),
+    );
   } catch {
-    return seed;
+    return [];
   }
 }
-function save(s: OfflineMedia[]) {
+
+function mediaSignature(items: OfflineMedia[]) {
+  return items
+    .map((item) => `${item.id}:${item.title}:${item.createdAt ?? ""}`)
+    .sort()
+    .join("|");
+}
+
+function writeBackup(items: OfflineMedia[], reason: string) {
+  if (typeof window === "undefined") return;
+  const clean = pruneDeleted(items);
+  if (!clean.length || !hasUserMedia(clean)) return;
+  try {
+    const backups = readBackups();
+    if (backups[0] && mediaSignature(backups[0].items) === mediaSignature(clean)) return;
+    const next: OfflineMediaBackup[] = [{ savedAt: now(), reason, items: clean }, ...backups].slice(0, 12);
+    window.localStorage.setItem(BACKUP_KEY, JSON.stringify(next));
+  } catch {
+    /* ignore */
+  }
+}
+
+function latestUsableBackup() {
+  for (const backup of readBackups()) {
+    const clean = sanitizeMediaArray(backup.items);
+    if (clean?.length && hasUserMedia(clean)) return clean;
+  }
+  return null;
+}
+
+function load(): OfflineMedia[] {
+  if (typeof window === "undefined") return seed;
+  const backup = latestUsableBackup();
+  try {
+    const raw = window.localStorage.getItem(KEY);
+    if (!raw) return backup ?? seed;
+    const parsed = sanitizeMediaArray(JSON.parse(raw));
+    if (!parsed) return backup ?? seed;
+    if (backup && backup.length > parsed.length && hasUserMedia(backup) && !hasUserMedia(parsed)) return backup;
+    return parsed.length ? parsed : backup ?? seed;
+  } catch {
+    return backup ?? seed;
+  }
+}
+function save(s: OfflineMedia[], reason = "local-save") {
   if (typeof window === "undefined") return;
   try {
     window.localStorage.setItem(KEY, JSON.stringify(s));
+    writeBackup(s, reason);
   } catch {
     /* ignore */
   }
@@ -266,7 +391,22 @@ function save(s: OfflineMedia[]) {
 
 let state: OfflineMedia[] = load();
 const listeners = new Set<() => void>();
-const cloudPush = enableCloudSync<OfflineMedia[]>("offline-media", () => state, (s) => { state = s; listeners.forEach((l) => l()); });
+const cloudPush = enableCloudSync<OfflineMedia[]>("offline-media", () => state, (incoming) => {
+  const next = sanitizeMediaArray(incoming);
+  if (!next) return;
+  if (state.length) writeBackup(state, "before-cloud-sync");
+  if (hasUserMedia(state) && (!hasUserMedia(next) || next.length < state.length)) {
+    cloudPush();
+    return;
+  }
+  if (!next.length && state.length) {
+    cloudPush();
+    return;
+  }
+  state = next;
+  save(state, "cloud-sync");
+  listeners.forEach((l) => l());
+});
 function emit() {
   save(state);
   cloudPush();
@@ -323,6 +463,8 @@ export const offlineMediaStore = {
     emit();
   },
   remove(id: string) {
+    const removed = state.find((m) => m.id === id);
+    if (removed) rememberDeletion(DELETED_KEY, { id: removed.id, name: removed.title, key: mediaDeletionKey(removed) });
     state = state.filter((m) => m.id !== id);
     emit();
   },
