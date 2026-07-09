@@ -264,6 +264,19 @@ function seed(): FinanceState {
   return { year, budget, costCenters: cc, suppliers, expenses, purchaseRequests: prs, invoices, payments };
 }
 
+function emptyFinanceState(): FinanceState {
+  return {
+    year: new Date().getFullYear(),
+    budget: [],
+    costCenters: [],
+    suppliers: [],
+    expenses: [],
+    purchaseRequests: [],
+    invoices: [],
+    payments: [],
+  };
+}
+
 function supplierDeletionKey(supplier: Pick<FinanceSupplier, "partnerId" | "company">) {
   return supplier.partnerId ? `partner:${supplier.partnerId}` : `company:${supplier.company}`;
 }
@@ -277,10 +290,16 @@ function isSupplierDeleted(supplier: Pick<FinanceSupplier, "id" | "partnerId" | 
 }
 
 function isPartnerSupplierDismissed(partner: Pick<Partner, "id" | "company">) {
-  return isRememberedDeletion(DELETED_SUPPLIERS_KEY, {
-    name: partner.company,
-    key: `partner:${partner.id}`,
-  });
+  return (
+    isRememberedDeletion(DELETED_SUPPLIERS_KEY, {
+      name: partner.company,
+      key: `partner:${partner.id}`,
+    }) ||
+    isRememberedDeletion(DELETED_SUPPLIERS_KEY, {
+      name: partner.company,
+      key: `company:${partner.company}`,
+    })
+  );
 }
 
 function invoiceDeletionKey(invoice: Pick<Invoice, "number">) {
@@ -348,14 +367,12 @@ function financeWeight(next: FinanceState) {
 }
 
 let state: FinanceState = (() => {
-  if (typeof window === "undefined") return seed();
+  if (typeof window === "undefined") return emptyFinanceState();
   try {
     const raw = localStorage.getItem(KEY);
     if (raw) return pruneFinanceState(JSON.parse(raw) as FinanceState);
   } catch {}
-  const s = seed();
-  try { localStorage.setItem(KEY, JSON.stringify(s)); } catch {}
-  return s;
+  return emptyFinanceState();
 })();
 
 const listeners = new Set<() => void>();
@@ -385,9 +402,8 @@ export async function hydrateFinanceFromCloud(userId: string | null) {
     prunedCloud.purchaseRequests.length === 0 &&
     prunedCloud.costCenters.length === 0;
   if (isEmpty && !hydrated) {
-    // First login: push local seed/localStorage state to the cloud.
-    schedulePush(() => state);
-  } else if (localDirtyAt > 0 || financeWeight(prunedLocal) > financeWeight(prunedCloud)) {
+    if (localDirtyAt > 0) schedulePush(() => state);
+  } else if (localDirtyAt > 0) {
     state = prunedLocal;
     listeners.forEach((l) => l());
     schedulePush(() => state);
