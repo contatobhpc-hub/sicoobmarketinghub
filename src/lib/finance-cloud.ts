@@ -4,7 +4,7 @@
 
 import { supabase } from "@/integrations/supabase/client";
 import type { FinanceState, FinanceSupplier, CostCenter, Expense, Invoice, Payment, PurchaseRequest, BudgetLine, BudgetCategory, ExpenseCategory, PaymentMethod, PRStatus, Urgency, InvoiceStatus, PaymentStatus, PRTimelineEntry } from "./finance";
-import { clearLocalMutation, markLocalMutation } from "./cloud-sync";
+import { clearLocalMutation, loadModuleState, markLocalMutation } from "./cloud-sync";
 
 let syncing = false;
 let pending = false;
@@ -17,6 +17,9 @@ export function setCurrentUser(userId: string | null) {
 
 // ---------- Load from cloud ----------
 export async function loadFinanceFromCloud(): Promise<FinanceState | null> {
+  const snapshot = await loadModuleState<FinanceState>("finance");
+  if (snapshot) return snapshot;
+
   const [budget, cc, sup, exp, pr, inv, pay] = await Promise.all([
     supabase.from("finance_budget").select("*"),
     supabase.from("finance_cost_centers").select("*"),
@@ -139,6 +142,18 @@ function isUuid(v: string | undefined | null): v is string {
 
 async function pushNow(state: FinanceState) {
   if (!currentUser) return false;
+
+  const { error: snapshotError } = await supabase
+    .from("app_state")
+    .upsert(
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      { module: "finance", data: state as any, updated_by: currentUser },
+      { onConflict: "module" },
+    );
+  if (snapshotError) {
+    console.error("[finance-cloud] snapshot", snapshotError);
+    return false;
+  }
 
   // Full replace strategy for simplicity. Volume is low.
   const deletes = await Promise.all([
