@@ -239,16 +239,35 @@ function emit() {
   listeners.forEach((l) => l());
 }
 
-function campaignEventIds(id: string) {
-  return { startId: `cam-${id}-start`, endId: `cam-${id}-end` };
+function addDays(iso: string, n: number) {
+  const d = new Date(iso + "T00:00:00");
+  d.setDate(d.getDate() + n);
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${y}-${m}-${day}`;
 }
 
-function buildCampaignEvent(c: Campaign, kind: "start" | "end"): CalendarEvent {
-  const { startId, endId } = campaignEventIds(c.id);
-  const isStart = kind === "start";
+function eachDate(startISO: string, endISO: string): string[] {
+  const out: string[] = [];
+  if (!startISO || !endISO) return out;
+  const end = endISO < startISO ? startISO : endISO;
+  let cur = startISO;
+  let guard = 0;
+  while (cur <= end && guard++ < 400) {
+    out.push(cur);
+    cur = addDays(cur, 1);
+  }
+  return out;
+}
+
+function buildCampaignDayEvent(c: Campaign, date: string, idx: number, total: number): CalendarEvent {
+  const isStart = date === c.startDate;
+  const isEnd = date === c.endDate;
+  const tag = isStart && total > 1 ? "Início — " : isEnd && total > 1 ? "Término — " : total > 1 ? `Dia ${idx + 1}/${total} — ` : "";
   return {
-    id: isStart ? startId : endId,
-    title: `${isStart ? "Início" : "Término"} — ${c.name}`,
+    id: `cam-${c.id}-${date}`,
+    title: `${tag}${c.name}`,
     category: "Campanha",
     status:
       c.status === "Concluída" ? "Concluído" :
@@ -256,8 +275,8 @@ function buildCampaignEvent(c: Campaign, kind: "start" | "end"): CalendarEvent {
       c.status === "Pausada" ? "Planejado" :
       c.status === "Em andamento" ? "Em andamento" : "Planejado",
     priority: c.priority === "Crítica" ? "Crítica" : c.priority === "Alta" ? "Alta" : c.priority === "Média" ? "Média" : "Baixa",
-    date: isStart ? c.startDate : c.endDate,
-    description: `${c.description || ""}\n\nCampanha vinculada (${c.type} · ${c.objective}).`.trim(),
+    date,
+    description: `${c.description || ""}\n\nCampanha vinculada (${c.type} · ${c.objective}).\nVigência: ${c.startDate} → ${c.endDate}.`.trim(),
     owners: c.owner ? [c.owner] : [],
     campaignId: c.id,
     files: [],
@@ -277,16 +296,17 @@ function syncAllToCalendar() {
     const validIds = new Set<string>();
     for (const c of state) {
       if (!c.startDate || !c.endDate) continue;
-      const { startId, endId } = campaignEventIds(c.id);
-      validIds.add(startId);
-      validIds.add(endId);
-      calendarStore.upsert(buildCampaignEvent(c, "start"));
-      if (c.endDate !== c.startDate) calendarStore.upsert(buildCampaignEvent(c, "end"));
+      const days = eachDate(c.startDate, c.endDate);
+      days.forEach((date, idx) => {
+        const ev = buildCampaignDayEvent(c, date, idx, days.length);
+        validIds.add(ev.id);
+        calendarStore.upsert(ev);
+      });
     }
-    // clean up orphan campaign-linked events
+    // clean up orphan campaign-linked events (both new per-day and legacy start/end)
     const orphans = calendarStore
       .get()
-      .filter((e) => e.id.startsWith("cam-") && (e.id.endsWith("-start") || e.id.endsWith("-end")) && !validIds.has(e.id))
+      .filter((e) => e.id.startsWith("cam-") && !validIds.has(e.id))
       .map((e) => e.id);
     if (orphans.length) calendarStore.removeMany(orphans);
   }, 0);
