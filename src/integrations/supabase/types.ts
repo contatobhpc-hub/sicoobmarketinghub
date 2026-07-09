@@ -38,6 +38,111 @@ export type Database = {
         }
         Relationships: []
       }
+      calendar_events: {
+        Row: {
+          created_at: string
+          data: Json
+          event_date: string | null
+          id: string
+          kind: string | null
+          title: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          data?: Json
+          event_date?: string | null
+          id: string
+          kind?: string | null
+          title: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          data?: Json
+          event_date?: string | null
+          id?: string
+          kind?: string | null
+          title?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      campaigns: {
+        Row: {
+          created_at: string
+          data: Json
+          end_date: string | null
+          id: string
+          name: string
+          start_date: string | null
+          status: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          data?: Json
+          end_date?: string | null
+          id: string
+          name: string
+          start_date?: string | null
+          status?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          data?: Json
+          end_date?: string | null
+          id?: string
+          name?: string
+          start_date?: string | null
+          status?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      contracts: {
+        Row: {
+          created_at: string
+          data: Json
+          end_date: string | null
+          id: string
+          partner_id: string | null
+          status: string | null
+          title: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          data?: Json
+          end_date?: string | null
+          id: string
+          partner_id?: string | null
+          status?: string | null
+          title: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          data?: Json
+          end_date?: string | null
+          id?: string
+          partner_id?: string | null
+          status?: string | null
+          title?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       finance_budget: {
         Row: {
           approved: number
@@ -437,6 +542,42 @@ export type Database = {
           products?: string[] | null
           rating?: number | null
           updated_at?: string
+        }
+        Relationships: []
+      }
+      partners: {
+        Row: {
+          category: string | null
+          company: string
+          contract_end: string | null
+          created_at: string
+          data: Json
+          id: string
+          status: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          category?: string | null
+          company: string
+          contract_end?: string | null
+          created_at?: string
+          data?: Json
+          id: string
+          status?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          category?: string | null
+          company?: string
+          contract_end?: string | null
+          created_at?: string
+          data?: Json
+          id?: string
+          status?: string | null
+          updated_at?: string
+          user_id?: string
         }
         Relationships: []
       }
