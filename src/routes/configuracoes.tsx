@@ -927,3 +927,66 @@ function ToggleRow({ label, checked, onChange }: { label: string; checked: boole
     </div>
   );
 }
+
+function MeuPerfilSection() {
+  const { user } = useAuth();
+  const [fullName, setFullName] = useState("");
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    let active = true;
+    if (!user) { setLoading(false); return; }
+    (async () => {
+      const { data, error } = await supabase
+        .from("profiles")
+        .select("full_name")
+        .eq("id", user.id)
+        .maybeSingle();
+      if (!active) return;
+      if (error) console.error(error);
+      setFullName(data?.full_name ?? (user.user_metadata?.full_name as string | undefined) ?? "");
+      setLoading(false);
+    })();
+    return () => { active = false; };
+  }, [user]);
+
+  async function save() {
+    if (!user) return;
+    const name = fullName.trim();
+    if (!name) return toast.error("Informe seu nome");
+    setSaving(true);
+    try {
+      const { error: pErr } = await supabase
+        .from("profiles")
+        .update({ full_name: name })
+        .eq("id", user.id);
+      if (pErr) throw pErr;
+      const { error: uErr } = await supabase.auth.updateUser({ data: { full_name: name } });
+      if (uErr) throw uErr;
+      toast.success("Perfil atualizado");
+    } catch (e) {
+      console.error(e);
+      toast.error("Não foi possível salvar");
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  if (!user) return <p className="text-sm text-muted-foreground">Faça login para editar seu perfil.</p>;
+  if (loading) return <p className="text-sm text-muted-foreground">Carregando…</p>;
+
+  return (
+    <div className="grid max-w-xl grid-cols-1 gap-4">
+      <Field label="Nome de usuário">
+        <Input value={fullName} onChange={(e) => setFullName(e.target.value)} placeholder="Seu nome completo" />
+      </Field>
+      <Field label="E-mail">
+        <Input value={user.email ?? ""} disabled />
+      </Field>
+      <div>
+        <Button onClick={save} disabled={saving}>{saving ? "Salvando…" : "Salvar alterações"}</Button>
+      </div>
+    </div>
+  );
+}
