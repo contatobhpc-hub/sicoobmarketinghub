@@ -171,7 +171,7 @@ function load(): CalendarEvent[] {
 
 let state = load();
 const listeners = new Set<() => void>();
-const cloudPush = enableCloudSync<CalendarEvent[]>("calendar", () => state, (s) => { state = s; listeners.forEach((l) => l()); });
+const cloudPush = enableCloudSync<CalendarEvent[]>("calendar", () => state, (s) => { state = mergeCopom(s); listeners.forEach((l) => l()); });
 function persist() {
   if (typeof window === "undefined") return;
   window.localStorage.setItem(KEY, JSON.stringify(state));
