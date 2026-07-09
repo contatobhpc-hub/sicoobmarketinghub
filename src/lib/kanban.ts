@@ -84,13 +84,13 @@ const seed: KanbanTask[] = [
 ];
 
 function load(): KanbanTask[] {
-  if (typeof window === "undefined") return seed;
+  if (typeof window === "undefined") return [];
   try {
     const raw = window.localStorage.getItem(KEY);
-    if (!raw) return seed;
+    if (!raw) return [];
     return JSON.parse(raw) as KanbanTask[];
   } catch {
-    return seed;
+    return [];
   }
 }
 

@@ -143,13 +143,13 @@ const seed: InventoryItem[] = [
 ];
 
 function load(): InventoryItem[] {
-  if (typeof window === "undefined") return seed;
+  if (typeof window === "undefined") return [];
   try {
     const raw = window.localStorage.getItem(KEY);
-    if (!raw) return seed;
+    if (!raw) return [];
     return JSON.parse(raw) as InventoryItem[];
   } catch {
-    return seed;
+    return [];
   }
 }
 function save(s: InventoryItem[]) {

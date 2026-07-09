@@ -231,13 +231,13 @@ const seed: EventItem[] = [
 ];
 
 function load(): EventItem[] {
-  if (typeof window === "undefined") return seed;
+  if (typeof window === "undefined") return [];
   try {
     const raw = window.localStorage.getItem(KEY);
-    if (!raw) return seed;
+    if (!raw) return [];
     return JSON.parse(raw) as EventItem[];
   } catch {
-    return seed;
+    return [];
   }
 }
 function save(s: EventItem[]) {

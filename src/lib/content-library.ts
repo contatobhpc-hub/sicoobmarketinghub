@@ -172,12 +172,12 @@ const seed: ContentItem[] = [
 ];
 
 function load(): ContentItem[] {
-  if (typeof window === "undefined") return seed;
+  if (typeof window === "undefined") return [];
   try {
     const raw = window.localStorage.getItem(KEY);
-    if (!raw) return seed;
+    if (!raw) return [];
     return JSON.parse(raw) as ContentItem[];
-  } catch { return seed; }
+  } catch { return []; }
 }
 
 let state = load();
