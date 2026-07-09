@@ -1,0 +1,1 @@
+CREATE UNIQUE INDEX IF NOT EXISTS finance_budget_user_category_uidx ON public.finance_budget(user_id, category);
