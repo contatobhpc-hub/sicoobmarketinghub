@@ -151,15 +151,17 @@ export type Database = {
           id: string
           planned: number
           updated_at: string
+          user_id: string
           year: number
         }
         Insert: {
           approved?: number
           category: string
           created_at?: string
-          id?: string
+          id: string
           planned?: number
           updated_at?: string
+          user_id: string
           year: number
         }
         Update: {
@@ -169,6 +171,7 @@ export type Database = {
           id?: string
           planned?: number
           updated_at?: string
+          user_id?: string
           year?: number
         }
         Relationships: []
@@ -182,15 +185,17 @@ export type Database = {
           name: string
           responsible: string | null
           updated_at: string
+          user_id: string
         }
         Insert: {
           active?: boolean
           code: string
           created_at?: string
-          id?: string
+          id: string
           name: string
           responsible?: string | null
           updated_at?: string
+          user_id: string
         }
         Update: {
           active?: boolean
@@ -200,6 +205,7 @@ export type Database = {
           name?: string
           responsible?: string | null
           updated_at?: string
+          user_id?: string
         }
         Relationships: []
       }
@@ -221,6 +227,7 @@ export type Database = {
           supplier_id: string | null
           unit_value: number
           updated_at: string
+          user_id: string
         }
         Insert: {
           attachment_name?: string | null
@@ -230,7 +237,7 @@ export type Database = {
           created_at?: string
           date?: string
           description: string
-          id?: string
+          id: string
           invoice_id?: string | null
           notes?: string | null
           owner?: string | null
@@ -239,6 +246,7 @@ export type Database = {
           supplier_id?: string | null
           unit_value?: number
           updated_at?: string
+          user_id: string
         }
         Update: {
           attachment_name?: string | null
@@ -257,23 +265,9 @@ export type Database = {
           supplier_id?: string | null
           unit_value?: number
           updated_at?: string
+          user_id?: string
         }
-        Relationships: [
-          {
-            foreignKeyName: "finance_expenses_cost_center_id_fkey"
-            columns: ["cost_center_id"]
-            isOneToOne: false
-            referencedRelation: "finance_cost_centers"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "finance_expenses_supplier_id_fkey"
-            columns: ["supplier_id"]
-            isOneToOne: false
-            referencedRelation: "finance_suppliers"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       finance_invoices: {
         Row: {
@@ -297,6 +291,7 @@ export type Database = {
           status: string | null
           supplier_id: string | null
           updated_at: string
+          user_id: string
           value: number
           xml_name: string | null
         }
@@ -308,7 +303,7 @@ export type Database = {
           date?: string
           due_date?: string | null
           event_id?: string | null
-          id?: string
+          id: string
           notes?: string | null
           number: string
           pdf_name?: string | null
@@ -321,6 +316,7 @@ export type Database = {
           status?: string | null
           supplier_id?: string | null
           updated_at?: string
+          user_id: string
           value?: number
           xml_name?: string | null
         }
@@ -345,25 +341,11 @@ export type Database = {
           status?: string | null
           supplier_id?: string | null
           updated_at?: string
+          user_id?: string
           value?: number
           xml_name?: string | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "finance_invoices_cost_center_id_fkey"
-            columns: ["cost_center_id"]
-            isOneToOne: false
-            referencedRelation: "finance_cost_centers"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "finance_invoices_supplier_id_fkey"
-            columns: ["supplier_id"]
-            isOneToOne: false
-            referencedRelation: "finance_suppliers"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       finance_payments: {
         Row: {
@@ -377,19 +359,21 @@ export type Database = {
           status: string | null
           supplier_id: string | null
           updated_at: string
+          user_id: string
           value: number
         }
         Insert: {
           created_at?: string
           description: string
           due_date: string
-          id?: string
+          id: string
           invoice_id?: string | null
           method?: string | null
           paid_at?: string | null
           status?: string | null
           supplier_id?: string | null
           updated_at?: string
+          user_id: string
           value?: number
         }
         Update: {
@@ -403,24 +387,10 @@ export type Database = {
           status?: string | null
           supplier_id?: string | null
           updated_at?: string
+          user_id?: string
           value?: number
         }
-        Relationships: [
-          {
-            foreignKeyName: "finance_payments_invoice_id_fkey"
-            columns: ["invoice_id"]
-            isOneToOne: false
-            referencedRelation: "finance_invoices"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "finance_payments_supplier_id_fkey"
-            columns: ["supplier_id"]
-            isOneToOne: false
-            referencedRelation: "finance_suppliers"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       finance_purchase_requests: {
         Row: {
@@ -439,6 +409,7 @@ export type Database = {
           timeline: Json | null
           updated_at: string
           urgency: string | null
+          user_id: string
         }
         Insert: {
           campaign_id?: string | null
@@ -447,7 +418,7 @@ export type Database = {
           created_at?: string
           description: string
           estimated_value?: number | null
-          id?: string
+          id: string
           justification?: string | null
           project_id?: string | null
           requester?: string | null
@@ -456,6 +427,7 @@ export type Database = {
           timeline?: Json | null
           updated_at?: string
           urgency?: string | null
+          user_id: string
         }
         Update: {
           campaign_id?: string | null
@@ -473,23 +445,9 @@ export type Database = {
           timeline?: Json | null
           updated_at?: string
           urgency?: string | null
+          user_id?: string
         }
-        Relationships: [
-          {
-            foreignKeyName: "finance_purchase_requests_cost_center_id_fkey"
-            columns: ["cost_center_id"]
-            isOneToOne: false
-            referencedRelation: "finance_cost_centers"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "finance_purchase_requests_supplier_id_fkey"
-            columns: ["supplier_id"]
-            isOneToOne: false
-            referencedRelation: "finance_suppliers"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       finance_suppliers: {
         Row: {
@@ -508,6 +466,7 @@ export type Database = {
           products: string[] | null
           rating: number | null
           updated_at: string
+          user_id: string
         }
         Insert: {
           annual_investment?: number | null
@@ -518,13 +477,14 @@ export type Database = {
           contract_ref?: string | null
           created_at?: string
           email?: string | null
-          id?: string
+          id: string
           monthly_investment?: number | null
           partner_id?: string | null
           phone?: string | null
           products?: string[] | null
           rating?: number | null
           updated_at?: string
+          user_id: string
         }
         Update: {
           annual_investment?: number | null
@@ -542,6 +502,7 @@ export type Database = {
           products?: string[] | null
           rating?: number | null
           updated_at?: string
+          user_id?: string
         }
         Relationships: []
       }
