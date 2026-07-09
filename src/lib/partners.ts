@@ -149,11 +149,10 @@ function safeArray<T>(value: unknown): T[] {
   return Array.isArray(value) ? (value as T[]) : [];
 }
 
-function normalizePartner(value: unknown, index: number): Partner | null {
+function normalizePartner(value: unknown): Partner | null {
   if (!value || typeof value !== "object") return null;
   const raw = value as Record<string, unknown>;
-  const fallback = seed[index % seed.length];
-  const company = safeString(raw.company, fallback.company).trim();
+  const company = safeString(raw.company).trim();
   if (!company) return null;
 
   const legacyAnnualInvestment = safeNumber(raw.investmentAnnual);
@@ -162,17 +161,17 @@ function normalizePartner(value: unknown, index: number): Partner | null {
       ? safeNumber(raw.investmentMonth)
       : legacyAnnualInvestment > 0
         ? Math.round(legacyAnnualInvestment / 12)
-        : fallback.investmentMonth;
+        : 0;
 
   return {
     id: safeString(raw.id, uid()),
     company,
-    category: isPartnerCategory(raw.category) ? raw.category : fallback.category,
-    city: safeString(raw.city, fallback.city),
-    contact: safeString(raw.contact, fallback.contact),
+    category: isPartnerCategory(raw.category) ? raw.category : (pcState[0] ?? "Agência"),
+    city: safeString(raw.city),
+    contact: safeString(raw.contact),
     phone: safeString(raw.phone),
     whatsapp: safeString(raw.whatsapp),
-    email: safeString(raw.email, fallback.email),
+    email: safeString(raw.email),
     owner: safeString(raw.owner, "Sistema"),
     contractId: safeString(raw.contractId) || undefined,
     contractEnd: safeString(raw.contractEnd) || undefined,
@@ -195,10 +194,11 @@ function normalizePartner(value: unknown, index: number): Partner | null {
 function normalizePartners(value: unknown): Partner[] {
   if (!Array.isArray(value)) return [];
   const normalized = value
-    .map((partner, index) => normalizePartner(partner, index))
+    .map((partner) => normalizePartner(partner))
     .filter((partner): partner is Partner => partner !== null);
   return normalized.filter((partner) => !isPartnerDeleted(partner));
 }
+
 
 function isPartnerDeleted(partner: Pick<Partner, "id" | "company">) {
   return isRememberedDeletion(DELETED_KEY, { id: partner.id, name: partner.company });
