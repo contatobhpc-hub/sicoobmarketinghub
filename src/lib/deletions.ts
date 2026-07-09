@@ -1,3 +1,5 @@
+import { enableCloudSync } from "./cloud-sync";
+
 export type DeletionCandidate = {
   id?: string | null;
   name?: string | null;
@@ -9,8 +11,6 @@ type DeletionRecord = {
   names: string[];
   keys: string[];
 };
-
-import { enableCloudSync } from "./cloud-sync";
 
 const cloudPushers = new Map<string, () => void>();
 

@@ -8,6 +8,7 @@ import { clearLocalMutation, markLocalMutation } from "./cloud-sync";
 
 let syncing = false;
 let pending = false;
+let latestGetter: (() => FinanceState) | null = null;
 let currentUser: string | null = null;
 
 export function setCurrentUser(userId: string | null) {
@@ -294,6 +295,7 @@ async function pushNow(state: FinanceState) {
 
 let debounceTimer: ReturnType<typeof setTimeout> | null = null;
 export function schedulePush(getState: () => FinanceState) {
+  latestGetter = getState;
   markLocalMutation("finance");
   if (!currentUser) return;
   if (debounceTimer) clearTimeout(debounceTimer);
@@ -301,11 +303,11 @@ export function schedulePush(getState: () => FinanceState) {
     if (syncing) { pending = true; return; }
     syncing = true;
     try {
-      const ok = await pushNow(getState());
+      const ok = await pushNow((latestGetter ?? getState)());
       if (ok) clearLocalMutation("finance");
     } finally {
       syncing = false;
-      if (pending) { pending = false; schedulePush(getState); }
+      if (pending) { pending = false; schedulePush(latestGetter ?? getState); }
     }
   }, 800);
 }
