@@ -87,62 +87,24 @@ export type Campaign = {
 
 const KEY = "mhub.campaigns.v1";
 
-const seed: Campaign[] = [
-  {
-    id: "c-1",
-    name: "Crédito Rural 2026",
-    type: "Produto",
-    objective: "Conversão",
-    description: "Campanha multicanal para captação de produtores na safra 2026.",
-    startDate: "2026-06-01",
-    endDate: "2026-09-30",
-    status: "Em andamento",
-    priority: "Alta",
-    owner: "Bruno Almeida",
-    products: ["Crédito Rural", "Custeio Agrícola"],
-    budget: 180000,
-    notes: "Foco em municípios de maior potencial agro.",
-    files: [],
-    modules: ["projeto", "kanban", "calendario", "conteudos", "midia_offline", "indicadores"],
-    createdAt: "2026-05-12T10:00:00.000Z",
-  },
-  {
-    id: "c-2",
-    name: "Conta Digital Jovem",
-    type: "Lançamento",
-    objective: "Awareness",
-    description: "Lançamento da conta digital para o público de 14 a 24 anos.",
-    startDate: "2026-07-10",
-    endDate: "2026-10-10",
-    status: "Planejamento",
-    priority: "Crítica",
-    owner: "Marina Sousa",
-    products: ["Conta Jovem"],
-    budget: 95000,
-    notes: "",
-    files: [],
-    modules: ["projeto", "kanban", "conteudos", "eventos", "indicadores"],
-    createdAt: "2026-06-02T14:30:00.000Z",
-  },
-  {
-    id: "c-3",
-    name: "Campanha de Filiação",
-    type: "Institucional",
-    objective: "Relacionamento",
-    description: "Ação institucional para ampliar quadro social.",
-    startDate: "2026-06-15",
-    endDate: "2026-12-15",
-    status: "Em andamento",
-    priority: "Média",
-    owner: "Pedro Lima",
-    products: [],
-    budget: 60000,
-    notes: "",
-    files: [],
-    modules: ["projeto", "calendario", "conteudos", "brindes", "indicadores"],
-    createdAt: "2026-06-10T09:15:00.000Z",
-  },
-];
+const seed: Campaign[] = [];
+
+// IDs de campanhas descontinuadas — sempre filtradas na hidratação
+// (localStorage e nuvem) para garantir remoção definitiva.
+const REMOVED_IDS = new Set<string>(["c-1", "c-2", "c-3"]);
+const REMOVED_NAMES = new Set<string>([
+  "crédito rural 2026",
+  "conta digital jovem",
+  "campanha de filiação",
+  "campanha de afiliação",
+]);
+
+function pruneRemoved(list: Campaign[]): Campaign[] {
+  return list.filter(
+    (c) => !REMOVED_IDS.has(c.id) && !REMOVED_NAMES.has((c.name || "").trim().toLowerCase()),
+  );
+}
+
 
 // Calendário de Ações Comerciais CNV 2026 (fonte da verdade).
 // Semanas: 1ª = dias 1-7, 2ª = 8-14, 3ª = 15-21, 4ª = 22-fim do mês.
@@ -196,10 +158,11 @@ function materializeCnv(): Campaign[] {
 }
 
 function mergeCnv(existing: Campaign[]): Campaign[] {
+  const pruned = pruneRemoved(existing);
   const cnv = materializeCnv();
-  const byId = new Set(existing.map((c) => c.id));
+  const byId = new Set(pruned.map((c) => c.id));
   const missing = cnv.filter((c) => !byId.has(c.id));
-  return missing.length ? [...existing, ...missing] : existing;
+  return missing.length ? [...pruned, ...missing] : pruned;
 }
 
 function load(): Campaign[] {
@@ -219,6 +182,7 @@ const cloudPush = enableCloudSync<Campaign[]>("campaigns", () => state, (s) => {
   state = mergeCnv(s);
   listeners.forEach((l) => l());
 });
+
 
 // Garante que as campanhas do calendário CNV 2026 fiquem persistidas no
 // localStorage e sincronizadas com a nuvem já no primeiro load.
