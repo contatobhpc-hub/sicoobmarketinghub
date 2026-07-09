@@ -173,14 +173,12 @@ function seed(): StrategicPlan[] {
 }
 
 let state: StrategicPlan[] = (() => {
-  if (typeof window === "undefined") return seed();
+  if (typeof window === "undefined") return [];
   try {
     const raw = localStorage.getItem(KEY);
     if (raw) return JSON.parse(raw) as StrategicPlan[];
   } catch {}
-  const s = seed();
-  try { localStorage.setItem(KEY, JSON.stringify(s)); } catch {}
-  return s;
+  return [];
 })();
 
 const listeners = new Set<() => void>();

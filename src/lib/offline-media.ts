@@ -155,6 +155,7 @@ export type OfflineMedia = {
 const KEY = "mhub.offline-media.v1";
 const BACKUP_KEY = "mhub.offline-media.backups.v1";
 const DELETED_KEY = "mhub.offline-media.deleted.v1";
+const INITIALIZED_KEY = "mhub.offline-media.initialized.v1";
 const uid = (p = "om") => `${p}-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 6)}`;
 const now = () => new Date().toISOString();
 const inDays = (d: number) => new Date(Date.now() + d * 86400000).toISOString().slice(0, 10);
@@ -366,22 +367,25 @@ function latestUsableBackup() {
 }
 
 function load(): OfflineMedia[] {
-  if (typeof window === "undefined") return seed;
+  if (typeof window === "undefined") return [];
+  const initialized = window.localStorage.getItem(INITIALIZED_KEY) === "true";
   const backup = latestUsableBackup();
   try {
     const raw = window.localStorage.getItem(KEY);
-    if (!raw) return backup ?? seed;
+    if (!raw) return backup ?? [];
     const parsed = sanitizeMediaArray(JSON.parse(raw));
-    if (!parsed) return backup ?? seed;
+    if (!parsed) return backup ?? [];
+    if (parsed.length === 0 && initialized) return [];
     if (backup && backup.length > parsed.length && hasUserMedia(backup) && !hasUserMedia(parsed)) return backup;
-    return parsed.length ? parsed : backup ?? seed;
+    return parsed.length ? parsed : backup ?? [];
   } catch {
-    return backup ?? seed;
+    return backup ?? [];
   }
 }
 function save(s: OfflineMedia[], reason = "local-save") {
   if (typeof window === "undefined") return;
   try {
+    window.localStorage.setItem(INITIALIZED_KEY, "true");
     window.localStorage.setItem(KEY, JSON.stringify(s));
     writeBackup(s, reason);
   } catch {

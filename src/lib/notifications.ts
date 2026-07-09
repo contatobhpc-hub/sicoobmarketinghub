@@ -97,14 +97,12 @@ function seed(): Notification[] {
 }
 
 function load(): Notification[] {
-  if (typeof window === "undefined") return seed();
+  if (typeof window === "undefined") return [];
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (raw) return JSON.parse(raw);
   } catch {}
-  const s = seed();
-  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(s)); } catch {}
-  return s;
+  return [];
 }
 
 function loadPrefs(): NotificationPrefs {

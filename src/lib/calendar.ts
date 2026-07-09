@@ -183,19 +183,19 @@ function mergeCopom(events: CalendarEvent[]): CalendarEvent[] {
 }
 
 function load(): CalendarEvent[] {
-  if (typeof window === "undefined") return seed;
+  if (typeof window === "undefined") return [];
   try {
     const raw = window.localStorage.getItem(KEY);
-    if (!raw) return seed;
-    return mergeCopom(JSON.parse(raw) as CalendarEvent[]);
+    if (!raw) return [];
+    return (JSON.parse(raw) as CalendarEvent[]).filter((e) => !isEventDeleted(e));
   } catch {
-    return seed;
+    return [];
   }
 }
 
 let state = load();
 const listeners = new Set<() => void>();
-const cloudPush = enableCloudSync<CalendarEvent[]>("calendar", () => state, (s) => { state = mergeCopom(s); listeners.forEach((l) => l()); });
+const cloudPush = enableCloudSync<CalendarEvent[]>("calendar", () => state, (s) => { state = s.filter((e) => !isEventDeleted(e)); listeners.forEach((l) => l()); });
 function persist() {
   if (typeof window === "undefined") return;
   window.localStorage.setItem(KEY, JSON.stringify(state));

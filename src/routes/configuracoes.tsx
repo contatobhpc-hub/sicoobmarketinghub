@@ -94,7 +94,7 @@ const GROUPS: Group[] = [
     items: [
       { key: "empresa", label: "Empresa", icon: Building2 },
       { key: "contas", label: "Contas de acesso", icon: ShieldCheck },
-      { key: "usuarios", label: "Usuários (mock)", icon: Users },
+      { key: "usuarios", label: "Usuários", icon: Users },
       { key: "permissoes", label: "Permissões", icon: KeyRound },
       { key: "papeis", label: "Papéis", icon: ShieldCheck },
     ],
@@ -790,7 +790,7 @@ function BackupSection({ settings }: { settings: SettingsState }) {
               const keys: string[] = [];
               for (let i = 0; i < window.localStorage.length; i++) {
                 const k = window.localStorage.key(i);
-                if (k && k.startsWith("mhub.")) keys.push(k);
+                if (k && (k.startsWith("mhub.") || k.startsWith("mh.") || k.startsWith("mh:") || k.startsWith("sicoob:"))) keys.push(k);
               }
               keys.forEach((k) => window.localStorage.removeItem(k));
               toast.success("Plataforma limpa. Recarregando…");

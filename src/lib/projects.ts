@@ -167,13 +167,13 @@ const seed: Project[] = [
 ];
 
 function load(): Project[] {
-  if (typeof window === "undefined") return seed;
+  if (typeof window === "undefined") return [];
   try {
     const raw = window.localStorage.getItem(KEY);
-    if (!raw) return seed;
+    if (!raw) return [];
     return JSON.parse(raw) as Project[];
   } catch {
-    return seed;
+    return [];
   }
 }
 

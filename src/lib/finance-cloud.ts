@@ -4,18 +4,41 @@
 
 import { supabase } from "@/integrations/supabase/client";
 import type { FinanceState, FinanceSupplier, CostCenter, Expense, Invoice, Payment, PurchaseRequest, BudgetLine, BudgetCategory, ExpenseCategory, PaymentMethod, PRStatus, Urgency, InvoiceStatus, PaymentStatus, PRTimelineEntry } from "./finance";
-import { clearLocalMutation, markLocalMutation } from "./cloud-sync";
+import { clearLocalMutation, loadModuleState, markLocalMutation } from "./cloud-sync";
 
 let syncing = false;
 let pending = false;
+let latestGetter: (() => FinanceState) | null = null;
 let currentUser: string | null = null;
 
 export function setCurrentUser(userId: string | null) {
   currentUser = userId;
 }
 
+function isFinanceState(value: unknown): value is FinanceState {
+  if (!value || typeof value !== "object") return false;
+  const candidate = value as Partial<Record<keyof FinanceState, unknown>>;
+  return (
+    typeof candidate.year === "number" &&
+    Array.isArray(candidate.budget) &&
+    Array.isArray(candidate.costCenters) &&
+    Array.isArray(candidate.suppliers) &&
+    Array.isArray(candidate.expenses) &&
+    Array.isArray(candidate.purchaseRequests) &&
+    Array.isArray(candidate.invoices) &&
+    Array.isArray(candidate.payments)
+  );
+}
+
+function financeStateHasRows(state: FinanceState) {
+  return state.budget.length + state.costCenters.length + state.suppliers.length + state.expenses.length + state.purchaseRequests.length + state.invoices.length + state.payments.length > 0;
+}
+
 // ---------- Load from cloud ----------
 export async function loadFinanceFromCloud(): Promise<FinanceState | null> {
+  const snapshot = await loadModuleState<FinanceState>("finance");
+  if (isFinanceState(snapshot) && financeStateHasRows(snapshot)) return snapshot;
+
   const [budget, cc, sup, exp, pr, inv, pay] = await Promise.all([
     supabase.from("finance_budget").select("*"),
     supabase.from("finance_cost_centers").select("*"),
@@ -138,6 +161,18 @@ function isUuid(v: string | undefined | null): v is string {
 
 async function pushNow(state: FinanceState) {
   if (!currentUser) return false;
+
+  const { error: snapshotError } = await supabase
+    .from("app_state")
+    .upsert(
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      { module: "finance", data: state as any, updated_by: currentUser },
+      { onConflict: "module" },
+    );
+  if (snapshotError) {
+    console.error("[finance-cloud] snapshot", snapshotError);
+    return false;
+  }
 
   // Full replace strategy for simplicity. Volume is low.
   const deletes = await Promise.all([
@@ -294,6 +329,7 @@ async function pushNow(state: FinanceState) {
 
 let debounceTimer: ReturnType<typeof setTimeout> | null = null;
 export function schedulePush(getState: () => FinanceState) {
+  latestGetter = getState;
   markLocalMutation("finance");
   if (!currentUser) return;
   if (debounceTimer) clearTimeout(debounceTimer);
@@ -301,11 +337,11 @@ export function schedulePush(getState: () => FinanceState) {
     if (syncing) { pending = true; return; }
     syncing = true;
     try {
-      const ok = await pushNow(getState());
+      const ok = await pushNow((latestGetter ?? getState)());
       if (ok) clearLocalMutation("finance");
     } finally {
       syncing = false;
-      if (pending) { pending = false; schedulePush(getState); }
+      if (pending) { pending = false; schedulePush(latestGetter ?? getState); }
     }
   }, 800);
 }
