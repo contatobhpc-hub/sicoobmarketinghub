@@ -1,62 +1,78 @@
-// Cloud sync layer for the finance module.
-// Loads state from Supabase on login, writes back on every mutation (debounced).
-// Preserves the synchronous financeStore API used across the app.
+// Onda 2 — Financeiro relacional per-row.
+// Substitui o full-replace + snapshot em app_state por upsert/delete por linha,
+// escopado por user_id. Migra dados legados de app_state uma única vez.
 
 import { supabase } from "@/integrations/supabase/client";
-import type { FinanceState, FinanceSupplier, CostCenter, Expense, Invoice, Payment, PurchaseRequest, BudgetLine, BudgetCategory, ExpenseCategory, PaymentMethod, PRStatus, Urgency, InvoiceStatus, PaymentStatus, PRTimelineEntry } from "./finance";
-import { clearLocalMutation, loadModuleState, markLocalMutation } from "./cloud-sync";
+import type {
+  FinanceState,
+  FinanceSupplier,
+  CostCenter,
+  Expense,
+  Invoice,
+  Payment,
+  PurchaseRequest,
+  BudgetLine,
+  BudgetCategory,
+  ExpenseCategory,
+  PaymentMethod,
+  PRStatus,
+  Urgency,
+  InvoiceStatus,
+  PaymentStatus,
+  PRTimelineEntry,
+} from "./finance";
+import { clearLocalMutation, loadModuleRecord, markLocalMutation } from "./cloud-sync";
 
-let syncing = false;
-let pending = false;
-let latestGetter: (() => FinanceState) | null = null;
 let currentUser: string | null = null;
-
 export function setCurrentUser(userId: string | null) {
   currentUser = userId;
+  if (!userId) {
+    for (const key of Object.keys(snapshots) as (keyof Snapshots)[]) snapshots[key] = new Map();
+  }
 }
 
-function isFinanceState(value: unknown): value is FinanceState {
-  if (!value || typeof value !== "object") return false;
-  const candidate = value as Partial<Record<keyof FinanceState, unknown>>;
-  return (
-    typeof candidate.year === "number" &&
-    Array.isArray(candidate.budget) &&
-    Array.isArray(candidate.costCenters) &&
-    Array.isArray(candidate.suppliers) &&
-    Array.isArray(candidate.expenses) &&
-    Array.isArray(candidate.purchaseRequests) &&
-    Array.isArray(candidate.invoices) &&
-    Array.isArray(candidate.payments)
-  );
-}
-
-function financeStateHasRows(state: FinanceState) {
-  return state.budget.length + state.costCenters.length + state.suppliers.length + state.expenses.length + state.purchaseRequests.length + state.invoices.length + state.payments.length > 0;
-}
+// ---------- snapshots for diffing ----------
+type Snapshots = {
+  budget: Map<string, string>;
+  costCenters: Map<string, string>;
+  suppliers: Map<string, string>;
+  expenses: Map<string, string>;
+  invoices: Map<string, string>;
+  payments: Map<string, string>;
+  purchaseRequests: Map<string, string>;
+};
+const snapshots: Snapshots = {
+  budget: new Map(),
+  costCenters: new Map(),
+  suppliers: new Map(),
+  expenses: new Map(),
+  invoices: new Map(),
+  payments: new Map(),
+  purchaseRequests: new Map(),
+};
+const budgetKey = (b: BudgetLine) => `${b.category}`;
 
 // ---------- Load from cloud ----------
 export async function loadFinanceFromCloud(): Promise<FinanceState | null> {
-  const snapshot = await loadModuleState<FinanceState>("finance");
-  if (isFinanceState(snapshot) && financeStateHasRows(snapshot)) return snapshot;
-
+  if (!currentUser) return null;
+  const uid = currentUser;
   const [budget, cc, sup, exp, pr, inv, pay] = await Promise.all([
-    supabase.from("finance_budget").select("*"),
-    supabase.from("finance_cost_centers").select("*"),
-    supabase.from("finance_suppliers").select("*"),
-    supabase.from("finance_expenses").select("*"),
-    supabase.from("finance_purchase_requests").select("*"),
-    supabase.from("finance_invoices").select("*"),
-    supabase.from("finance_payments").select("*"),
+    supabase.from("finance_budget").select("*").eq("user_id", uid),
+    supabase.from("finance_cost_centers").select("*").eq("user_id", uid),
+    supabase.from("finance_suppliers").select("*").eq("user_id", uid),
+    supabase.from("finance_expenses").select("*").eq("user_id", uid),
+    supabase.from("finance_purchase_requests").select("*").eq("user_id", uid),
+    supabase.from("finance_invoices").select("*").eq("user_id", uid),
+    supabase.from("finance_payments").select("*").eq("user_id", uid),
   ]);
 
   if (budget.error || cc.error || sup.error || exp.error || pr.error || inv.error || pay.error) {
-    console.error("[finance-cloud] load error", { budget: budget.error, cc: cc.error, sup: sup.error, exp: exp.error, pr: pr.error, inv: inv.error, pay: pay.error });
+    console.error("[finance-cloud] load", { budget: budget.error, cc: cc.error, sup: sup.error, exp: exp.error, pr: pr.error, inv: inv.error, pay: pay.error });
     return null;
   }
 
   const year = (budget.data?.[0]?.year as number | undefined) ?? new Date().getFullYear();
-
-  return {
+  const state: FinanceState = {
     year,
     budget: (budget.data ?? []).map((b) => ({
       category: b.category as BudgetCategory,
@@ -152,183 +168,250 @@ export async function loadFinanceFromCloud(): Promise<FinanceState | null> {
       status: (p.status ?? "Agendado") as PaymentStatus,
     })),
   };
+
+  // Legacy import (once): if relational is empty AND app_state has finance blob,
+  // fill state from app_state and push per-row on next tick, then delete blob.
+  const hasAny =
+    state.budget.length + state.costCenters.length + state.suppliers.length +
+    state.expenses.length + state.invoices.length + state.payments.length +
+    state.purchaseRequests.length > 0;
+  if (!hasAny) {
+    const legacy = await loadModuleRecord<FinanceState>("finance");
+    if (legacy?.data && typeof legacy.data === "object") {
+      const l = legacy.data as FinanceState;
+      if (Array.isArray(l.suppliers)) {
+        state.year = l.year || state.year;
+        state.budget = Array.isArray(l.budget) ? l.budget : [];
+        state.costCenters = Array.isArray(l.costCenters) ? l.costCenters : [];
+        state.suppliers = Array.isArray(l.suppliers) ? l.suppliers : [];
+        state.expenses = Array.isArray(l.expenses) ? l.expenses : [];
+        state.purchaseRequests = Array.isArray(l.purchaseRequests) ? l.purchaseRequests : [];
+        state.invoices = Array.isArray(l.invoices) ? l.invoices : [];
+        state.payments = Array.isArray(l.payments) ? l.payments : [];
+      }
+      // limpa snapshots para forçar upsert completo no próximo push
+      for (const key of Object.keys(snapshots) as (keyof Snapshots)[]) snapshots[key] = new Map();
+      // marca sujo para que schedulePush dispare
+      markLocalMutation("finance");
+      // apaga blob legado
+      await supabase.from("app_state").delete().eq("module", "finance").eq("user_id", uid);
+    }
+    return state;
+  }
+
+  // Preenche snapshots com o que veio do banco
+  snapshots.budget = new Map(state.budget.map((b) => [budgetKey(b), JSON.stringify(b)]));
+  snapshots.costCenters = new Map(state.costCenters.map((c) => [c.id, JSON.stringify(c)]));
+  snapshots.suppliers = new Map(state.suppliers.map((s) => [s.id, JSON.stringify(s)]));
+  snapshots.expenses = new Map(state.expenses.map((e) => [e.id, JSON.stringify(e)]));
+  snapshots.invoices = new Map(state.invoices.map((i) => [i.id, JSON.stringify(i)]));
+  snapshots.payments = new Map(state.payments.map((p) => [p.id, JSON.stringify(p)]));
+  snapshots.purchaseRequests = new Map(state.purchaseRequests.map((p) => [p.id, JSON.stringify(p)]));
+
+  return state;
 }
 
-// ---------- Push to cloud (full replace, debounced) ----------
-function isUuid(v: string | undefined | null): v is string {
-  return !!v && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(v);
+// ---------- Push per-row ----------
+async function diffAndFlush<T>(
+  table:
+    | "finance_budget"
+    | "finance_cost_centers"
+    | "finance_suppliers"
+    | "finance_expenses"
+    | "finance_invoices"
+    | "finance_payments"
+    | "finance_purchase_requests",
+  items: T[],
+  keyOf: (item: T) => string,
+  toRow: (item: T) => Record<string, unknown>,
+  snapshotKey: keyof Snapshots,
+  conflict = "id",
+) {
+  if (!currentUser) return;
+  const uid = currentUser;
+  const snap = snapshots[snapshotKey];
+  const next = new Map<string, string>();
+  const toUpsert: Array<Record<string, unknown>> = [];
+  for (const item of items) {
+    const k = keyOf(item);
+    if (!k) continue;
+    const s = JSON.stringify(item);
+    next.set(k, s);
+    if (snap.get(k) !== s) {
+      toUpsert.push({ ...toRow(item), user_id: uid });
+    }
+  }
+  const toDeleteKeys: string[] = [];
+  for (const k of snap.keys()) if (!next.has(k)) toDeleteKeys.push(k);
+
+  if (toUpsert.length) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const { error } = await (supabase.from(table) as any).upsert(toUpsert, { onConflict: conflict });
+    if (error) { console.error(`[finance-cloud:${table}] upsert`, error); return; }
+  }
+  if (toDeleteKeys.length) {
+    if (table === "finance_budget") {
+      // budget é chaveado por (user_id, category)
+      const { error } = await supabase
+        .from(table)
+        .delete()
+        .in("category", toDeleteKeys)
+        .eq("user_id", uid);
+      if (error) { console.error(`[finance-cloud:${table}] delete`, error); return; }
+    } else {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const { error } = await (supabase.from(table) as any)
+        .delete()
+        .in("id", toDeleteKeys)
+        .eq("user_id", uid);
+      if (error) { console.error(`[finance-cloud:${table}] delete`, error); return; }
+    }
+  }
+  snapshots[snapshotKey] = next;
 }
 
 async function pushNow(state: FinanceState) {
   if (!currentUser) return false;
-
-  const { error: snapshotError } = await supabase
-    .from("app_state")
-    .upsert(
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      { module: "finance", data: state as any, updated_by: currentUser, user_id: currentUser },
-      { onConflict: "user_id,module" },
+  try {
+    await diffAndFlush(
+      "finance_budget",
+      state.budget,
+      budgetKey,
+      (b) => ({ id: `${state.year}-${b.category}`, year: state.year, category: b.category, planned: b.planned, approved: b.approved }),
+      "budget",
+      "user_id,category",
     );
-
-  if (snapshotError) {
-    console.error("[finance-cloud] snapshot", snapshotError);
+    await diffAndFlush<CostCenter>(
+      "finance_cost_centers",
+      state.costCenters,
+      (c) => c.id,
+      (c) => ({ id: c.id, code: c.code, name: c.name, responsible: c.responsible, active: c.active }),
+      "costCenters",
+    );
+    await diffAndFlush<FinanceSupplier>(
+      "finance_suppliers",
+      state.suppliers,
+      (s) => s.id,
+      (s) => ({
+        id: s.id,
+        company: s.company,
+        category: s.category,
+        city: s.city,
+        contact: s.contact,
+        phone: s.phone,
+        email: s.email,
+        contract_ref: s.contractRef ?? null,
+        products: s.products ?? [],
+        rating: s.rating ?? 0,
+        partner_id: s.partnerId ?? null,
+        monthly_investment: s.monthlyInvestment ?? null,
+        annual_investment: s.annualInvestment ?? null,
+      }),
+      "suppliers",
+    );
+    await diffAndFlush<Invoice>(
+      "finance_invoices",
+      state.invoices,
+      (i) => i.id,
+      (i) => ({
+        id: i.id,
+        number: i.number,
+        supplier_id: i.supplierId ?? null,
+        date: i.date,
+        value: i.value,
+        category: i.category,
+        cost_center_id: i.costCenterId ?? null,
+        campaign_id: i.campaignId ?? null,
+        project_id: i.projectId ?? null,
+        event_id: i.eventId ?? null,
+        pdf_name: i.pdfName ?? null,
+        xml_name: i.xmlName ?? null,
+        receipt_name: i.receiptName ?? null,
+        status: i.status,
+        due_date: i.dueDate ?? null,
+        received_at: i.receivedAt ?? null,
+        received_by: i.receivedBy ?? null,
+        sent_to_payment_at: i.sentToPaymentAt ?? null,
+        sent_by: i.sentBy ?? null,
+        notes: i.notes ?? null,
+      }),
+      "invoices",
+    );
+    await diffAndFlush<Expense>(
+      "finance_expenses",
+      state.expenses,
+      (e) => e.id,
+      (e) => ({
+        id: e.id,
+        description: e.description,
+        category: e.category,
+        supplier_id: e.supplierId ?? null,
+        campaign_id: e.campaignId ?? null,
+        cost_center_id: e.costCenterId ?? null,
+        quantity: e.quantity,
+        unit_value: e.unitValue,
+        date: e.date,
+        invoice_id: e.invoiceId ?? null,
+        attachment_name: e.attachmentName ?? null,
+        payment_method: e.paymentMethod,
+        owner: e.owner,
+        notes: e.notes ?? null,
+      }),
+      "expenses",
+    );
+    await diffAndFlush<PurchaseRequest>(
+      "finance_purchase_requests",
+      state.purchaseRequests,
+      (p) => p.id,
+      (p) => ({
+        id: p.id,
+        code: p.code,
+        requester: p.requester,
+        description: p.description,
+        justification: p.justification,
+        campaign_id: p.campaignId ?? null,
+        project_id: p.projectId ?? null,
+        cost_center_id: p.costCenterId ?? null,
+        supplier_id: p.supplierId ?? null,
+        estimated_value: p.estimatedValue,
+        urgency: p.urgency,
+        status: p.status,
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        timeline: p.timeline as any,
+      }),
+      "purchaseRequests",
+    );
+    await diffAndFlush<Payment>(
+      "finance_payments",
+      state.payments,
+      (p) => p.id,
+      (p) => ({
+        id: p.id,
+        invoice_id: p.invoiceId ?? null,
+        supplier_id: p.supplierId ?? null,
+        description: p.description,
+        value: p.value,
+        due_date: p.dueDate,
+        paid_at: p.paidAt ?? null,
+        method: p.method,
+        status: p.status,
+      }),
+      "payments",
+    );
+    return true;
+  } catch (err) {
+    console.error("[finance-cloud] push", err);
     return false;
   }
-
-  // Full replace strategy for simplicity. Volume is low.
-  const deletes = await Promise.all([
-    supabase.from("finance_payments").delete().neq("id", "00000000-0000-0000-0000-000000000000"),
-    supabase.from("finance_invoices").delete().neq("id", "00000000-0000-0000-0000-000000000000"),
-    supabase.from("finance_purchase_requests").delete().neq("id", "00000000-0000-0000-0000-000000000000"),
-    supabase.from("finance_expenses").delete().neq("id", "00000000-0000-0000-0000-000000000000"),
-    supabase.from("finance_suppliers").delete().neq("id", "00000000-0000-0000-0000-000000000000"),
-    supabase.from("finance_cost_centers").delete().neq("id", "00000000-0000-0000-0000-000000000000"),
-    supabase.from("finance_budget").delete().neq("id", "00000000-0000-0000-0000-000000000000"),
-  ]);
-  const deleteErrors = deletes.filter((d) => d.error).map((d) => d.error);
-  if (deleteErrors.length) {
-    console.error("[finance-cloud] delete", deleteErrors);
-    return false;
-  }
-
-  // Budget
-  if (state.budget.length) {
-    const { error } = await supabase.from("finance_budget").insert(
-      state.budget.map((b) => ({ year: state.year, category: b.category, planned: b.planned, approved: b.approved })),
-    );
-    if (error) { console.error("[finance-cloud] budget", error); return false; }
-  }
-
-  // Cost centers — need to preserve ids used by other tables. Only push UUID ids;
-  // legacy string ids from seed get remapped to fresh UUIDs.
-  const ccIdMap = new Map<string, string>();
-  const ccRows = state.costCenters.map((c) => {
-    const id = isUuid(c.id) ? c.id : crypto.randomUUID();
-    ccIdMap.set(c.id, id);
-    return { id, code: c.code, name: c.name, responsible: c.responsible, active: c.active };
-  });
-  if (ccRows.length) {
-    const { error } = await supabase.from("finance_cost_centers").insert(ccRows);
-    if (error) { console.error("[finance-cloud] cc", error); return false; }
-  }
-
-  const supIdMap = new Map<string, string>();
-  const supRows = state.suppliers.map((s) => {
-    const id = isUuid(s.id) ? s.id : crypto.randomUUID();
-    supIdMap.set(s.id, id);
-    return {
-      id,
-      company: s.company,
-      category: s.category,
-      city: s.city,
-      contact: s.contact,
-      phone: s.phone,
-      email: s.email,
-      contract_ref: s.contractRef ?? null,
-      products: s.products ?? [],
-      rating: s.rating ?? 0,
-      partner_id: s.partnerId ?? null,
-      monthly_investment: s.monthlyInvestment ?? null,
-      annual_investment: s.annualInvestment ?? null,
-    };
-  });
-  if (supRows.length) {
-    const { error } = await supabase.from("finance_suppliers").insert(supRows);
-    if (error) { console.error("[finance-cloud] sup", error); return false; }
-  }
-
-  const invIdMap = new Map<string, string>();
-  const invRows = state.invoices.map((i) => {
-    const id = isUuid(i.id) ? i.id : crypto.randomUUID();
-    invIdMap.set(i.id, id);
-    return {
-      id,
-      number: i.number,
-      supplier_id: i.supplierId ? supIdMap.get(i.supplierId) ?? null : null,
-      date: i.date,
-      value: i.value,
-      category: i.category,
-      cost_center_id: i.costCenterId ? ccIdMap.get(i.costCenterId) ?? null : null,
-      campaign_id: i.campaignId ?? null,
-      project_id: i.projectId ?? null,
-      event_id: i.eventId ?? null,
-      pdf_name: i.pdfName ?? null,
-      xml_name: i.xmlName ?? null,
-      receipt_name: i.receiptName ?? null,
-      status: i.status,
-      due_date: i.dueDate ?? null,
-      received_at: i.receivedAt ?? null,
-      received_by: i.receivedBy ?? null,
-      sent_to_payment_at: i.sentToPaymentAt ?? null,
-      sent_by: i.sentBy ?? null,
-      notes: i.notes ?? null,
-    };
-  });
-  if (invRows.length) {
-    const { error } = await supabase.from("finance_invoices").insert(invRows);
-    if (error) { console.error("[finance-cloud] inv", error); return false; }
-  }
-
-  const expRows = state.expenses.map((e) => ({
-    id: isUuid(e.id) ? e.id : crypto.randomUUID(),
-    description: e.description,
-    category: e.category,
-    supplier_id: e.supplierId ? supIdMap.get(e.supplierId) ?? null : null,
-    campaign_id: e.campaignId ?? null,
-    cost_center_id: e.costCenterId ? ccIdMap.get(e.costCenterId) ?? null : null,
-    quantity: e.quantity,
-    unit_value: e.unitValue,
-    date: e.date,
-    invoice_id: e.invoiceId ? invIdMap.get(e.invoiceId) ?? null : null,
-    attachment_name: e.attachmentName ?? null,
-    payment_method: e.paymentMethod,
-    owner: e.owner,
-    notes: e.notes ?? null,
-  }));
-  if (expRows.length) {
-    const { error } = await supabase.from("finance_expenses").insert(expRows);
-    if (error) { console.error("[finance-cloud] exp", error); return false; }
-  }
-
-  const prRows = state.purchaseRequests.map((p) => ({
-    id: isUuid(p.id) ? p.id : crypto.randomUUID(),
-    code: p.code,
-    requester: p.requester,
-    description: p.description,
-    justification: p.justification,
-    campaign_id: p.campaignId ?? null,
-    project_id: p.projectId ?? null,
-    cost_center_id: p.costCenterId ? ccIdMap.get(p.costCenterId) ?? null : null,
-    supplier_id: p.supplierId ? supIdMap.get(p.supplierId) ?? null : null,
-    estimated_value: p.estimatedValue,
-    urgency: p.urgency,
-    status: p.status,
-    timeline: p.timeline,
-  }));
-  if (prRows.length) {
-    const { error } = await supabase.from("finance_purchase_requests").insert(prRows);
-    if (error) { console.error("[finance-cloud] pr", error); return false; }
-  }
-
-  const payRows = state.payments.map((p) => ({
-    id: isUuid(p.id) ? p.id : crypto.randomUUID(),
-    invoice_id: p.invoiceId ? invIdMap.get(p.invoiceId) ?? null : null,
-    supplier_id: p.supplierId ? supIdMap.get(p.supplierId) ?? null : null,
-    description: p.description,
-    value: p.value,
-    due_date: p.dueDate,
-    paid_at: p.paidAt ?? null,
-    method: p.method,
-    status: p.status,
-  }));
-  if (payRows.length) {
-    const { error } = await supabase.from("finance_payments").insert(payRows);
-    if (error) { console.error("[finance-cloud] pay", error); return false; }
-  }
-  return true;
 }
 
+// Para a unicidade de budget (user_id, category), garantimos um índice único.
+// Isso é criado via migração separada quando necessário; upsert usa esse conflito.
+
 let debounceTimer: ReturnType<typeof setTimeout> | null = null;
+let latestGetter: (() => FinanceState) | null = null;
+let syncing = false;
+let pending = false;
 export function schedulePush(getState: () => FinanceState) {
   latestGetter = getState;
   markLocalMutation("finance");
@@ -344,5 +427,5 @@ export function schedulePush(getState: () => FinanceState) {
       syncing = false;
       if (pending) { pending = false; schedulePush(latestGetter ?? getState); }
     }
-  }, 800);
+  }, 600);
 }
