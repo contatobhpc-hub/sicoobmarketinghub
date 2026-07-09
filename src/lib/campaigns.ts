@@ -224,7 +224,7 @@ const cloudPush = enableCloudSync<Campaign[]>("campaigns", () => state, (s) => {
 // localStorage e sincronizadas com a nuvem já no primeiro load.
 if (typeof window !== "undefined") {
   window.localStorage.setItem(KEY, JSON.stringify(state));
-  setTimeout(() => cloudPush(), 0);
+  setTimeout(() => { cloudPush(); syncAllToCalendar(); }, 0);
 }
 
 function persist() {
