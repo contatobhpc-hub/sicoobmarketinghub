@@ -1,6 +1,7 @@
 import { useSyncExternalStore } from "react";
 import { enableCloudSync } from "./cloud-sync";
 import { calendarStore, type CalendarEvent } from "./calendar";
+import { isRememberedDeletion, rememberDeletion, normalizeDeletionText } from "./deletions";
 
 export const CAMPAIGN_TYPES = [
   "Institucional",
@@ -86,6 +87,7 @@ export type Campaign = {
 };
 
 const KEY = "mhub.campaigns.v1";
+const DELETED_KEY = "mhub.campaigns.deleted.v1";
 
 const seed: Campaign[] = [];
 
@@ -101,7 +103,10 @@ const REMOVED_NAMES = new Set<string>([
 
 function pruneRemoved(list: Campaign[]): Campaign[] {
   return list.filter(
-    (c) => !REMOVED_IDS.has(c.id) && !REMOVED_NAMES.has((c.name || "").trim().toLowerCase()),
+    (c) =>
+      !REMOVED_IDS.has(c.id) &&
+      !REMOVED_NAMES.has(normalizeDeletionText(c.name)) &&
+      !isRememberedDeletion(DELETED_KEY, { id: c.id, name: c.name }),
   );
 }
 
@@ -159,7 +164,7 @@ function materializeCnv(): Campaign[] {
 
 function mergeCnv(existing: Campaign[]): Campaign[] {
   const pruned = pruneRemoved(existing);
-  const cnv = materializeCnv();
+  const cnv = pruneRemoved(materializeCnv());
   const byId = new Set(pruned.map((c) => c.id));
   const missing = cnv.filter((c) => !byId.has(c.id));
   return missing.length ? [...pruned, ...missing] : pruned;
@@ -298,6 +303,8 @@ export const campaignsStore = {
     emit();
   },
   remove(id: string) {
+    const removed = state.find((c) => c.id === id);
+    if (removed) rememberDeletion(DELETED_KEY, { id: removed.id, name: removed.name });
     state = state.filter((c) => c.id !== id);
     emit();
   },

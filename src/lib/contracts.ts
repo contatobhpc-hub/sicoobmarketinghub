@@ -2,6 +2,7 @@ import { useEffect, useSyncExternalStore } from "react";
 import { partnersStore, type Partner, type PartnerStatus } from "./partners";
 import { supabase } from "@/integrations/supabase/client";
 import { loadModuleState, scheduleModulePush, setCloudSyncUser } from "./cloud-sync";
+import { isRememberedDeletion, rememberDeletion } from "./deletions";
 
 export const CONTRACT_STATUSES = [
   "Rascunho",
@@ -107,6 +108,7 @@ export type Contract = {
 };
 
 const KEY = "mhub.contracts.v1";
+const DELETED_KEY = "mhub.contracts.deleted.v1";
 const uid = (p = "ct") => `${p}-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 6)}`;
 const now = () => new Date().toISOString();
 
@@ -214,12 +216,35 @@ const seed: Contract[] = [
   },
 ];
 
+function contractDeletionKey(contract: Pick<Contract, "partnerId" | "company">) {
+  return contract.partnerId ? `partner:${contract.partnerId}` : `company:${contract.company}`;
+}
+
+function isContractDeleted(contract: Pick<Contract, "id" | "partnerId" | "company">) {
+  return isRememberedDeletion(DELETED_KEY, {
+    id: contract.id,
+    name: contract.company,
+    key: contractDeletionKey(contract),
+  });
+}
+
+function isContractSyncDismissed(partner: Pick<Partner, "id" | "company">) {
+  return isRememberedDeletion(DELETED_KEY, {
+    name: partner.company,
+    key: `partner:${partner.id}`,
+  });
+}
+
+function pruneDeletedContracts(list: Contract[]) {
+  return list.filter((contract) => !isContractDeleted(contract));
+}
+
 function load(): Contract[] {
   if (typeof window === "undefined") return seed;
   try {
     const raw = window.localStorage.getItem(KEY);
     if (!raw) return seed;
-    return JSON.parse(raw) as Contract[];
+    return pruneDeletedContracts(JSON.parse(raw) as Contract[]);
   } catch {
     return seed;
   }
@@ -239,7 +264,7 @@ export async function hydrateContractsFromCloud(userId: string | null) {
   if (!userId) { cloudHydrated = false; return; }
   const cloud = await loadModuleState<Contract[]>("contracts");
   const local = typeof window !== "undefined" ? load() : [];
-  const cloudArr = Array.isArray(cloud) ? cloud : [];
+  const cloudArr = Array.isArray(cloud) ? pruneDeletedContracts(cloud) : [];
   // Keep whichever side has more data; push local up when it's richer so
   // a device that lost its cloud copy doesn't overwrite a fuller local one.
   if (local.length > cloudArr.length) {
@@ -321,7 +346,18 @@ export const contractsStore = {
     });
     emit();
   },
-  remove(id: string) { state = state.filter((c) => c.id !== id); emit(); },
+  remove(id: string) {
+    const removed = state.find((c) => c.id === id);
+    if (removed) {
+      rememberDeletion(DELETED_KEY, {
+        id: removed.id,
+        name: removed.company,
+        key: contractDeletionKey(removed),
+      });
+    }
+    state = state.filter((c) => c.id !== id);
+    emit();
+  },
   addFile(id: string, file: Omit<ContractFile, "id">, author = "Você") {
     state = state.map((c) => {
       if (c.id !== id) return c;
@@ -370,6 +406,7 @@ export const contractsStore = {
     let changed = false;
     const next = [...state];
     for (const p of partners) {
+      if (isContractSyncDismissed(p)) continue;
       const existingIdx = next.findIndex(
         (c) => (p.contractId && c.id === p.contractId) || c.partnerId === p.id || c.company === p.company,
       );

@@ -2,6 +2,7 @@ import { useEffect, useSyncExternalStore } from "react";
 import { partnersStore, type Partner } from "./partners";
 import { loadFinanceFromCloud, schedulePush, setCurrentUser } from "./finance-cloud";
 import { supabase } from "@/integrations/supabase/client";
+import { isRememberedDeletion, rememberDeletion } from "./deletions";
 
 export const BUDGET_CATEGORIES = [
   "Campanhas Comerciais",
@@ -173,6 +174,8 @@ export type FinanceState = {
 };
 
 const KEY = "mhub.finance.v1";
+const DELETED_SUPPLIERS_KEY = "mhub.finance.suppliers.deleted.v1";
+const DELETED_INVOICES_KEY = "mhub.finance.invoices.deleted.v1";
 const uid = (p = "f") => `${p}-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 6)}`;
 const now = () => new Date().toISOString();
 const today = () => new Date().toISOString().slice(0, 10);
@@ -251,11 +254,57 @@ function seed(): FinanceState {
   return { year, budget, costCenters: cc, suppliers, expenses, purchaseRequests: prs, invoices, payments };
 }
 
+function supplierDeletionKey(supplier: Pick<FinanceSupplier, "partnerId" | "company">) {
+  return supplier.partnerId ? `partner:${supplier.partnerId}` : `company:${supplier.company}`;
+}
+
+function isSupplierDeleted(supplier: Pick<FinanceSupplier, "id" | "partnerId" | "company">) {
+  return isRememberedDeletion(DELETED_SUPPLIERS_KEY, {
+    id: supplier.id,
+    name: supplier.company,
+    key: supplierDeletionKey(supplier),
+  });
+}
+
+function isPartnerSupplierDismissed(partner: Pick<Partner, "id" | "company">) {
+  return isRememberedDeletion(DELETED_SUPPLIERS_KEY, {
+    name: partner.company,
+    key: `partner:${partner.id}`,
+  });
+}
+
+function invoiceDeletionKey(invoice: Pick<Invoice, "number">) {
+  return invoice.number.startsWith("AUTO-") ? `auto:${invoice.number}` : `number:${invoice.number}`;
+}
+
+function isInvoiceDeleted(invoice: Pick<Invoice, "id" | "number">) {
+  return isRememberedDeletion(DELETED_INVOICES_KEY, {
+    id: invoice.id,
+    name: invoice.number,
+    key: invoiceDeletionKey(invoice),
+  });
+}
+
+function pruneFinanceState(next: FinanceState): FinanceState {
+  const suppliers = next.suppliers.filter((supplier) => !isSupplierDeleted(supplier));
+  const removedSupplierIds = new Set(next.suppliers.filter((supplier) => isSupplierDeleted(supplier)).map((supplier) => supplier.id));
+  return {
+    ...next,
+    suppliers,
+    expenses: next.expenses.map((expense) => removedSupplierIds.has(expense.supplierId || "") ? { ...expense, supplierId: undefined } : expense),
+    purchaseRequests: next.purchaseRequests.map((request) => removedSupplierIds.has(request.supplierId || "") ? { ...request, supplierId: undefined } : request),
+    invoices: next.invoices
+      .filter((invoice) => !isInvoiceDeleted(invoice))
+      .map((invoice) => removedSupplierIds.has(invoice.supplierId || "") ? { ...invoice, supplierId: undefined } : invoice),
+    payments: next.payments.map((payment) => removedSupplierIds.has(payment.supplierId || "") ? { ...payment, supplierId: undefined } : payment),
+  };
+}
+
 let state: FinanceState = (() => {
   if (typeof window === "undefined") return seed();
   try {
     const raw = localStorage.getItem(KEY);
-    if (raw) return JSON.parse(raw) as FinanceState;
+    if (raw) return pruneFinanceState(JSON.parse(raw) as FinanceState);
   } catch {}
   const s = seed();
   try { localStorage.setItem(KEY, JSON.stringify(s)); } catch {}
@@ -277,20 +326,22 @@ export async function hydrateFinanceFromCloud(userId: string | null) {
   if (!userId) { hydrated = false; return; }
   const cloud = await loadFinanceFromCloud();
   if (!cloud) return;
+  const prunedCloud = pruneFinanceState(cloud);
   const isEmpty =
-    cloud.budget.length === 0 &&
-    cloud.suppliers.length === 0 &&
-    cloud.expenses.length === 0 &&
-    cloud.invoices.length === 0 &&
-    cloud.payments.length === 0 &&
-    cloud.purchaseRequests.length === 0 &&
-    cloud.costCenters.length === 0;
+    prunedCloud.budget.length === 0 &&
+    prunedCloud.suppliers.length === 0 &&
+    prunedCloud.expenses.length === 0 &&
+    prunedCloud.invoices.length === 0 &&
+    prunedCloud.payments.length === 0 &&
+    prunedCloud.purchaseRequests.length === 0 &&
+    prunedCloud.costCenters.length === 0;
   if (isEmpty && !hydrated) {
     // First login: push local seed/localStorage state to the cloud.
     schedulePush(() => state);
   } else {
-    state = cloud;
+    state = prunedCloud;
     listeners.forEach((l) => l());
+    if (JSON.stringify(prunedCloud) !== JSON.stringify(cloud)) schedulePush(() => state);
   }
   hydrated = true;
 }
@@ -364,6 +415,14 @@ export const financeStore = {
     emit();
   },
   removeSupplier: (id: string) => {
+    const removed = state.suppliers.find((s) => s.id === id);
+    if (removed) {
+      rememberDeletion(DELETED_SUPPLIERS_KEY, {
+        id: removed.id,
+        name: removed.company,
+        key: supplierDeletionKey(removed),
+      });
+    }
     state = {
       ...state,
       suppliers: state.suppliers.filter((s) => s.id !== id),
@@ -385,6 +444,14 @@ export const financeStore = {
     emit();
   },
   removeInvoice: (id: string) => {
+    const removed = state.invoices.find((i) => i.id === id);
+    if (removed) {
+      rememberDeletion(DELETED_INVOICES_KEY, {
+        id: removed.id,
+        name: removed.number,
+        key: invoiceDeletionKey(removed),
+      });
+    }
     state = { ...state, invoices: state.invoices.filter((i) => i.id !== id) };
     emit();
   },
@@ -429,6 +496,7 @@ export const financeStore = {
     let changed = false;
     const next = [...state.suppliers];
     for (const p of partners) {
+      if (isPartnerSupplierDismissed(p)) continue;
       const idx = next.findIndex(
         (s) => (s.partnerId && s.partnerId === p.id) || s.company.toLowerCase() === p.company.toLowerCase(),
       );
@@ -483,6 +551,7 @@ export const financeStore = {
       const value = s.monthlyInvestment ?? 0;
       if (value <= 0) continue;
       const number = `AUTO-${s.id}-${month}`;
+      if (isRememberedDeletion(DELETED_INVOICES_KEY, { name: number, key: `auto:${number}` })) continue;
       const existingIdx = next.findIndex((i) => i.number === number);
       if (existingIdx === -1) {
         next.unshift({

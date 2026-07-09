@@ -1,5 +1,6 @@
 import { useSyncExternalStore } from "react";
 import { enableCloudSync } from "./cloud-sync";
+import { isRememberedDeletion, rememberDeletion } from "./deletions";
 
 export const EVENT_CATEGORIES = [
   "Campanha",
@@ -50,6 +51,7 @@ export type CalendarEvent = {
 };
 
 const KEY = "mhub.calendar.v2";
+const DELETED_KEY = "mhub.calendar.deleted.v1";
 
 function uid(p = "e") {
   return `${p}-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 6)}`;
@@ -146,16 +148,38 @@ const seed: CalendarEvent[] = [
   ...CITY_BIRTHDAYS.map(buildBirthday),
   ...AGENCY_BIRTHDAYS.map(buildBirthday),
   ...COPOM_2026.map((c) => buildCopom(c.month, c.day)),
-];
+].filter((e) => !isEventDeleted(e));
+
+function eventDeletionKey(e: CalendarEvent) {
+  if (e.campaignId) return `campaign:${e.campaignId}:${e.date}`;
+  return `${e.category}:${e.date}:${e.title}`;
+}
+
+function isEventDeleted(e: CalendarEvent) {
+  return isRememberedDeletion(DELETED_KEY, {
+    id: e.id,
+    name: `${e.title}|${e.date}|${e.category}`,
+    key: eventDeletionKey(e),
+  });
+}
+
+function rememberEventDeletion(e: CalendarEvent) {
+  rememberDeletion(DELETED_KEY, {
+    id: e.id,
+    name: `${e.title}|${e.date}|${e.category}`,
+    key: eventDeletionKey(e),
+  });
+}
 
 function mergeCopom(events: CalendarEvent[]): CalendarEvent[] {
+  const kept = events.filter((e) => !isEventDeleted(e));
   const existing = new Set(
-    events.filter((e) => e.title === "Reunião do COPOM 2026").map((e) => e.date),
+    kept.filter((e) => e.title === "Reunião do COPOM 2026").map((e) => e.date),
   );
   const missing = COPOM_2026
     .map((c) => buildCopom(c.month, c.day))
-    .filter((e) => !existing.has(e.date));
-  return missing.length ? [...missing, ...events] : events;
+    .filter((e) => !existing.has(e.date) && !isEventDeleted(e));
+  return missing.length ? [...missing, ...kept] : kept;
 }
 
 function load(): CalendarEvent[] {
@@ -217,8 +241,14 @@ export const calendarStore = {
     });
     emit();
   },
-  remove(id: string) { state = state.filter((e) => e.id !== id); emit(); },
+  remove(id: string) {
+    const removed = state.find((e) => e.id === id);
+    if (removed) rememberEventDeletion(removed);
+    state = state.filter((e) => e.id !== id);
+    emit();
+  },
   upsert(ev: CalendarEvent) {
+    if (isEventDeleted(ev)) return;
     const existing = state.find((e) => e.id === ev.id);
     if (existing) {
       state = state.map((e) => (e.id === ev.id ? { ...existing, ...ev, timeline: existing.timeline, comments: existing.comments, checklist: existing.checklist, files: existing.files } : e));

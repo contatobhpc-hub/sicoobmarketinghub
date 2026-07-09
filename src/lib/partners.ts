@@ -1,6 +1,7 @@
 import { useEffect, useSyncExternalStore } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { loadModuleState, scheduleModulePush, setCloudSyncUser } from "./cloud-sync";
+import { isRememberedDeletion, rememberDeletion } from "./deletions";
 
 export const PARTNER_STATUSES = [
   "Prospect",
@@ -120,6 +121,7 @@ export type Partner = {
 };
 
 const KEY = "mhub.partners.v1";
+const DELETED_KEY = "mhub.partners.deleted.v1";
 
 const uid = (p = "pt") => `${p}-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 6)}`;
 const now = () => new Date().toISOString();
@@ -279,7 +281,11 @@ function normalizePartners(value: unknown): Partner[] {
   const normalized = value
     .map((partner, index) => normalizePartner(partner, index))
     .filter((partner): partner is Partner => partner !== null);
-  return normalized.length > 0 ? normalized : seed;
+  return normalized.filter((partner) => !isPartnerDeleted(partner));
+}
+
+function isPartnerDeleted(partner: Pick<Partner, "id" | "company">) {
+  return isRememberedDeletion(DELETED_KEY, { id: partner.id, name: partner.company });
 }
 
 function load(): Partner[] {
@@ -317,7 +323,7 @@ export async function hydratePartnersFromCloud(userId: string | null) {
   if (!userId) { cloudHydrated = false; return; }
   const cloud = await loadModuleState<Partner[]>("partners");
   const local = typeof window !== "undefined" ? load() : [];
-  const cloudArr = Array.isArray(cloud) ? cloud : [];
+  const cloudArr = Array.isArray(cloud) ? normalizePartners(cloud) : [];
   if (local.length > cloudArr.length) {
     // Local has richer data — promote it to the cloud instead of overwriting it.
     state = local;
@@ -404,6 +410,8 @@ export const partnersStore = {
     emit();
   },
   remove(id: string) {
+    const removed = state.find((p) => p.id === id);
+    if (removed) rememberDeletion(DELETED_KEY, { id: removed.id, name: removed.company });
     state = state.filter((p) => p.id !== id);
     emit();
   },
