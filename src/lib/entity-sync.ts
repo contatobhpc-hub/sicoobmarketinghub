@@ -60,8 +60,8 @@ async function pushNow<T extends Item>(ctx: Ctx<T>) {
 
   try {
     if (toUpsert.length) {
-      const { error } = await supabase
-        .from("entities")
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const { error } = await (supabase.from("entities") as any)
         .upsert(toUpsert, { onConflict: "user_id,module,id" });
       if (error) throw error;
     }
