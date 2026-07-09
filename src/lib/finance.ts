@@ -629,6 +629,7 @@ export const financeStore = {
       if (isRememberedDeletion(DELETED_INVOICES_KEY, { name: number, key: `auto:${number}` })) continue;
       if (isRememberedDeletion(DELETED_INVOICES_KEY, { name: legacyNumber, key: `auto:${legacyNumber}` })) continue;
       if (isRememberedDeletion(DELETED_INVOICES_KEY, { name: number, key: autoInvoiceDeletionKey(s, month) })) continue;
+      if (isRememberedDeletion(DELETED_INVOICES_KEY, { key: `auto-supplier:${s.id}:${month}` })) continue;
       const existingIdx = next.findIndex(
         (i) =>
           i.number === number ||
