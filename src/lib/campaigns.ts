@@ -1,5 +1,6 @@
 import { useSyncExternalStore } from "react";
 import { enableCloudSync } from "./cloud-sync";
+import { calendarStore, type CalendarEvent } from "./calendar";
 
 export const CAMPAIGN_TYPES = [
   "Institucional",
