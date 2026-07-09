@@ -1,5 +1,5 @@
 import { useSyncExternalStore } from "react";
-import { enableCloudSync } from "./cloud-sync";
+import { enableTableSync } from "./table-sync";
 import { isRememberedDeletion, rememberDeletion } from "./deletions";
 
 export const EVENT_CATEGORIES = [
