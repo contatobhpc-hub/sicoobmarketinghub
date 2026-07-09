@@ -1,5 +1,6 @@
 import { useSyncExternalStore } from "react";
 import { enableCloudSync } from "./cloud-sync";
+import { enableEntitySync } from "./entity-sync";
 import { isRememberedDeletion, rememberDeletion } from "./deletions";
 
 export const OFFLINE_MEDIA_DEFAULT_CATEGORIES = [
@@ -395,22 +396,28 @@ function save(s: OfflineMedia[], reason = "local-save") {
 
 let state: OfflineMedia[] = load();
 const listeners = new Set<() => void>();
-const cloudPush = enableCloudSync<OfflineMedia[]>("offline-media", () => state, (incoming) => {
-  const next = sanitizeMediaArray(incoming);
-  if (!next) return;
-  if (state.length) writeBackup(state, "before-cloud-sync");
-  if (hasUserMedia(state) && (!hasUserMedia(next) || next.length < state.length)) {
-    cloudPush();
-    return;
-  }
-  if (!next.length && state.length) {
-    cloudPush();
-    return;
-  }
-  state = next;
-  save(state, "cloud-sync");
-  listeners.forEach((l) => l());
-});
+const cloudPush = enableEntitySync<OfflineMedia>(
+  { module: "offline-media" },
+  {
+    getState: () => state,
+    replaceState: (incoming) => {
+      const next = sanitizeMediaArray(incoming);
+      if (!next) return;
+      if (state.length) writeBackup(state, "before-cloud-sync");
+      if (hasUserMedia(state) && (!hasUserMedia(next) || next.length < state.length)) {
+        cloudPush();
+        return;
+      }
+      if (!next.length && state.length) {
+        cloudPush();
+        return;
+      }
+      state = next;
+      save(state, "cloud-sync");
+      listeners.forEach((l) => l());
+    },
+  },
+);
 function emit() {
   save(state);
   cloudPush();

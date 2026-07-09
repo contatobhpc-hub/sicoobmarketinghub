@@ -1,5 +1,5 @@
 import { useSyncExternalStore } from "react";
-import { enableCloudSync } from "./cloud-sync";
+import { enableEntitySync } from "./entity-sync";
 
 export const EVENT_STATUSES = [
   "Planejamento",
@@ -251,7 +251,7 @@ function save(s: EventItem[]) {
 
 let state: EventItem[] = load();
 const listeners = new Set<() => void>();
-const cloudPush = enableCloudSync<EventItem[]>("events", () => state, (s) => { state = s; listeners.forEach((l) => l()); });
+const cloudPush = enableEntitySync<EventItem>({ module: "events" }, { getState: () => state, replaceState: (s) => { state = s; listeners.forEach((l) => l()); } });
 function emit() {
   save(state);
   cloudPush();

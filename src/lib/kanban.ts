@@ -1,5 +1,5 @@
 import { useSyncExternalStore } from "react";
-import { enableCloudSync } from "./cloud-sync";
+import { enableEntitySync } from "./entity-sync";
 
 export const KANBAN_STATUSES = [
   "Backlog",
@@ -96,7 +96,7 @@ function load(): KanbanTask[] {
 
 let state = load();
 const listeners = new Set<() => void>();
-const cloudPush = enableCloudSync<KanbanTask[]>("kanban", () => state, (s) => { state = s; listeners.forEach((l) => l()); });
+const cloudPush = enableEntitySync<KanbanTask>({ module: "kanban" }, { getState: () => state, replaceState: (s) => { state = s; listeners.forEach((l) => l()); } });
 function persist() {
   if (typeof window === "undefined") return;
   window.localStorage.setItem(KEY, JSON.stringify(state));

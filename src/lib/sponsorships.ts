@@ -1,5 +1,5 @@
 import { useSyncExternalStore } from "react";
-import { enableCloudSync } from "./cloud-sync";
+import { enableEntitySync } from "./entity-sync";
 
 export const SPONSORSHIP_TYPES = [
   "Master",
@@ -243,7 +243,7 @@ function save(s: Sponsorship[]) {
 
 let state: Sponsorship[] = load();
 const listeners = new Set<() => void>();
-const cloudPush = enableCloudSync<Sponsorship[]>("sponsorships", () => state, (s) => { state = s; listeners.forEach((l) => l()); });
+const cloudPush = enableEntitySync<Sponsorship>({ module: "sponsorships" }, { getState: () => state, replaceState: (s) => { state = s; listeners.forEach((l) => l()); } });
 function emit() {
   save(state);
   cloudPush();

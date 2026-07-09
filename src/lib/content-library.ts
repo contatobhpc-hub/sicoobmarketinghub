@@ -1,5 +1,5 @@
 import { useSyncExternalStore } from "react";
-import { enableCloudSync } from "./cloud-sync";
+import { enableEntitySync } from "./entity-sync";
 
 export const CONTENT_CATEGORIES = [
   "Legendas",
@@ -182,7 +182,7 @@ function load(): ContentItem[] {
 
 let state = load();
 const listeners = new Set<() => void>();
-const cloudPush = enableCloudSync<ContentItem[]>("content-library", () => state, (s) => { state = s; listeners.forEach((l) => l()); });
+const cloudPush = enableEntitySync<ContentItem>({ module: "content-library" }, { getState: () => state, replaceState: (s) => { state = s; listeners.forEach((l) => l()); } });
 function persist() { if (typeof window !== "undefined") window.localStorage.setItem(KEY, JSON.stringify(state)); }
 function emit() { persist(); cloudPush(); listeners.forEach((l) => l()); }
 function pushHistory(c: ContentItem, message: string, author = "Você"): ContentItem {
