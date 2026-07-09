@@ -10,6 +10,10 @@ type DeletionRecord = {
   keys: string[];
 };
 
+import { enableCloudSync } from "./cloud-sync";
+
+const cloudPushers = new Map<string, () => void>();
+
 function normalize(value?: string | null) {
   return (value ?? "")
     .normalize("NFD")
@@ -45,6 +49,32 @@ function writeRecord(storageKey: string, record: DeletionRecord) {
   }
 }
 
+function mergeRecords(a: DeletionRecord, b: DeletionRecord): DeletionRecord {
+  return {
+    ids: unique([...a.ids, ...b.ids]),
+    names: unique([...a.names, ...b.names]),
+    keys: unique([...a.keys, ...b.keys]),
+  };
+}
+
+function deletionModuleName(storageKey: string) {
+  return `deletions-${storageKey.replace(/[^a-z0-9]+/gi, "-").replace(/^-+|-+$/g, "")}`;
+}
+
+function getCloudPush(storageKey: string) {
+  if (cloudPushers.has(storageKey)) return cloudPushers.get(storageKey)!;
+  const push = enableCloudSync<DeletionRecord>(
+    deletionModuleName(storageKey),
+    () => readRecord(storageKey),
+    (incoming) => {
+      const merged = mergeRecords(readRecord(storageKey), incoming ?? { ids: [], names: [], keys: [] });
+      writeRecord(storageKey, merged);
+    },
+  );
+  cloudPushers.set(storageKey, push);
+  return push;
+}
+
 export function rememberDeletion(storageKey: string, candidate: DeletionCandidate) {
   const record = readRecord(storageKey);
   const id = candidate.id?.trim();
@@ -55,9 +85,11 @@ export function rememberDeletion(storageKey: string, candidate: DeletionCandidat
     names: unique([...record.names, name]),
     keys: unique([...record.keys, key]),
   });
+  getCloudPush(storageKey)();
 }
 
 export function isRememberedDeletion(storageKey: string, candidate: DeletionCandidate) {
+  getCloudPush(storageKey);
   const record = readRecord(storageKey);
   const id = candidate.id?.trim();
   const name = normalize(candidate.name);
