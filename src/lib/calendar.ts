@@ -83,6 +83,35 @@ const CITY_BIRTHDAYS: BirthdaySeed[] = [
   { title: "Aniversário da cidade — Santana do Jacaré", category: "Evento", month: 12, day: 12, description: "Aniversário de Santana do Jacaré (12/12)." },
 ];
 
+const COPOM_2026: { month: number; day: number }[] = [
+  { month: 1, day: 27 }, { month: 1, day: 28 },
+  { month: 3, day: 17 }, { month: 3, day: 18 },
+  { month: 4, day: 28 }, { month: 4, day: 29 },
+  { month: 6, day: 16 }, { month: 6, day: 17 },
+  { month: 8, day: 4 },  { month: 8, day: 5 },
+  { month: 9, day: 15 }, { month: 9, day: 16 },
+  { month: 11, day: 3 }, { month: 11, day: 4 },
+  { month: 12, day: 8 }, { month: 12, day: 9 },
+];
+
+function buildCopom(m: number, d: number): CalendarEvent {
+  const date = `2026-${String(m).padStart(2, "0")}-${String(d).padStart(2, "0")}`;
+  return {
+    id: uid(),
+    title: "Reunião do COPOM 2026",
+    category: "Reunião",
+    status: "Planejado",
+    priority: "Alta",
+    date,
+    description: "Reunião do Comitê de Política Monetária (COPOM) — definição da taxa Selic.",
+    owners: ["Financeiro"],
+    files: [],
+    checklist: [],
+    comments: [],
+    timeline: [{ id: uid("t"), message: "Evento criado", author: "Sistema", createdAt: now() }],
+  };
+}
+
 const AGENCY_BIRTHDAYS: BirthdaySeed[] = [
   { title: "Aniversário da agência — Campo Belo", category: "Campanha", month: 10, day: 15, originYear: 1993, description: "Inauguração da agência Campo Belo (15/10/1993)." },
   { title: "Aniversário da agência — Candeias", category: "Campanha", month: 3, day: 2, originYear: 1998, description: "Inauguração da agência Candeias (02/03/1998)." },
@@ -116,14 +145,25 @@ function buildBirthday(b: BirthdaySeed): CalendarEvent {
 const seed: CalendarEvent[] = [
   ...CITY_BIRTHDAYS.map(buildBirthday),
   ...AGENCY_BIRTHDAYS.map(buildBirthday),
+  ...COPOM_2026.map((c) => buildCopom(c.month, c.day)),
 ];
+
+function mergeCopom(events: CalendarEvent[]): CalendarEvent[] {
+  const existing = new Set(
+    events.filter((e) => e.title === "Reunião do COPOM 2026").map((e) => e.date),
+  );
+  const missing = COPOM_2026
+    .map((c) => buildCopom(c.month, c.day))
+    .filter((e) => !existing.has(e.date));
+  return missing.length ? [...missing, ...events] : events;
+}
 
 function load(): CalendarEvent[] {
   if (typeof window === "undefined") return seed;
   try {
     const raw = window.localStorage.getItem(KEY);
     if (!raw) return seed;
-    return JSON.parse(raw) as CalendarEvent[];
+    return mergeCopom(JSON.parse(raw) as CalendarEvent[]);
   } catch {
     return seed;
   }
@@ -131,7 +171,7 @@ function load(): CalendarEvent[] {
 
 let state = load();
 const listeners = new Set<() => void>();
-const cloudPush = enableCloudSync<CalendarEvent[]>("calendar", () => state, (s) => { state = s; listeners.forEach((l) => l()); });
+const cloudPush = enableCloudSync<CalendarEvent[]>("calendar", () => state, (s) => { state = mergeCopom(s); listeners.forEach((l) => l()); });
 function persist() {
   if (typeof window === "undefined") return;
   window.localStorage.setItem(KEY, JSON.stringify(state));
