@@ -59,6 +59,7 @@ export const Route = createFileRoute("/configuracoes")({
 });
 
 type SectionKey =
+  | "perfil"
   | "empresa"
   | "contas"
   | "usuarios"
@@ -92,6 +93,7 @@ const GROUPS: Group[] = [
   {
     label: "Workspace",
     items: [
+      { key: "perfil", label: "Meu perfil", icon: Users },
       { key: "empresa", label: "Empresa", icon: Building2 },
       { key: "contas", label: "Contas de acesso", icon: ShieldCheck },
       { key: "usuarios", label: "Usuários", icon: Users },
@@ -232,6 +234,8 @@ function ConfiguracoesPage() {
 
 function SectionContent({ section, settings }: { section: SectionKey; settings: SettingsState }) {
   switch (section) {
+    case "perfil":
+      return <MeuPerfilSection />;
     case "empresa":
       return <EmpresaSection settings={settings} />;
     case "contas":
