@@ -111,8 +111,8 @@ async function pushNow<T>(module: string, getter: () => T) {
     .from("app_state")
     .upsert(
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      { module, data: payload as any, updated_by: currentUserId },
-      { onConflict: "module" },
+      { module, data: payload as any, updated_by: currentUserId, user_id: currentUserId },
+      { onConflict: "user_id,module" },
     );
   if (error) {
     console.error(`[cloud-sync:${module}] push`, error);
@@ -120,6 +120,7 @@ async function pushNow<T>(module: string, getter: () => T) {
   }
   return true;
 }
+
 
 export function scheduleModulePush<T>(module: string, getter: () => T, delay = 700) {
   markLocalMutation(module);
