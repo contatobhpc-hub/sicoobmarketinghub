@@ -1,4 +1,5 @@
 import { useEffect, useSyncExternalStore } from "react";
+import { enableCloudSync } from "./cloud-sync";
 
 export type WorkspaceMember = {
   id: string;
@@ -215,6 +216,18 @@ let state: SettingsState = (() => {
 })();
 
 const listeners = new Set<() => void>();
+const cloudPush = enableCloudSync<SettingsState>("settings", () => state, (incoming) => {
+  state = { ...seed(), ...incoming };
+  if (typeof window !== "undefined") {
+    try {
+      window.localStorage.setItem(KEY, JSON.stringify(state));
+    } catch {
+      /* ignore */
+    }
+  }
+  for (const l of listeners) l();
+});
+
 const emit = () => {
   if (typeof window !== "undefined") {
     try {
@@ -223,6 +236,7 @@ const emit = () => {
       /* ignore */
     }
   }
+  cloudPush();
   for (const l of listeners) l();
 };
 

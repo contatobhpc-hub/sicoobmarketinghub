@@ -94,7 +94,7 @@ const GROUPS: Group[] = [
     items: [
       { key: "empresa", label: "Empresa", icon: Building2 },
       { key: "contas", label: "Contas de acesso", icon: ShieldCheck },
-      { key: "usuarios", label: "Usuários (mock)", icon: Users },
+      { key: "usuarios", label: "Usuários", icon: Users },
       { key: "permissoes", label: "Permissões", icon: KeyRound },
       { key: "papeis", label: "Papéis", icon: ShieldCheck },
     ],
