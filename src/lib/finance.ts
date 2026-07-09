@@ -3,6 +3,7 @@ import { partnersStore, type Partner } from "./partners";
 import { loadFinanceFromCloud, schedulePush, setCurrentUser } from "./finance-cloud";
 import { supabase } from "@/integrations/supabase/client";
 import { isRememberedDeletion, rememberDeletion } from "./deletions";
+import { readLocalMutationAt } from "./cloud-sync";
 
 export const BUDGET_CATEGORIES = [
   "Campanhas Comerciais",
@@ -176,9 +177,18 @@ export type FinanceState = {
 const KEY = "mhub.finance.v1";
 const DELETED_SUPPLIERS_KEY = "mhub.finance.suppliers.deleted.v1";
 const DELETED_INVOICES_KEY = "mhub.finance.invoices.deleted.v1";
+const LOCKED_AUTO_INVOICES_KEY = "mhub.finance.invoices.auto-locked.v1";
 const uid = (p = "f") => `${p}-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 6)}`;
 const now = () => new Date().toISOString();
 const today = () => new Date().toISOString().slice(0, 10);
+const stableText = (value: string) =>
+  value
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "") || "fornecedor";
 
 function seed(): FinanceState {
   const year = new Date().getFullYear();
@@ -277,12 +287,45 @@ function invoiceDeletionKey(invoice: Pick<Invoice, "number">) {
   return invoice.number.startsWith("AUTO-") ? `auto:${invoice.number}` : `number:${invoice.number}`;
 }
 
+function supplierAutoInvoiceKey(supplier: Pick<FinanceSupplier, "partnerId" | "company">) {
+  return supplier.partnerId ? `partner-${stableText(supplier.partnerId)}` : `company-${stableText(supplier.company)}`;
+}
+
+function autoInvoiceNumber(supplier: Pick<FinanceSupplier, "partnerId" | "company">, month: string) {
+  return `AUTO-${supplierAutoInvoiceKey(supplier)}-${month}`;
+}
+
+function autoInvoiceDeletionKey(supplier: Pick<FinanceSupplier, "partnerId" | "company">, month: string) {
+  return `auto-stable:${supplierAutoInvoiceKey(supplier)}:${month}`;
+}
+
 function isInvoiceDeleted(invoice: Pick<Invoice, "id" | "number">) {
   return isRememberedDeletion(DELETED_INVOICES_KEY, {
     id: invoice.id,
     name: invoice.number,
     key: invoiceDeletionKey(invoice),
   });
+}
+
+function readLockedAutoInvoices() {
+  if (typeof window === "undefined") return new Set<string>();
+  try {
+    const parsed = JSON.parse(window.localStorage.getItem(LOCKED_AUTO_INVOICES_KEY) || "[]");
+    return new Set(Array.isArray(parsed) ? parsed.filter((v: unknown) => typeof v === "string") : []);
+  } catch {
+    return new Set<string>();
+  }
+}
+
+function lockAutoInvoice(number: string) {
+  if (!number.startsWith("AUTO-") || typeof window === "undefined") return;
+  const locked = readLockedAutoInvoices();
+  locked.add(number);
+  try { window.localStorage.setItem(LOCKED_AUTO_INVOICES_KEY, JSON.stringify([...locked])); } catch {}
+}
+
+function isAutoInvoiceLocked(number: string) {
+  return number.startsWith("AUTO-") && readLockedAutoInvoices().has(number);
 }
 
 function pruneFinanceState(next: FinanceState): FinanceState {
@@ -298,6 +341,10 @@ function pruneFinanceState(next: FinanceState): FinanceState {
       .map((invoice) => removedSupplierIds.has(invoice.supplierId || "") ? { ...invoice, supplierId: undefined } : invoice),
     payments: next.payments.map((payment) => removedSupplierIds.has(payment.supplierId || "") ? { ...payment, supplierId: undefined } : payment),
   };
+}
+
+function financeWeight(next: FinanceState) {
+  return next.budget.length + next.costCenters.length + next.suppliers.length + next.expenses.length + next.purchaseRequests.length + next.invoices.length + next.payments.length;
 }
 
 let state: FinanceState = (() => {
@@ -327,6 +374,8 @@ export async function hydrateFinanceFromCloud(userId: string | null) {
   const cloud = await loadFinanceFromCloud();
   if (!cloud) return;
   const prunedCloud = pruneFinanceState(cloud);
+  const prunedLocal = pruneFinanceState(state);
+  const localDirtyAt = readLocalMutationAt("finance");
   const isEmpty =
     prunedCloud.budget.length === 0 &&
     prunedCloud.suppliers.length === 0 &&
@@ -338,8 +387,13 @@ export async function hydrateFinanceFromCloud(userId: string | null) {
   if (isEmpty && !hydrated) {
     // First login: push local seed/localStorage state to the cloud.
     schedulePush(() => state);
+  } else if (localDirtyAt > 0 || financeWeight(prunedLocal) > financeWeight(prunedCloud)) {
+    state = prunedLocal;
+    listeners.forEach((l) => l());
+    schedulePush(() => state);
   } else {
     state = prunedCloud;
+    try { localStorage.setItem(KEY, JSON.stringify(state)); } catch {}
     listeners.forEach((l) => l());
     if (JSON.stringify(prunedCloud) !== JSON.stringify(cloud)) schedulePush(() => state);
   }
@@ -446,16 +500,29 @@ export const financeStore = {
   removeInvoice: (id: string) => {
     const removed = state.invoices.find((i) => i.id === id);
     if (removed) {
+      const supplier = state.suppliers.find((s) => s.id === removed.supplierId);
+      const month = removed.date?.slice(0, 7);
       rememberDeletion(DELETED_INVOICES_KEY, {
         id: removed.id,
         name: removed.number,
         key: invoiceDeletionKey(removed),
       });
+      if (supplier && month && removed.number.startsWith("AUTO-")) {
+        rememberDeletion(DELETED_INVOICES_KEY, {
+          name: removed.number,
+          key: autoInvoiceDeletionKey(supplier, month),
+        });
+      }
     }
     state = { ...state, invoices: state.invoices.filter((i) => i.id !== id) };
     emit();
   },
   updateInvoice: (id: string, patch: Partial<Omit<Invoice, "id">>) => {
+    const current = state.invoices.find((i) => i.id === id);
+    if (current) {
+      lockAutoInvoice(current.number);
+      if (patch.number) lockAutoInvoice(patch.number);
+    }
     state = { ...state, invoices: state.invoices.map((i) => (i.id === id ? { ...i, ...patch } : i)) };
     emit();
   },
@@ -550,9 +617,17 @@ export const financeStore = {
     for (const s of state.suppliers) {
       const value = s.monthlyInvestment ?? 0;
       if (value <= 0) continue;
-      const number = `AUTO-${s.id}-${month}`;
+      const number = autoInvoiceNumber(s, month);
+      const legacyNumber = `AUTO-${s.id}-${month}`;
       if (isRememberedDeletion(DELETED_INVOICES_KEY, { name: number, key: `auto:${number}` })) continue;
-      const existingIdx = next.findIndex((i) => i.number === number);
+      if (isRememberedDeletion(DELETED_INVOICES_KEY, { name: legacyNumber, key: `auto:${legacyNumber}` })) continue;
+      if (isRememberedDeletion(DELETED_INVOICES_KEY, { name: number, key: autoInvoiceDeletionKey(s, month) })) continue;
+      const existingIdx = next.findIndex(
+        (i) =>
+          i.number === number ||
+          i.number === legacyNumber ||
+          (i.number.startsWith("AUTO-") && i.date.slice(0, 7) === month && i.supplierId === s.id),
+      );
       if (existingIdx === -1) {
         next.unshift({
           id: uid("nf"),
@@ -565,8 +640,8 @@ export const financeStore = {
           notes: `Gerada automaticamente a partir do investimento mensal de ${s.company}.`,
         });
         changed = true;
-      } else if (next[existingIdx].value !== value) {
-        next[existingIdx] = { ...next[existingIdx], value };
+      } else if (next[existingIdx].value !== value && !isAutoInvoiceLocked(next[existingIdx].number)) {
+        next[existingIdx] = { ...next[existingIdx], number, value };
         changed = true;
       }
     }

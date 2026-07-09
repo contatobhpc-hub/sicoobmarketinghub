@@ -1,7 +1,7 @@
 import { useEffect, useSyncExternalStore } from "react";
 import { partnersStore, type Partner, type PartnerStatus } from "./partners";
 import { supabase } from "@/integrations/supabase/client";
-import { loadModuleState, scheduleModulePush, setCloudSyncUser } from "./cloud-sync";
+import { loadModuleRecord, readLocalMutationAt, readLocalSavedAt, scheduleModulePush, setCloudSyncUser } from "./cloud-sync";
 import { isRememberedDeletion, rememberDeletion } from "./deletions";
 
 export const CONTRACT_STATUSES = [
@@ -262,12 +262,15 @@ let cloudHydrated = false;
 export async function hydrateContractsFromCloud(userId: string | null) {
   setCloudSyncUser(userId);
   if (!userId) { cloudHydrated = false; return; }
-  const cloud = await loadModuleState<Contract[]>("contracts");
+  const cloud = await loadModuleRecord<Contract[]>("contracts");
   const local = typeof window !== "undefined" ? load() : [];
-  const cloudArr = Array.isArray(cloud) ? pruneDeletedContracts(cloud) : [];
-  // Keep whichever side has more data; push local up when it's richer so
-  // a device that lost its cloud copy doesn't overwrite a fuller local one.
-  if (local.length > cloudArr.length) {
+  const cloudArr = Array.isArray(cloud?.data) ? pruneDeletedContracts(cloud.data) : [];
+  const localDirtyAt = readLocalMutationAt("contracts");
+  const localSavedAt = readLocalSavedAt("contracts");
+  const cloudUpdatedAt = cloud?.updated_at ? Date.parse(cloud.updated_at) : 0;
+  // Keep local when it is newer/richer so the cloud cannot restore deleted rows
+  // or overwrite edits made while the previous push was still pending.
+  if (localDirtyAt > 0 || localSavedAt > cloudUpdatedAt || local.length > cloudArr.length) {
     state = local;
     listeners.forEach((l) => l());
     scheduleModulePush("contracts", () => state);

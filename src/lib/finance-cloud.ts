@@ -4,6 +4,7 @@
 
 import { supabase } from "@/integrations/supabase/client";
 import type { FinanceState, FinanceSupplier, CostCenter, Expense, Invoice, Payment, PurchaseRequest, BudgetLine, BudgetCategory, ExpenseCategory, PaymentMethod, PRStatus, Urgency, InvoiceStatus, PaymentStatus, PRTimelineEntry } from "./finance";
+import { clearLocalMutation, markLocalMutation } from "./cloud-sync";
 
 let syncing = false;
 let pending = false;
@@ -136,7 +137,7 @@ function isUuid(v: string | undefined | null): v is string {
 }
 
 async function pushNow(state: FinanceState) {
-  if (!currentUser) return;
+  if (!currentUser) return false;
 
   // Full replace strategy for simplicity. Volume is low.
   const deletes = await Promise.all([
@@ -148,14 +149,18 @@ async function pushNow(state: FinanceState) {
     supabase.from("finance_cost_centers").delete().neq("id", "00000000-0000-0000-0000-000000000000"),
     supabase.from("finance_budget").delete().neq("id", "00000000-0000-0000-0000-000000000000"),
   ]);
-  for (const d of deletes) if (d.error) console.error("[finance-cloud] delete", d.error);
+  const deleteErrors = deletes.filter((d) => d.error).map((d) => d.error);
+  if (deleteErrors.length) {
+    console.error("[finance-cloud] delete", deleteErrors);
+    return false;
+  }
 
   // Budget
   if (state.budget.length) {
     const { error } = await supabase.from("finance_budget").insert(
       state.budget.map((b) => ({ year: state.year, category: b.category, planned: b.planned, approved: b.approved })),
     );
-    if (error) console.error("[finance-cloud] budget", error);
+    if (error) { console.error("[finance-cloud] budget", error); return false; }
   }
 
   // Cost centers — need to preserve ids used by other tables. Only push UUID ids;
@@ -168,7 +173,7 @@ async function pushNow(state: FinanceState) {
   });
   if (ccRows.length) {
     const { error } = await supabase.from("finance_cost_centers").insert(ccRows);
-    if (error) console.error("[finance-cloud] cc", error);
+    if (error) { console.error("[finance-cloud] cc", error); return false; }
   }
 
   const supIdMap = new Map<string, string>();
@@ -193,7 +198,7 @@ async function pushNow(state: FinanceState) {
   });
   if (supRows.length) {
     const { error } = await supabase.from("finance_suppliers").insert(supRows);
-    if (error) console.error("[finance-cloud] sup", error);
+    if (error) { console.error("[finance-cloud] sup", error); return false; }
   }
 
   const invIdMap = new Map<string, string>();
@@ -225,7 +230,7 @@ async function pushNow(state: FinanceState) {
   });
   if (invRows.length) {
     const { error } = await supabase.from("finance_invoices").insert(invRows);
-    if (error) console.error("[finance-cloud] inv", error);
+    if (error) { console.error("[finance-cloud] inv", error); return false; }
   }
 
   const expRows = state.expenses.map((e) => ({
@@ -246,7 +251,7 @@ async function pushNow(state: FinanceState) {
   }));
   if (expRows.length) {
     const { error } = await supabase.from("finance_expenses").insert(expRows);
-    if (error) console.error("[finance-cloud] exp", error);
+    if (error) { console.error("[finance-cloud] exp", error); return false; }
   }
 
   const prRows = state.purchaseRequests.map((p) => ({
@@ -266,7 +271,7 @@ async function pushNow(state: FinanceState) {
   }));
   if (prRows.length) {
     const { error } = await supabase.from("finance_purchase_requests").insert(prRows);
-    if (error) console.error("[finance-cloud] pr", error);
+    if (error) { console.error("[finance-cloud] pr", error); return false; }
   }
 
   const payRows = state.payments.map((p) => ({
@@ -282,19 +287,22 @@ async function pushNow(state: FinanceState) {
   }));
   if (payRows.length) {
     const { error } = await supabase.from("finance_payments").insert(payRows);
-    if (error) console.error("[finance-cloud] pay", error);
+    if (error) { console.error("[finance-cloud] pay", error); return false; }
   }
+  return true;
 }
 
 let debounceTimer: ReturnType<typeof setTimeout> | null = null;
 export function schedulePush(getState: () => FinanceState) {
+  markLocalMutation("finance");
   if (!currentUser) return;
   if (debounceTimer) clearTimeout(debounceTimer);
   debounceTimer = setTimeout(async () => {
     if (syncing) { pending = true; return; }
     syncing = true;
     try {
-      await pushNow(getState());
+      const ok = await pushNow(getState());
+      if (ok) clearLocalMutation("finance");
     } finally {
       syncing = false;
       if (pending) { pending = false; schedulePush(getState); }
