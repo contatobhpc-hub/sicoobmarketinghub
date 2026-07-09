@@ -20,18 +20,21 @@ export type Database = {
           module: string
           updated_at: string
           updated_by: string | null
+          user_id: string
         }
         Insert: {
           data?: Json
           module: string
           updated_at?: string
           updated_by?: string | null
+          user_id: string
         }
         Update: {
           data?: Json
           module?: string
           updated_at?: string
           updated_by?: string | null
+          user_id?: string
         }
         Relationships: []
       }
