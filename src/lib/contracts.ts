@@ -1,8 +1,8 @@
 import { useEffect, useSyncExternalStore } from "react";
 import { partnersStore, type Partner, type PartnerStatus } from "./partners";
-import { supabase } from "@/integrations/supabase/client";
-import { loadModuleRecord, readLocalMutationAt, readLocalSavedAt, scheduleModulePush, setCloudSyncUser } from "./cloud-sync";
+import { enableTableSync } from "./table-sync";
 import { isRememberedDeletion, rememberDeletion } from "./deletions";
+
 
 export const CONTRACT_STATUSES = [
   "Rascunho",
