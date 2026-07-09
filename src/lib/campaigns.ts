@@ -1,5 +1,5 @@
 import { useSyncExternalStore } from "react";
-import { enableCloudSync } from "./cloud-sync";
+import { enableTableSync } from "./table-sync";
 import { calendarStore, type CalendarEvent } from "./calendar";
 import { isRememberedDeletion, rememberDeletion, normalizeDeletionText } from "./deletions";
 
@@ -179,10 +179,26 @@ function load(): Campaign[] {
 
 let state: Campaign[] = load();
 const listeners = new Set<() => void>();
-const cloudPush = enableCloudSync<Campaign[]>("campaigns", () => state, (s) => {
-  state = mergeCnv(s);
-  listeners.forEach((l) => l());
-});
+const cloudPush = enableTableSync<Campaign>(
+  {
+    table: "campaigns",
+    key: "campaigns",
+    cols: (c) => ({
+      name: c.name,
+      status: c.status,
+      start_date: c.startDate || null,
+      end_date: c.endDate || null,
+    }),
+  },
+  {
+    getState: () => state,
+    replaceState: (items) => {
+      state = mergeCnv(items);
+      listeners.forEach((l) => l());
+    },
+  },
+);
+
 
 
 function persist() {

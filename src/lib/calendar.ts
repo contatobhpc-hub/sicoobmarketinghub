@@ -1,5 +1,5 @@
 import { useSyncExternalStore } from "react";
-import { enableCloudSync } from "./cloud-sync";
+import { enableTableSync } from "./table-sync";
 import { isRememberedDeletion, rememberDeletion } from "./deletions";
 
 export const EVENT_CATEGORIES = [
@@ -195,7 +195,25 @@ function load(): CalendarEvent[] {
 
 let state = load();
 const listeners = new Set<() => void>();
-const cloudPush = enableCloudSync<CalendarEvent[]>("calendar", () => state, (s) => { state = s.filter((e) => !isEventDeleted(e)); listeners.forEach((l) => l()); });
+const cloudPush = enableTableSync<CalendarEvent>(
+  {
+    table: "calendar_events",
+    key: "calendar",
+    cols: (e) => ({
+      title: e.title,
+      event_date: e.date || null,
+      kind: e.category,
+    }),
+  },
+  {
+    getState: () => state,
+    replaceState: (items) => {
+      state = items.filter((e) => !isEventDeleted(e));
+      listeners.forEach((l) => l());
+    },
+  },
+);
+
 function persist() {
   if (typeof window === "undefined") return;
   window.localStorage.setItem(KEY, JSON.stringify(state));
