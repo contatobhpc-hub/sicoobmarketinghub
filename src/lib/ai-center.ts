@@ -62,15 +62,6 @@ export const AI_TEMPLATES: AiTemplate[] = [
   { id: "relatorio", label: "Novo relatório", icon: "📊", category: "Análise", prompt: "Gere a estrutura de um relatório de resultados de [campanha], com KPIs, gráficos sugeridos, insights e recomendações." },
 ];
 
-const DEFAULT_PROMPTS: AiPrompt[] = [
-  { id: "p-1", title: "Linguagem Cooperativista", category: "Estilo", prompt: "Reescreva o texto a seguir com tom cooperativista, próximo e institucional do Sicoob: [texto]", favorite: true },
-  { id: "p-2", title: "Ideias para Dia do Cooperativismo", category: "Datas", prompt: "Gere 10 ideias de conteúdo para o Dia do Cooperativismo focadas no Sicoob Credibelo." },
-  { id: "p-3", title: "Resumo Executivo", category: "Análise", prompt: "Resuma o seguinte conteúdo em 5 bullets executivos: [texto]" },
-  { id: "p-4", title: "Crédito Rural — Argumentos", category: "Produto", prompt: "Liste 8 argumentos comerciais sobre Crédito Rural Sicoob para cooperados produtores." },
-  { id: "p-5", title: "Storytelling de Cooperado", category: "Conteúdo", prompt: "Crie uma narrativa emocional baseada na história de um cooperado do Sicoob Credibelo: [contexto]." },
-  { id: "p-6", title: "Comparativo Banco x Cooperativa", category: "Educação", prompt: "Explique de forma didática 5 diferenças entre banco tradicional e cooperativa de crédito." },
-];
-
 function load(): State {
   if (typeof window === "undefined") return { conversations: [], prompts: [], activeId: null };
   try {
