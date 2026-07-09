@@ -16,6 +16,16 @@ type ModuleRecord<T> = { data: T | null; updated_at?: string | null };
 const dirtyKey = (module: string) => `mhub.cloud-sync.${module}.dirtyAt.v1`;
 const savedKey = (module: string) => `mhub.cloud-sync.${module}.savedAt.v1`;
 
+function stateWeight(value: unknown): number {
+  if (Array.isArray(value)) return value.length;
+  if (!value || typeof value !== "object") return value == null ? 0 : 1;
+  return Object.values(value as Record<string, unknown>).reduce((total, item) => total + stateWeight(item), 0);
+}
+
+export function hasMeaningfulState(value: unknown) {
+  return stateWeight(value) > 0;
+}
+
 function readTimestamp(key: string) {
   if (typeof window === "undefined") return 0;
   const raw = window.localStorage.getItem(key);
@@ -36,7 +46,6 @@ export function markLocalMutation(module: string) {
   try {
     const ts = String(Date.now());
     window.localStorage.setItem(dirtyKey(module), ts);
-    window.localStorage.setItem(savedKey(module), ts);
   } catch {
     // ignore quota/storage errors
   }
@@ -65,6 +74,7 @@ function shouldKeepLocalState<T>(local: T, cloud: T, cloudUpdatedAt: number, loc
 export function clearLocalMutation(module: string) {
   if (typeof window === "undefined") return;
   try {
+    window.localStorage.setItem(savedKey(module), String(Date.now()));
     window.localStorage.removeItem(dirtyKey(module));
   } catch {
     // ignore quota/storage errors
@@ -151,7 +161,11 @@ export function enableCloudSync<T>(
     if (!userId) return;
     const record = await loadModuleRecord<T>(module);
     if (!record || record.data == null) {
-      scheduleModulePush(module, getState);
+      const localDirtyAt = readLocalMutationAt(module);
+      const localState = getState();
+      if (localDirtyAt > 0 || hasMeaningfulState(localState)) {
+        scheduleModulePush(module, getState);
+      }
       return;
     }
     const localDirtyAt = readLocalMutationAt(module);
