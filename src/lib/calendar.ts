@@ -145,6 +145,7 @@ function buildBirthday(b: BirthdaySeed): CalendarEvent {
 const seed: CalendarEvent[] = [
   ...CITY_BIRTHDAYS.map(buildBirthday),
   ...AGENCY_BIRTHDAYS.map(buildBirthday),
+  ...COPOM_2026.map((c) => buildCopom(c.month, c.day)),
 ];
 
 function load(): CalendarEvent[] {
