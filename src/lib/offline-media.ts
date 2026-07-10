@@ -162,11 +162,19 @@ const now = () => new Date().toISOString();
 const inDays = (d: number) => new Date(Date.now() + d * 86400000).toISOString().slice(0, 10);
 
 const CITY_COORDS: Record<string, { x: number; y: number }> = {
-  "Patos de Minas/MG": { x: 42, y: 38 },
-  "Patrocínio/MG": { x: 55, y: 32 },
-  "Uberlândia/MG": { x: 28, y: 58 },
-  "Araxá/MG": { x: 48, y: 52 },
-  "Lagoa Formosa/MG": { x: 38, y: 44 },
+  // Região de atuação Sicoob — Campo Belo/MG e municípios vizinhos
+  "Campo Belo/MG": { x: 50, y: 50 },
+  "Candeias/MG": { x: 42, y: 58 },
+  "Cristais/MG": { x: 36, y: 46 },
+  "Aguanil/MG": { x: 58, y: 42 },
+  "Cana Verde/MG": { x: 60, y: 60 },
+  "Santana do Jacaré/MG": { x: 50, y: 68 },
+  // Cidades adicionais eventualmente presentes em mídia offline
+  "Patos de Minas/MG": { x: 42, y: 22 },
+  "Patrocínio/MG": { x: 55, y: 20 },
+  "Uberlândia/MG": { x: 22, y: 30 },
+  "Araxá/MG": { x: 38, y: 28 },
+  "Lagoa Formosa/MG": { x: 40, y: 24 },
   "Carmo do Paranaíba/MG": { x: 50, y: 42 },
 };
 

@@ -96,7 +96,7 @@ export function getKpis(module: ModuleKey): Kpi[] {
     ],
     "midia-offline": [
       { label: "Instaladas", value: "38" },
-      { label: "Cidades", value: "12" },
+      { label: "Cidades", value: "6" },
       { label: "Retirada 7d", value: "6", trend: "down" },
       { label: "Investimento", value: fmtBRL(218000) },
     ],
