@@ -264,12 +264,18 @@ function ExecutiveDashboard() {
 
   const investmentByCity = useMemo(() => {
     const map = new Map<string, number>();
-    fOffline.forEach((o) => map.set(o.city, (map.get(o.city) || 0) + o.value));
-    fSponsorships.forEach((s) => map.set(s.city, (map.get(s.city) || 0) + s.value));
+    SICOOB_CITIES.forEach((c) => map.set(c, 0));
+    fOffline.forEach((o) => {
+      if (!isSicoobCity(o.city)) return;
+      map.set(o.city, (map.get(o.city) || 0) + o.value);
+    });
+    fSponsorships.forEach((s) => {
+      if (!isSicoobCity(s.city)) return;
+      map.set(s.city, (map.get(s.city) || 0) + s.value);
+    });
     return Array.from(map.entries())
       .map(([name, value]) => ({ name, value }))
-      .sort((a, b) => b.value - a.value)
-      .slice(0, 8);
+      .sort((a, b) => b.value - a.value);
   }, [fOffline, fSponsorships]);
 
   const campaignsByType = useMemo(() => {
