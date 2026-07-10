@@ -319,7 +319,7 @@ function ExecutiveDashboard() {
   const mapPoints = useMemo(() => {
     const map = new Map<string, { city: string; value: number; count: number; x: number; y: number }>();
     const add = (c: string, v: number) => {
-      if (!c) return;
+      if (!isSicoobCity(c)) return;
       const cur = map.get(c);
       const coords = coordsForCity(c);
       if (cur) {
