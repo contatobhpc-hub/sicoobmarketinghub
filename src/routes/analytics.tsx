@@ -77,6 +77,18 @@ const formatCompact = (v: number) =>
 
 const COLORS = ["#818cf8", "#22d3ee", "#34d399", "#f472b6", "#fbbf24", "#fb7185", "#a78bfa", "#60a5fa"];
 
+// Cidades da região de atuação Sicoob Campo Belo
+const SICOOB_CITIES = [
+  "Campo Belo/MG",
+  "Candeias/MG",
+  "Cristais/MG",
+  "Aguanil/MG",
+  "Cana Verde/MG",
+  "Santana do Jacaré/MG",
+] as const;
+const SICOOB_CITY_SET = new Set<string>(SICOOB_CITIES);
+const isSicoobCity = (c?: string) => !!c && SICOOB_CITY_SET.has(c);
+
 function ExecutiveDashboard() {
   const campaigns = useCampaigns();
   const events = useEvents();
@@ -107,20 +119,8 @@ function ExecutiveDashboard() {
     () => Array.from(new Set(events.map((e) => e.agency).filter(Boolean))).sort(),
     [events],
   );
-  const cities = useMemo(
-    () =>
-      Array.from(
-        new Set([
-          ...events.map((e) => e.city),
-          ...offline.map((o) => o.city),
-          ...sponsorships.map((s) => s.city),
-          ...partners.map((p) => p.city),
-        ]),
-      )
-        .filter(Boolean)
-        .sort(),
-    [events, offline, sponsorships, partners],
-  );
+  const cities = useMemo(() => [...SICOOB_CITIES], []);
+
   const owners = useMemo(
     () =>
       Array.from(
@@ -264,12 +264,18 @@ function ExecutiveDashboard() {
 
   const investmentByCity = useMemo(() => {
     const map = new Map<string, number>();
-    fOffline.forEach((o) => map.set(o.city, (map.get(o.city) || 0) + o.value));
-    fSponsorships.forEach((s) => map.set(s.city, (map.get(s.city) || 0) + s.value));
+    SICOOB_CITIES.forEach((c) => map.set(c, 0));
+    fOffline.forEach((o) => {
+      if (!isSicoobCity(o.city)) return;
+      map.set(o.city, (map.get(o.city) || 0) + o.value);
+    });
+    fSponsorships.forEach((s) => {
+      if (!isSicoobCity(s.city)) return;
+      map.set(s.city, (map.get(s.city) || 0) + s.value);
+    });
     return Array.from(map.entries())
       .map(([name, value]) => ({ name, value }))
-      .sort((a, b) => b.value - a.value)
-      .slice(0, 8);
+      .sort((a, b) => b.value - a.value);
   }, [fOffline, fSponsorships]);
 
   const campaignsByType = useMemo(() => {
@@ -313,7 +319,7 @@ function ExecutiveDashboard() {
   const mapPoints = useMemo(() => {
     const map = new Map<string, { city: string; value: number; count: number; x: number; y: number }>();
     const add = (c: string, v: number) => {
-      if (!c) return;
+      if (!isSicoobCity(c)) return;
       const cur = map.get(c);
       const coords = coordsForCity(c);
       if (cur) {
