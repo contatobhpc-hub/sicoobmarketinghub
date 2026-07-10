@@ -77,6 +77,18 @@ const formatCompact = (v: number) =>
 
 const COLORS = ["#818cf8", "#22d3ee", "#34d399", "#f472b6", "#fbbf24", "#fb7185", "#a78bfa", "#60a5fa"];
 
+// Cidades da região de atuação Sicoob Campo Belo
+const SICOOB_CITIES = [
+  "Campo Belo/MG",
+  "Candeias/MG",
+  "Cristais/MG",
+  "Aguanil/MG",
+  "Cana Verde/MG",
+  "Santana do Jacaré/MG",
+] as const;
+const SICOOB_CITY_SET = new Set<string>(SICOOB_CITIES);
+const isSicoobCity = (c?: string) => !!c && SICOOB_CITY_SET.has(c);
+
 function ExecutiveDashboard() {
   const campaigns = useCampaigns();
   const events = useEvents();
