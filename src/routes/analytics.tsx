@@ -318,22 +318,23 @@ function ExecutiveDashboard() {
   // ---- Map points
   const mapPoints = useMemo(() => {
     const map = new Map<string, { city: string; value: number; count: number; x: number; y: number }>();
+    // Sempre exibir as cidades da região Sicoob Campo Belo, mesmo sem dados
+    SICOOB_CITIES.forEach((c) => {
+      const coords = coordsForCity(c);
+      map.set(c, { city: c, value: 0, count: 0, x: coords.x, y: coords.y });
+    });
     const add = (c: string, v: number) => {
       if (!isSicoobCity(c)) return;
-      const cur = map.get(c);
-      const coords = coordsForCity(c);
-      if (cur) {
-        cur.value += v;
-        cur.count += 1;
-      } else {
-        map.set(c, { city: c, value: v, count: 1, x: coords.x, y: coords.y });
-      }
+      const cur = map.get(c)!;
+      cur.value += v;
+      cur.count += 1;
     };
     fOffline.forEach((o) => add(o.city, o.value));
     fSponsorships.forEach((s) => add(s.city, s.value));
     fEvents.forEach((e) => add(e.city, 0));
     return Array.from(map.values());
   }, [fOffline, fSponsorships, fEvents]);
+
 
   const maxMapValue = Math.max(1, ...mapPoints.map((p) => p.value));
 
