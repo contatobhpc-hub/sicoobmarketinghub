@@ -107,20 +107,8 @@ function ExecutiveDashboard() {
     () => Array.from(new Set(events.map((e) => e.agency).filter(Boolean))).sort(),
     [events],
   );
-  const cities = useMemo(
-    () =>
-      Array.from(
-        new Set([
-          ...events.map((e) => e.city),
-          ...offline.map((o) => o.city),
-          ...sponsorships.map((s) => s.city),
-          ...partners.map((p) => p.city),
-        ]),
-      )
-        .filter(Boolean)
-        .sort(),
-    [events, offline, sponsorships, partners],
-  );
+  const cities = useMemo(() => [...SICOOB_CITIES], []);
+
   const owners = useMemo(
     () =>
       Array.from(
