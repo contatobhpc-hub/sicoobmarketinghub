@@ -149,6 +149,12 @@ function PatrociniosPage() {
         actions={
           <div className="flex items-center gap-2">
             <ModuleManagementButton module="patrocinios" />
+            <Button size="sm" variant="outline" className="gap-2" onClick={() => {
+              const { added, skipped } = importSponsorshipsFromSheet();
+              toast.success(`Importação concluída: ${added} adicionados, ${skipped} já existentes.`);
+            }}>
+              <Download className="h-4 w-4" /> Importar planilha
+            </Button>
             <Dialog open={createOpen} onOpenChange={setCreateOpen}>
               <DialogTrigger asChild>
                 <Button size="sm" className="gap-2">
