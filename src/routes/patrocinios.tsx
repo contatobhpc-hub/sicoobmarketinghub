@@ -76,6 +76,8 @@ import {
 } from "@/lib/sponsorships";
 import { useEvents } from "@/lib/events";
 import { useCampaigns } from "@/lib/campaigns";
+import { importSponsorshipsFromSheet } from "@/lib/sponsorships-import";
+import { Download } from "lucide-react";
 
 export const Route = createFileRoute("/patrocinios")({
   head: () => ({
