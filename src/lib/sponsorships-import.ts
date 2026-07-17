@@ -1,4 +1,11 @@
-import { sponsorshipsStore, type Sponsorship, type SponsorshipCategory, type SponsorshipType } from "./sponsorships";
+import {
+  isSponsorshipDeleted,
+  sponsorshipDeletionKey,
+  sponsorshipsStore,
+  type Sponsorship,
+  type SponsorshipCategory,
+  type SponsorshipType,
+} from "./sponsorships";
 
 type Row = {
   event: string;
@@ -85,10 +92,17 @@ export function importSponsorshipsFromSheet(): { added: number; skipped: number 
   let skipped = 0;
   for (const row of IMPORTED_SPONSORSHIPS) {
     if (existing.has(dedupeKey(row))) { skipped++; continue; }
-    const patch: Partial<Sponsorship> & Pick<Sponsorship, "institution" | "event" | "city" | "category" | "type" | "value" | "owner"> = {
+    const candidate = {
+      id: "",
       institution: row.description,
       event: row.event,
       city: row.city,
+    };
+    if (isSponsorshipDeleted(candidate)) { skipped++; continue; }
+    const patch: Partial<Sponsorship> & Pick<Sponsorship, "institution" | "event" | "city" | "category" | "type" | "value" | "owner"> = {
+      institution: candidate.institution,
+      event: candidate.event,
+      city: candidate.city,
       category: row.category,
       type: inferType(row.value),
       value: row.value,
@@ -98,6 +112,7 @@ export function importSponsorshipsFromSheet(): { added: number; skipped: number 
       status: "Confirmado",
       notes: row.notes ?? "",
     };
+    if (isSponsorshipDeleted({ ...candidate, id: "", institution: patch.institution, event: patch.event, city: patch.city }) || sponsorshipDeletionKey(patch) === "") { skipped++; continue; }
     sponsorshipsStore.add(patch);
     added++;
   }
