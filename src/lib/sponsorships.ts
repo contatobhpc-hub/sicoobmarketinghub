@@ -1,4 +1,5 @@
 import { useSyncExternalStore } from "react";
+import { isRememberedDeletion, rememberDeletion } from "./deletions";
 import { enableEntitySync } from "./entity-sync";
 
 export const SPONSORSHIP_TYPES = [
@@ -75,9 +76,18 @@ export type Sponsorship = {
 };
 
 const KEY = "mhub.sponsorships.v1";
+const DELETED_KEY = "mhub.sponsorships.deleted.v1";
 const uid = (p = "sp") => `${p}-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 6)}`;
 const now = () => new Date().toISOString();
 const inDays = (d: number) => new Date(Date.now() + d * 86400000).toISOString().slice(0, 10);
+
+function normalizeText(value?: string | null) {
+  return (value ?? "")
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .trim()
+    .toLowerCase();
+}
 
 const defaultChecklist = (): SponsorshipChecklistItem[] => [
   { id: uid("c"), text: "Assinatura do contrato", done: false },
@@ -222,12 +232,39 @@ const seed: Sponsorship[] = [
   },
 ];
 
+export function sponsorshipDeletionKey(s: Pick<Sponsorship, "institution" | "event" | "city">) {
+  return `${s.event}|${s.institution}|${s.city}`;
+}
+
+export function isSponsorshipDeleted(s: Pick<Sponsorship, "id" | "institution" | "event" | "city">) {
+  return isRememberedDeletion(DELETED_KEY, {
+    id: s.id,
+    name: `${s.event} ${s.institution}`,
+    key: sponsorshipDeletionKey(s),
+  });
+}
+
+function pruneDeleted(items: Sponsorship[]) {
+  return items.filter((item) => !isSponsorshipDeleted(item));
+}
+
+const MODEL_SPONSORSHIP_KEYS = new Set(seed.map((item) => normalizeText(sponsorshipDeletionKey(item))));
+
+function isModelSponsorship(s: Pick<Sponsorship, "institution" | "event" | "city">) {
+  return MODEL_SPONSORSHIP_KEYS.has(normalizeText(sponsorshipDeletionKey(s)));
+}
+
+function sanitizeSponsorships(items: Sponsorship[]) {
+  return pruneDeleted(items.filter((item) => !isModelSponsorship(item)));
+}
+
 function load(): Sponsorship[] {
   if (typeof window === "undefined") return [];
   try {
     const raw = window.localStorage.getItem(KEY);
     if (!raw) return [];
-    return JSON.parse(raw) as Sponsorship[];
+    const parsed = JSON.parse(raw);
+    return Array.isArray(parsed) ? sanitizeSponsorships(parsed as Sponsorship[]) : [];
   } catch {
     return [];
   }
@@ -243,7 +280,17 @@ function save(s: Sponsorship[]) {
 
 let state: Sponsorship[] = load();
 const listeners = new Set<() => void>();
-const cloudPush = enableEntitySync<Sponsorship>({ module: "sponsorships" }, { getState: () => state, replaceState: (s) => { state = s; listeners.forEach((l) => l()); } });
+const cloudPush = enableEntitySync<Sponsorship>(
+  { module: "sponsorships", sanitize: sanitizeSponsorships },
+  {
+    getState: () => state,
+    replaceState: (s) => {
+      state = sanitizeSponsorships(s);
+      save(state);
+      listeners.forEach((l) => l());
+    },
+  },
+);
 function emit() {
   save(state);
   cloudPush();
@@ -295,6 +342,14 @@ export const sponsorshipsStore = {
     emit();
   },
   remove(id: string) {
+    const item = state.find((s) => s.id === id);
+    if (item) {
+      rememberDeletion(DELETED_KEY, {
+        id: item.id,
+        name: `${item.event} ${item.institution}`,
+        key: sponsorshipDeletionKey(item),
+      });
+    }
     state = state.filter((s) => s.id !== id);
     emit();
   },

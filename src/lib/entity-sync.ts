@@ -14,6 +14,7 @@ type Item = { id: string };
 
 export type EntitySyncConfig<T extends Item> = {
   module: string; // legacy module key AND `entities.module` value
+  sanitize?: (items: T[]) => T[];
 };
 
 type StoreBinding<T extends Item> = {
@@ -105,9 +106,11 @@ async function hydrate<T extends Item>(ctx: Ctx<T>) {
     console.error(`[entity-sync:${module}] load`, error);
     return;
   }
-  const cloud: T[] = (data ?? [])
+  const cloudRaw: T[] = (data ?? [])
     .map((row) => (row?.data ?? null) as T | null)
     .filter((v): v is T => !!v && typeof v === "object" && typeof (v as Item).id === "string");
+  const sanitize = ctx.cfg.sanitize ?? ((items: T[]) => items);
+  const cloud = sanitize(cloudRaw);
 
   const local = ctx.bind.getState();
 
@@ -121,7 +124,7 @@ async function hydrate<T extends Item>(ctx: Ctx<T>) {
       const byId = new Map<string, T>();
       for (const it of legacyArr) byId.set(it.id, it);
       for (const it of local) byId.set(it.id, it); // local wins on collision
-      ctx.bind.replaceState(Array.from(byId.values()));
+      ctx.bind.replaceState(sanitize(Array.from(byId.values())));
       ctx.snapshot = new Map();
       schedulePush(ctx, 0);
     } else if (local.length) {
@@ -134,12 +137,12 @@ async function hydrate<T extends Item>(ctx: Ctx<T>) {
     return;
   }
 
-  const cloudIds = new Set(cloud.map((i) => i.id));
+  const cloudIds = new Set(cloudRaw.map((i) => i.id));
   const localOnly = local.filter((i) => !cloudIds.has(i.id));
-  const merged = [...cloud, ...localOnly];
-  ctx.snapshot = new Map(cloud.map((i) => [i.id, JSON.stringify(i)]));
+  const merged = sanitize([...cloud, ...localOnly]);
+  ctx.snapshot = new Map(cloudRaw.map((i) => [i.id, JSON.stringify(i)]));
   ctx.bind.replaceState(merged);
-  if (localOnly.length) schedulePush(ctx, 0);
+  if (localOnly.length || merged.length !== cloudRaw.length) schedulePush(ctx, 0);
 }
 
 const registered = new Set<string>();
