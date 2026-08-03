@@ -88,7 +88,9 @@ const FILTERS: { key: "todas" | PriorityItem["kind"]; label: string }[] = [
 
 function CommandCenterPage() {
   const { items, recommendations, kpis } = useCommandCenter();
-  const { text: hi, Icon: HiIcon } = greeting();
+  const [greet, setGreet] = useState<ReturnType<typeof greeting> | null>(null);
+  useEffect(() => setGreet(greeting()), []);
+  const { text: hi, Icon: HiIcon } = greet ?? { text: "Olá", Icon: Sun };
   const [filter, setFilter] = useState<(typeof FILTERS)[number]["key"]>("todas");
 
   const filtered = useMemo(
