@@ -127,8 +127,11 @@ export function AppShell({ children }: { children: ReactNode }) {
           </header>
 
           <main className="flex-1 overflow-auto">
-            <div className="mx-auto w-full max-w-[1440px] px-6 py-8">{children}</div>
+            <div className="stagger mx-auto w-full max-w-[1440px] px-4 py-8 sm:px-6 lg:px-8 lg:py-12">
+              {children}
+            </div>
           </main>
+
         </div>
       </div>
       <GlobalSearch open={searchOpen} onOpenChange={setSearchOpen} />
