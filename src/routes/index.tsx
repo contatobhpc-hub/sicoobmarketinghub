@@ -47,26 +47,23 @@ const KIND_LABEL: Record<PriorityItem["kind"], string> = {
 };
 
 const TONE_RING: Record<PriorityItem["tone"], string> = {
-  critical:
-    "border-[color:var(--color-danger)]/40 bg-[color:var(--color-danger)]/5 hover:border-[color:var(--color-danger)]/70",
-  warning:
-    "border-[color:var(--color-warning)]/40 bg-[color:var(--color-warning)]/5 hover:border-[color:var(--color-warning)]/70",
-  info: "border-border bg-surface/60 hover:border-border-strong",
-  success:
-    "border-[color:var(--color-success)]/30 bg-[color:var(--color-success)]/5 hover:border-[color:var(--color-success)]/60",
+  critical: "border-destructive/35 bg-destructive/5 hover:border-destructive/60",
+  warning: "border-warning/35 bg-warning/5 hover:border-warning/60",
+  info: "border-border bg-surface/55 hover:border-primary/45",
+  success: "border-success/30 bg-success/5 hover:border-success/55",
 };
 
 const TONE_DOT: Record<PriorityItem["tone"], string> = {
-  critical: "bg-[color:var(--color-danger)]",
-  warning: "bg-[color:var(--color-warning)]",
-  info: "bg-[color:var(--color-info,theme(colors.primary.DEFAULT))]",
-  success: "bg-[color:var(--color-success)]",
+  critical: "bg-destructive",
+  warning: "bg-warning",
+  info: "bg-primary",
+  success: "bg-success",
 };
 
 const REC_TONE: Record<Recommendation["tone"], string> = {
-  insight: "from-primary/10 to-transparent border-primary/30",
-  action: "from-[color:var(--color-success)]/10 to-transparent border-[color:var(--color-success)]/30",
-  risk: "from-[color:var(--color-danger)]/10 to-transparent border-[color:var(--color-danger)]/30",
+  insight: "from-primary/12 to-transparent border-primary/25 hover:border-primary/50",
+  action: "from-success/12 to-transparent border-success/25 hover:border-success/50",
+  risk: "from-destructive/12 to-transparent border-destructive/25 hover:border-destructive/50",
 };
 
 function greeting() {
@@ -87,6 +84,23 @@ const FILTERS: { key: "todas" | PriorityItem["kind"]; label: string }[] = [
   { key: "media", label: "Mídia" },
 ];
 
+/** Staggered entrance wrapper — 8pt rhythm, natural easing. */
+function Reveal({
+  delay = 0,
+  className = "",
+  children,
+}: {
+  delay?: number;
+  className?: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <div className={`stagger ${className}`} style={{ animationDelay: `${delay}ms` }}>
+      {children}
+    </div>
+  );
+}
+
 function CommandCenterPage() {
   const { items, recommendations, kpis } = useCommandCenter();
   const [greet, setGreet] = useState<ReturnType<typeof greeting> | null>(null);
@@ -104,172 +118,214 @@ function CommandCenterPage() {
 
   return (
     <AppShell>
-      {/* Header */}
-      <div className="relative overflow-hidden rounded-2xl border border-border bg-gradient-to-br from-primary/10 via-surface/40 to-transparent p-6 sm:p-8">
-        <div className="absolute -right-24 -top-24 h-64 w-64 rounded-full bg-primary/10 blur-3xl" />
-        <div className="absolute -bottom-32 -left-16 h-72 w-72 rounded-full bg-[color:var(--color-info,theme(colors.primary.DEFAULT))]/10 blur-3xl" />
-        <div className="relative flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
-          <div className="space-y-2">
-            <div className="inline-flex items-center gap-2 rounded-full border border-border bg-surface/60 px-3 py-1 text-xs font-medium text-muted-foreground backdrop-blur">
-              <span className="relative flex h-2 w-2">
-                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[color:var(--color-success)] opacity-75" />
-                <span className="relative inline-flex h-2 w-2 rounded-full bg-[color:var(--color-success)]" />
-              </span>
-              Marketing Command Center · Tempo real
-            </div>
-            <h1 className="font-display text-3xl font-semibold tracking-tight sm:text-4xl">
-              <HiIcon className="mr-2 inline h-7 w-7 text-primary" strokeWidth={1.75} />
-              {hi}, Bruno 👋
-            </h1>
-            <p className="max-w-2xl text-sm text-muted-foreground">
-              A IA reorganizou {kpis.total} demandas por urgência, impacto e dependências.
-              Estes são os movimentos que precisam da sua atenção hoje.
-            </p>
-          </div>
+      {/* ── Hero ─────────────────────────────────────────────── */}
+      <Reveal>
+        <section className="relative overflow-hidden rounded-3xl border border-border bg-surface/45 p-6 shadow-[var(--shadow-md)] backdrop-blur-xl sm:p-10">
+          <div
+            className="pointer-events-none absolute inset-0 opacity-90"
+            style={{ backgroundImage: "var(--gradient-mesh)" }}
+          />
+          <div className="pointer-events-none absolute -right-32 -top-32 h-80 w-80 rounded-full bg-primary/15 blur-[100px]" />
+          <div className="pointer-events-none absolute -bottom-40 -left-24 h-80 w-80 rounded-full bg-accent/12 blur-[100px]" />
+          <div
+            className="pointer-events-none absolute inset-x-0 top-0 h-px"
+            style={{
+              background:
+                "linear-gradient(90deg, transparent, color-mix(in oklab, var(--color-primary) 55%, transparent), transparent)",
+            }}
+          />
 
-          {/* Pulse KPIs */}
-          <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 lg:w-auto">
-            <PulseKpi icon={Flame} label="Críticas" value={kpis.critical} tone="critical" />
-            <PulseKpi icon={Zap} label="Hoje" value={kpis.today} tone="warning" />
-            <PulseKpi icon={Target} label="Em 7 dias" value={kpis.week} tone="info" />
-            <PulseKpi icon={Activity} label="Monitoradas" value={kpis.total} tone="success" />
-          </div>
-        </div>
-      </div>
+          <div className="relative flex flex-col gap-9">
+            <div className="min-w-0 space-y-4">
+              <div className="inline-flex items-center gap-2 rounded-full border border-border bg-surface/70 px-3 py-1.5 text-[11px] font-medium tracking-wide text-muted-foreground backdrop-blur-xl">
+                <span className="relative flex h-2 w-2">
+                  <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-success opacity-70" />
+                  <span className="relative inline-flex h-2 w-2 rounded-full bg-success" />
+                </span>
+                Marketing Command Center · Tempo real
+              </div>
 
-      <div className="mt-6 grid grid-cols-1 gap-6 xl:grid-cols-[1fr_360px]">
-        {/* Priority feed */}
-        <section className="space-y-4">
-          <div className="flex items-center justify-between gap-3">
-            <div className="flex items-center gap-2">
-              <Radar className="h-4 w-4 text-primary" strokeWidth={1.75} />
-              <h2 className="font-display text-sm font-semibold uppercase tracking-wider">
-                Priorização inteligente
-              </h2>
+              <h1 className="font-display text-[clamp(1.9rem,4.2vw,3.25rem)] font-semibold leading-[1.06] tracking-[-0.035em]">
+                <HiIcon
+                  className="mr-3 inline h-[0.85em] w-[0.85em] align-[-0.08em] text-primary"
+                  strokeWidth={1.5}
+                />
+                {hi}, Bruno
+              </h1>
+
+              <p className="max-w-xl text-[15px] leading-relaxed text-muted-foreground">
+                A IA reorganizou <span className="font-semibold text-foreground">{kpis.total}</span>{" "}
+                demandas por urgência, impacto e dependências. Estes são os movimentos que precisam
+                da sua atenção hoje.
+              </p>
             </div>
-            <div className="flex flex-wrap items-center gap-1.5">
-              {FILTERS.map((f) => (
-                <button
-                  key={f.key}
-                  type="button"
-                  onClick={() => setFilter(f.key)}
-                  className={`rounded-full border px-2.5 py-1 text-xs font-medium transition-all ${
-                    filter === f.key
-                      ? "border-primary bg-primary/10 text-primary"
-                      : "border-border bg-surface/40 text-muted-foreground hover:border-border-strong hover:text-foreground"
-                  }`}
-                >
-                  {f.label}
-                </button>
+
+            <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+              {[
+                { icon: Flame, label: "Críticas", value: kpis.critical, tone: "critical" as const },
+                { icon: Zap, label: "Hoje", value: kpis.today, tone: "warning" as const },
+                { icon: Target, label: "Em 7 dias", value: kpis.week, tone: "info" as const },
+                { icon: Activity, label: "Monitoradas", value: kpis.total, tone: "success" as const },
+              ].map((k, i) => (
+                <Reveal key={k.label} delay={120 + i * 70}>
+                  <PulseKpi {...k} />
+                </Reveal>
               ))}
             </div>
           </div>
+        </section>
+      </Reveal>
+
+      {/* ── Bento ────────────────────────────────────────────── */}
+      <div className="mt-8 grid grid-cols-1 gap-6 xl:grid-cols-[minmax(0,1fr)_380px]">
+        {/* Priority feed */}
+        <section className="min-w-0 space-y-5">
+          <Reveal delay={200}>
+            <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-3">
+              <div className="flex min-w-0 items-center gap-2.5">
+                <span className="grid h-8 w-8 shrink-0 place-items-center rounded-lg bg-primary/12 text-primary">
+                  <Radar className="h-4 w-4" strokeWidth={1.75} />
+                </span>
+                <h2 className="eyebrow whitespace-nowrap text-foreground">Priorização inteligente</h2>
+              </div>
+              <div className="flex flex-wrap items-center gap-1.5">
+
+                {FILTERS.map((f) => (
+                  <button
+                    key={f.key}
+                    type="button"
+                    onClick={() => setFilter(f.key)}
+                    className={`press rounded-full border px-3 py-1.5 text-xs font-medium transition-all duration-300 [transition-timing-function:var(--ease-premium)] ${
+                      filter === f.key
+                        ? "border-primary/60 bg-primary/12 text-primary shadow-[var(--shadow-xs)]"
+                        : "border-border bg-surface/40 text-muted-foreground hover:border-primary/35 hover:text-foreground"
+                    }`}
+                  >
+                    {f.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+          </Reveal>
 
           {top.length === 0 ? (
-            <EmptyState />
+            <Reveal delay={260}>
+              <EmptyState />
+            </Reveal>
           ) : (
-            <ul className="space-y-2.5">
+            <ul className="space-y-3">
               {top.map((item, idx) => (
-                <PriorityRow key={item.id} item={item} rank={idx + 1} />
+                <Reveal key={item.id} delay={240 + idx * 55}>
+                  <PriorityRow item={item} rank={idx + 1} />
+                </Reveal>
               ))}
             </ul>
           )}
         </section>
 
         {/* Right rail */}
-        <aside className="space-y-6">
-          {/* AI Recommendations */}
-          <div className="relative overflow-hidden rounded-2xl border border-border bg-surface/60 p-5">
-            <div className="absolute right-0 top-0 h-32 w-32 -translate-y-12 translate-x-12 rounded-full bg-primary/10 blur-2xl" />
-            <div className="relative">
-              <div className="flex items-center gap-2">
-                <div className="grid h-8 w-8 place-items-center rounded-lg bg-primary/15 text-primary">
-                  <Brain className="h-4 w-4" strokeWidth={1.75} />
-                </div>
-                <div>
-                  <h3 className="font-display text-sm font-semibold">Recomendações da IA</h3>
-                  <p className="text-[11px] text-muted-foreground">
-                    Sugestões geradas a partir do contexto operacional.
-                  </p>
-                </div>
-              </div>
-
-              <ul className="mt-4 space-y-2.5">
-                {recommendations.length === 0 ? (
-                  <li className="rounded-lg border border-dashed border-border p-3 text-xs text-muted-foreground">
-                    Sem recomendações ativas. A IA continua monitorando.
-                  </li>
-                ) : (
-                  recommendations.map((r) => (
-                    <li
-                      key={r.id}
-                      className={`group rounded-xl border bg-gradient-to-br p-3 transition-all hover:-translate-y-0.5 ${REC_TONE[r.tone]}`}
-                    >
-                      <div className="flex items-start gap-2.5">
-                        <span className="text-lg leading-none">{r.icon}</span>
-                        <div className="min-w-0 flex-1">
-                          <p className="text-xs font-semibold leading-snug">{r.title}</p>
-                          <p className="mt-1 text-[11px] leading-relaxed text-muted-foreground">
-                            {r.detail}
-                          </p>
-                          {r.action && (
-                            <Link
-                              to={r.action.href}
-                              className="mt-2 inline-flex items-center gap-1 text-[11px] font-medium text-primary transition-colors hover:text-primary/80"
-                            >
-                              {r.action.label}
-                              <ArrowRight className="h-3 w-3 transition-transform group-hover:translate-x-0.5" />
-                            </Link>
-                          )}
-                        </div>
-                      </div>
-                    </li>
-                  ))
-                )}
-              </ul>
-            </div>
-          </div>
-
-          {/* Radar feed */}
-          <div className="rounded-2xl border border-border bg-surface/60 p-5">
-            <div className="flex items-center gap-2">
-              <TrendingUp className="h-4 w-4 text-primary" strokeWidth={1.75} />
-              <h3 className="font-display text-sm font-semibold">Radar Operacional</h3>
-            </div>
-            <p className="mt-1 text-[11px] text-muted-foreground">
-              Sinais detectados nas últimas 24h em todos os módulos.
-            </p>
-            <ul className="mt-4 space-y-3">
-              {radar.map((r) => (
-                <li key={`radar-${r.id}`} className="flex items-start gap-2.5">
-                  <span className={`mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full ${TONE_DOT[r.tone]}`} />
-                  <div className="min-w-0 flex-1">
-                    <p className="truncate text-xs font-medium">{r.title}</p>
-                    <p className="text-[10px] uppercase tracking-wider text-muted-foreground">
-                      {KIND_LABEL[r.kind]} · score {r.score}
+        <aside className="min-w-0 space-y-6">
+          <Reveal delay={280}>
+            <div className="relative overflow-hidden rounded-2xl border border-border bg-surface/55 p-6 shadow-[var(--shadow-sm)] backdrop-blur-xl">
+              <div className="pointer-events-none absolute right-0 top-0 h-40 w-40 -translate-y-16 translate-x-16 rounded-full bg-primary/15 blur-3xl" />
+              <div className="relative">
+                <div className="flex items-center gap-3">
+                  <div className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-primary/12 text-primary ring-1 ring-primary/20">
+                    <Brain className="h-4 w-4" strokeWidth={1.75} />
+                  </div>
+                  <div className="min-w-0">
+                    <h3 className="font-display text-sm font-semibold tracking-tight">
+                      Recomendações da IA
+                    </h3>
+                    <p className="text-[11px] leading-relaxed text-muted-foreground">
+                      Sugestões geradas a partir do contexto operacional.
                     </p>
                   </div>
-                </li>
-              ))}
-            </ul>
-          </div>
+                </div>
 
-          {/* AI capability hint */}
-          <div className="rounded-2xl border border-dashed border-primary/30 bg-primary/5 p-4">
-            <Sparkles className="h-4 w-4 text-primary" strokeWidth={1.75} />
-            <p className="mt-2 text-xs font-medium">Central IA conectada</p>
-            <p className="mt-1 text-[11px] text-muted-foreground">
-              A priorização e as recomendações são reavaliadas a cada nova alteração em
-              campanhas, contratos, eventos, estoque, parceiros e mídia offline.
-            </p>
-            <Link
-              to="/central-ia"
-              className="mt-3 inline-flex items-center gap-1 text-[11px] font-semibold text-primary hover:text-primary/80"
-            >
-              Conversar com a IA
-              <ArrowRight className="h-3 w-3" />
-            </Link>
-          </div>
+                <ul className="mt-5 space-y-3">
+                  {recommendations.length === 0 ? (
+                    <li className="rounded-xl border border-dashed border-border p-4 text-xs text-muted-foreground">
+                      Sem recomendações ativas. A IA continua monitorando.
+                    </li>
+                  ) : (
+                    recommendations.map((r) => (
+                      <li
+                        key={r.id}
+                        className={`group lift rounded-xl border bg-gradient-to-br p-3.5 ${REC_TONE[r.tone]}`}
+                      >
+                        <div className="flex items-start gap-3">
+                          <span className="text-lg leading-none">{r.icon}</span>
+                          <div className="min-w-0 flex-1">
+                            <p className="text-xs font-semibold leading-snug">{r.title}</p>
+                            <p className="mt-1.5 text-[11px] leading-relaxed text-muted-foreground">
+                              {r.detail}
+                            </p>
+                            {r.action && (
+                              <Link
+                                to={r.action.href}
+                                className="mt-2.5 inline-flex items-center gap-1.5 text-[11px] font-semibold text-primary transition-colors hover:text-primary/80"
+                              >
+                                {r.action.label}
+                                <ArrowRight className="h-3 w-3 transition-transform duration-300 [transition-timing-function:var(--ease-premium)] group-hover:translate-x-1" />
+                              </Link>
+                            )}
+                          </div>
+                        </div>
+                      </li>
+                    ))
+                  )}
+                </ul>
+              </div>
+            </div>
+          </Reveal>
+
+          <Reveal delay={340}>
+            <div className="rounded-2xl border border-border bg-surface/55 p-6 shadow-[var(--shadow-sm)] backdrop-blur-xl">
+              <div className="flex items-center gap-2.5">
+                <TrendingUp className="h-4 w-4 shrink-0 text-primary" strokeWidth={1.75} />
+                <h3 className="font-display text-sm font-semibold tracking-tight">
+                  Radar Operacional
+                </h3>
+              </div>
+              <p className="mt-1.5 text-[11px] leading-relaxed text-muted-foreground">
+                Sinais detectados nas últimas 24h em todos os módulos.
+              </p>
+              <ul className="mt-5 space-y-3.5">
+                {radar.map((r) => (
+                  <li key={`radar-${r.id}`} className="flex items-start gap-3">
+                    <span
+                      className={`mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full ${TONE_DOT[r.tone]}`}
+                    />
+                    <div className="min-w-0 flex-1">
+                      <p className="truncate text-xs font-medium">{r.title}</p>
+                      <p className="eyebrow mt-0.5 text-[10px]">
+                        {KIND_LABEL[r.kind]} · score {r.score}
+                      </p>
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </Reveal>
+
+          <Reveal delay={400}>
+            <div className="rounded-2xl border border-dashed border-primary/30 bg-primary/5 p-5">
+              <Sparkles className="h-4 w-4 text-primary" strokeWidth={1.75} />
+              <p className="mt-2.5 text-xs font-semibold">Central IA conectada</p>
+              <p className="mt-1.5 text-[11px] leading-relaxed text-muted-foreground">
+                A priorização e as recomendações são reavaliadas a cada nova alteração em campanhas,
+                contratos, eventos, estoque, parceiros e mídia offline.
+              </p>
+              <Link
+                to="/central-ia"
+                className="group mt-4 inline-flex items-center gap-1.5 text-[11px] font-semibold text-primary hover:text-primary/80"
+              >
+                Conversar com a IA
+                <ArrowRight className="h-3 w-3 transition-transform duration-300 [transition-timing-function:var(--ease-premium)] group-hover:translate-x-1" />
+              </Link>
+            </div>
+          </Reveal>
         </aside>
       </div>
     </AppShell>
@@ -288,22 +344,25 @@ function PulseKpi({
   tone: "critical" | "warning" | "info" | "success";
 }) {
   const toneClass = {
-    critical: "text-[color:var(--color-danger)] bg-[color:var(--color-danger)]/10",
-    warning: "text-[color:var(--color-warning)] bg-[color:var(--color-warning)]/10",
-    info: "text-primary bg-primary/10",
-    success: "text-[color:var(--color-success)] bg-[color:var(--color-success)]/10",
+    critical: "text-destructive bg-destructive/10 ring-destructive/20",
+    warning: "text-warning bg-warning/10 ring-warning/20",
+    info: "text-primary bg-primary/10 ring-primary/20",
+    success: "text-success bg-success/10 ring-success/20",
   }[tone];
+
   return (
-    <div className="rounded-xl border border-border bg-surface/70 p-3 backdrop-blur">
-      <div className="flex items-center justify-between">
-        <span className={`grid h-7 w-7 place-items-center rounded-lg ${toneClass}`}>
+    <div className="lift group relative overflow-hidden rounded-2xl border border-border bg-surface/70 p-4 shadow-[var(--shadow-xs)] backdrop-blur-xl">
+      <div
+        className="pointer-events-none absolute inset-0 opacity-0 transition-opacity duration-500 group-hover:opacity-100"
+        style={{ backgroundImage: "var(--gradient-sheen)" }}
+      />
+      <div className="relative flex items-center justify-between gap-2">
+        <span className={`grid h-8 w-8 shrink-0 place-items-center rounded-lg ring-1 ${toneClass}`}>
           <Icon className="h-3.5 w-3.5" strokeWidth={2} />
         </span>
-        <span className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground">
-          {label}
-        </span>
+        <span className="eyebrow truncate text-[10px]">{label}</span>
       </div>
-      <div className="mt-2 tabular font-display text-2xl font-semibold tracking-tight">
+      <div className="tabular relative mt-3 font-display text-[1.75rem] font-semibold leading-none tracking-[-0.03em]">
         {value}
       </div>
     </div>
@@ -315,48 +374,50 @@ function PriorityRow({ item, rank }: { item: PriorityItem; rank: number }) {
     <li>
       <Link
         to={item.href}
-        className={`group relative flex items-center gap-3 rounded-xl border p-3.5 transition-all hover:-translate-y-0.5 hover:shadow-[var(--shadow-md)] ${TONE_RING[item.tone]}`}
+        className={`group lift press relative flex items-center gap-4 rounded-2xl border p-4 backdrop-blur-sm ${TONE_RING[item.tone]}`}
       >
-        <div className="flex flex-col items-center gap-1">
-          <span className="tabular text-[10px] font-semibold text-muted-foreground">
+        <div className="flex w-8 shrink-0 flex-col items-center gap-1">
+          <span className="tabular text-[10px] font-semibold tracking-wider text-muted-foreground">
             #{rank.toString().padStart(2, "0")}
           </span>
-          <span className="text-xl leading-none">{item.icon}</span>
+          <span className="text-xl leading-none transition-transform duration-400 [transition-timing-function:var(--ease-premium)] group-hover:scale-115">
+            {item.icon}
+          </span>
         </div>
 
         <div className="min-w-0 flex-1">
-          <div className="flex items-center gap-2">
-            <span className="rounded-md border border-border bg-surface/80 px-1.5 py-0.5 text-[10px] font-medium uppercase tracking-wider text-muted-foreground">
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="eyebrow rounded-md border border-border bg-surface/80 px-1.5 py-0.5 text-[9px]">
               {KIND_LABEL[item.kind]}
             </span>
             {item.tone === "critical" && (
-              <span className="inline-flex items-center gap-1 text-[10px] font-semibold text-[color:var(--color-danger)]">
+              <span className="inline-flex items-center gap-1 text-[10px] font-semibold text-destructive">
                 <AlertTriangle className="h-3 w-3" />
                 Urgente
               </span>
             )}
           </div>
-          <p className="mt-1 truncate text-sm font-semibold">{item.title}</p>
-          <p className="truncate text-[11px] text-muted-foreground">{item.context}</p>
+          <p className="mt-1.5 truncate text-sm font-semibold tracking-[-0.01em]">{item.title}</p>
+          <p className="truncate text-[11px] leading-relaxed text-muted-foreground">
+            {item.context}
+          </p>
         </div>
 
-        <div className="hidden flex-col items-end gap-1 sm:flex">
+        <div className="hidden shrink-0 flex-col items-end gap-1.5 sm:flex">
           <div className="flex items-center gap-1.5">
-            <span className="text-[10px] uppercase tracking-wider text-muted-foreground">Score</span>
+            <span className="eyebrow text-[9px]">Score</span>
             <span className="tabular text-sm font-semibold">{item.score}</span>
           </div>
-          <div className="h-1.5 w-24 overflow-hidden rounded-full bg-surface">
+          <div className="h-1.5 w-24 overflow-hidden rounded-full bg-surface-elevated">
             <div
-              className={`h-full ${TONE_DOT[item.tone]}`}
+              className={`h-full rounded-full transition-[width] duration-700 [transition-timing-function:var(--ease-emphasis)] ${TONE_DOT[item.tone]}`}
               style={{ width: `${Math.min(100, item.score)}%` }}
             />
           </div>
-          {item.due && (
-            <span className="text-[10px] text-muted-foreground">{item.due}</span>
-          )}
+          {item.due && <span className="text-[10px] text-muted-foreground">{item.due}</span>}
         </div>
 
-        <ArrowRight className="h-4 w-4 shrink-0 text-muted-foreground transition-all group-hover:translate-x-0.5 group-hover:text-foreground" />
+        <ArrowRight className="h-4 w-4 shrink-0 text-muted-foreground transition-all duration-300 [transition-timing-function:var(--ease-premium)] group-hover:translate-x-1 group-hover:text-primary" />
       </Link>
     </li>
   );
@@ -364,10 +425,10 @@ function PriorityRow({ item, rank }: { item: PriorityItem; rank: number }) {
 
 function EmptyState() {
   return (
-    <div className="rounded-2xl border border-dashed border-border bg-surface/40 p-10 text-center">
+    <div className="rounded-2xl border border-dashed border-border bg-surface/40 p-12 text-center backdrop-blur-sm">
       <Sparkles className="mx-auto h-6 w-6 text-primary" strokeWidth={1.75} />
-      <p className="mt-3 text-sm font-semibold">Tudo sob controle por aqui.</p>
-      <p className="mt-1 text-xs text-muted-foreground">
+      <p className="mt-4 text-sm font-semibold">Tudo sob controle por aqui.</p>
+      <p className="mx-auto mt-1.5 max-w-sm text-xs leading-relaxed text-muted-foreground">
         Nenhuma demanda crítica para este filtro. A IA continuará monitorando em segundo plano.
       </p>
     </div>

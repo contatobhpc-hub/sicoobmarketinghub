@@ -26,10 +26,13 @@ export function AppSidebar() {
     to === "/" ? pathname === "/" : pathname === to || pathname.startsWith(`${to}/`);
 
   return (
-    <Sidebar collapsible="icon" className="border-r border-sidebar-border">
+    <Sidebar
+      collapsible="icon"
+      className="border-r border-sidebar-border [background-image:linear-gradient(180deg,color-mix(in_oklab,var(--color-primary)_6%,transparent),transparent_38%)]"
+    >
       <SidebarHeader className="border-b border-sidebar-border">
-        <div className="flex items-center gap-2.5 px-2 py-2">
-          <div className="flex h-8 w-8 shrink-0 items-center justify-center overflow-hidden rounded-lg bg-white shadow-[var(--shadow-glow)]">
+        <div className="flex items-center gap-3 px-2 py-3">
+          <div className="flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-white ring-1 ring-border shadow-[var(--shadow-glow)]">
             <img
               src={companyLogo.url}
               alt="Logo Sicoob Credibelo"
@@ -37,26 +40,28 @@ export function AppSidebar() {
             />
           </div>
           {!collapsed && (
-            <div className="flex flex-col leading-tight">
-              <span className="font-display text-sm font-semibold tracking-tight">
+            <div className="flex min-w-0 flex-col leading-tight">
+              <span className="truncate font-display text-sm font-semibold tracking-tight">
                 Marketing Hub
               </span>
-              <span className="text-[11px] text-muted-foreground">Sicoob Credibelo</span>
+              <span className="truncate text-[11px] tracking-wide text-muted-foreground">
+                Sicoob Credibelo
+              </span>
             </div>
           )}
         </div>
       </SidebarHeader>
 
-      <SidebarContent className="px-1">
+      <SidebarContent className="px-2 py-2">
         {navGroups.map((group) => (
-          <SidebarGroup key={group.label}>
+          <SidebarGroup key={group.label} className="py-1.5">
             {!collapsed && (
-              <SidebarGroupLabel className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground/70">
+              <SidebarGroupLabel className="eyebrow px-2 text-[10px] text-muted-foreground/60">
                 {group.label}
               </SidebarGroupLabel>
             )}
             <SidebarGroupContent>
-              <SidebarMenu>
+              <SidebarMenu className="gap-0.5">
                 {group.items.map((item) => {
                   const active = isActive(item.to);
                   return (
@@ -65,14 +70,23 @@ export function AppSidebar() {
                         asChild
                         isActive={active}
                         tooltip={item.title}
-                        className="group/nav relative h-9 rounded-md text-[13px] font-medium text-sidebar-foreground/80 transition-all duration-150 hover:bg-sidebar-accent hover:text-sidebar-foreground data-[active=true]:bg-primary/10 data-[active=true]:text-foreground"
+                        className="group/nav relative h-9 overflow-hidden rounded-lg text-[13px] font-medium text-sidebar-foreground/75 transition-all duration-300 [transition-timing-function:var(--ease-premium)] hover:bg-sidebar-accent hover:text-sidebar-foreground data-[active=true]:bg-primary/12 data-[active=true]:text-foreground data-[active=true]:shadow-[inset_0_1px_0_0_color-mix(in_oklab,var(--color-primary)_18%,transparent)]"
                       >
                         <Link to={item.to}>
-                          {active && (
-                            <span className="absolute left-0 top-1/2 h-5 w-[2px] -translate-y-1/2 rounded-r bg-primary" />
-                          )}
-                          <item.icon className="h-4 w-4 shrink-0" strokeWidth={1.75} />
-                          <span>{item.title}</span>
+                          <span
+                            className={`absolute left-0 top-1/2 w-[2px] -translate-y-1/2 rounded-r bg-primary transition-all duration-300 [transition-timing-function:var(--ease-premium)] ${
+                              active
+                                ? "h-5 opacity-100 shadow-[0_0_10px_var(--color-primary)]"
+                                : "h-0 opacity-0 group-hover/nav:h-3 group-hover/nav:opacity-60"
+                            }`}
+                          />
+                          <item.icon
+                            className={`h-4 w-4 shrink-0 transition-all duration-300 [transition-timing-function:var(--ease-premium)] group-hover/nav:scale-110 ${
+                              active ? "text-primary" : ""
+                            }`}
+                            strokeWidth={1.75}
+                          />
+                          <span className="truncate">{item.title}</span>
                         </Link>
                       </SidebarMenuButton>
                     </SidebarMenuItem>
@@ -84,9 +98,10 @@ export function AppSidebar() {
         ))}
       </SidebarContent>
 
+
       <SidebarFooter className="border-t border-sidebar-border">
-        <div className="flex items-center gap-2.5 px-2 py-1.5">
-          <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-surface-elevated text-xs font-semibold">
+        <div className="flex items-center gap-3 px-2 py-2">
+          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-primary/12 text-xs font-semibold text-primary ring-1 ring-primary/20">
             SC
           </div>
           {!collapsed && (
@@ -99,6 +114,7 @@ export function AppSidebar() {
           )}
         </div>
       </SidebarFooter>
+
     </Sidebar>
   );
 }

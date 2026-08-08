@@ -55,45 +55,51 @@ export function AppShell({ children }: { children: ReactNode }) {
         <AppSidebar />
 
         <div className="flex min-w-0 flex-1 flex-col">
-          <header className="sticky top-0 z-30 flex h-14 items-center gap-2 border-b border-border bg-background/70 px-3 backdrop-blur-xl">
-            <SidebarTrigger className="text-muted-foreground hover:text-foreground" />
+          <header className="sticky top-0 z-30 flex h-16 items-center gap-2 border-b border-border/70 px-4 backdrop-blur-2xl [background-color:var(--glass-bg)]">
+            <SidebarTrigger className="press text-muted-foreground transition-colors hover:text-foreground" />
 
             <div className="ml-2 hidden flex-1 md:flex">
               <button
                 type="button"
                 onClick={() => setSearchOpen(true)}
-                className="group flex h-9 w-full max-w-md items-center gap-2 rounded-lg border border-border bg-surface/60 px-3 text-sm text-muted-foreground transition-colors hover:border-border-strong hover:text-foreground"
+                className="group press flex h-10 w-full max-w-md items-center gap-2.5 rounded-xl border border-border bg-surface/50 px-3.5 text-sm text-muted-foreground shadow-[var(--shadow-xs)] transition-all duration-300 [transition-timing-function:var(--ease-premium)] hover:border-primary/40 hover:bg-surface/80 hover:text-foreground hover:shadow-[var(--shadow-sm)]"
               >
-                <Search className="h-4 w-4" />
-                <span>Buscar campanhas, projetos, conteúdos…</span>
-                <kbd className="ml-auto flex items-center gap-0.5 rounded border border-border bg-surface px-1.5 py-0.5 font-mono text-[10px] text-muted-foreground">
+                <Search className="h-4 w-4 transition-transform duration-300 group-hover:scale-110" />
+                <span className="truncate">Buscar campanhas, projetos, conteúdos…</span>
+                <kbd className="ml-auto flex shrink-0 items-center gap-0.5 rounded-md border border-border bg-surface-elevated px-1.5 py-0.5 font-mono text-[10px] tracking-wider text-muted-foreground">
                   <Command className="h-3 w-3" />K
                 </kbd>
               </button>
             </div>
 
-            <div className="ml-auto flex items-center gap-1">
+            <div className="ml-auto flex items-center gap-1.5">
               <ThemeToggle />
+
 
               <Button
                 variant="ghost"
                 size="icon"
-                className="relative h-9 w-9 text-muted-foreground hover:text-foreground"
+                className="press relative h-10 w-10 rounded-xl text-muted-foreground transition-colors hover:bg-surface/70 hover:text-foreground"
               >
                 <Bell className="h-[18px] w-[18px]" strokeWidth={1.75} />
-                <span className="absolute right-2 top-2 h-1.5 w-1.5 rounded-full bg-primary shadow-[0_0_8px_var(--color-primary)]" />
+                <span className="absolute right-2.5 top-2.5 h-1.5 w-1.5 rounded-full bg-primary shadow-[0_0_10px_var(--color-primary)]" />
               </Button>
 
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" size="icon" className="h-9 w-9 rounded-full">
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="press h-10 w-10 rounded-full ring-1 ring-border transition-all duration-300 [transition-timing-function:var(--ease-premium)] hover:ring-primary/50"
+                  >
                     <Avatar className="h-7 w-7">
-                      <AvatarFallback className="text-[10px] font-semibold">
+                      <AvatarFallback className="bg-primary/15 text-[10px] font-semibold text-primary">
                         {initials}
                       </AvatarFallback>
                     </Avatar>
                   </Button>
                 </DropdownMenuTrigger>
+
                 <DropdownMenuContent align="end" className="w-56">
                   <DropdownMenuLabel className="truncate">
                     <div className="text-sm font-medium">{displayName}</div>
@@ -121,8 +127,11 @@ export function AppShell({ children }: { children: ReactNode }) {
           </header>
 
           <main className="flex-1 overflow-auto">
-            <div className="mx-auto w-full max-w-[1440px] px-6 py-8">{children}</div>
+            <div className="stagger mx-auto w-full max-w-[1440px] px-4 py-8 sm:px-6 lg:px-8 lg:py-12">
+              {children}
+            </div>
           </main>
+
         </div>
       </div>
       <GlobalSearch open={searchOpen} onOpenChange={setSearchOpen} />
