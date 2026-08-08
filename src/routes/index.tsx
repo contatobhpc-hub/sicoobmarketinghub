@@ -135,7 +135,7 @@ function CommandCenterPage() {
             }}
           />
 
-          <div className="relative grid gap-8 xl:grid-cols-[minmax(0,1.1fr)_minmax(0,1fr)] xl:items-end">
+          <div className="relative flex flex-col gap-9">
             <div className="min-w-0 space-y-4">
               <div className="inline-flex items-center gap-2 rounded-full border border-border bg-surface/70 px-3 py-1.5 text-[11px] font-medium tracking-wide text-muted-foreground backdrop-blur-xl">
                 <span className="relative flex h-2 w-2">
