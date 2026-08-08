@@ -181,14 +181,15 @@ function CommandCenterPage() {
         {/* Priority feed */}
         <section className="min-w-0 space-y-5">
           <Reveal delay={200}>
-            <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-4 sm:flex sm:justify-between">
+            <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-3">
               <div className="flex min-w-0 items-center gap-2.5">
                 <span className="grid h-8 w-8 shrink-0 place-items-center rounded-lg bg-primary/12 text-primary">
                   <Radar className="h-4 w-4" strokeWidth={1.75} />
                 </span>
-                <h2 className="eyebrow truncate text-foreground">Priorização inteligente</h2>
+                <h2 className="eyebrow whitespace-nowrap text-foreground">Priorização inteligente</h2>
               </div>
-              <div className="col-span-2 flex flex-wrap items-center gap-1.5">
+              <div className="flex flex-wrap items-center gap-1.5">
+
                 {FILTERS.map((f) => (
                   <button
                     key={f.key}
