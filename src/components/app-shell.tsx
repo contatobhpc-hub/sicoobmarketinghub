@@ -79,22 +79,27 @@ export function AppShell({ children }: { children: ReactNode }) {
               <Button
                 variant="ghost"
                 size="icon"
-                className="relative h-9 w-9 text-muted-foreground hover:text-foreground"
+                className="press relative h-10 w-10 rounded-xl text-muted-foreground transition-colors hover:bg-surface/70 hover:text-foreground"
               >
                 <Bell className="h-[18px] w-[18px]" strokeWidth={1.75} />
-                <span className="absolute right-2 top-2 h-1.5 w-1.5 rounded-full bg-primary shadow-[0_0_8px_var(--color-primary)]" />
+                <span className="absolute right-2.5 top-2.5 h-1.5 w-1.5 rounded-full bg-primary shadow-[0_0_10px_var(--color-primary)]" />
               </Button>
 
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" size="icon" className="h-9 w-9 rounded-full">
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="press h-10 w-10 rounded-full ring-1 ring-border transition-all duration-300 [transition-timing-function:var(--ease-premium)] hover:ring-primary/50"
+                  >
                     <Avatar className="h-7 w-7">
-                      <AvatarFallback className="text-[10px] font-semibold">
+                      <AvatarFallback className="bg-primary/15 text-[10px] font-semibold text-primary">
                         {initials}
                       </AvatarFallback>
                     </Avatar>
                   </Button>
                 </DropdownMenuTrigger>
+
                 <DropdownMenuContent align="end" className="w-56">
                   <DropdownMenuLabel className="truncate">
                     <div className="text-sm font-medium">{displayName}</div>
