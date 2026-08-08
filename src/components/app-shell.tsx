@@ -55,25 +55,26 @@ export function AppShell({ children }: { children: ReactNode }) {
         <AppSidebar />
 
         <div className="flex min-w-0 flex-1 flex-col">
-          <header className="sticky top-0 z-30 flex h-14 items-center gap-2 border-b border-border bg-background/70 px-3 backdrop-blur-xl">
-            <SidebarTrigger className="text-muted-foreground hover:text-foreground" />
+          <header className="sticky top-0 z-30 flex h-16 items-center gap-2 border-b border-border/70 px-4 backdrop-blur-2xl [background-color:var(--glass-bg)]">
+            <SidebarTrigger className="press text-muted-foreground transition-colors hover:text-foreground" />
 
             <div className="ml-2 hidden flex-1 md:flex">
               <button
                 type="button"
                 onClick={() => setSearchOpen(true)}
-                className="group flex h-9 w-full max-w-md items-center gap-2 rounded-lg border border-border bg-surface/60 px-3 text-sm text-muted-foreground transition-colors hover:border-border-strong hover:text-foreground"
+                className="group press flex h-10 w-full max-w-md items-center gap-2.5 rounded-xl border border-border bg-surface/50 px-3.5 text-sm text-muted-foreground shadow-[var(--shadow-xs)] transition-all duration-300 [transition-timing-function:var(--ease-premium)] hover:border-primary/40 hover:bg-surface/80 hover:text-foreground hover:shadow-[var(--shadow-sm)]"
               >
-                <Search className="h-4 w-4" />
-                <span>Buscar campanhas, projetos, conteúdos…</span>
-                <kbd className="ml-auto flex items-center gap-0.5 rounded border border-border bg-surface px-1.5 py-0.5 font-mono text-[10px] text-muted-foreground">
+                <Search className="h-4 w-4 transition-transform duration-300 group-hover:scale-110" />
+                <span className="truncate">Buscar campanhas, projetos, conteúdos…</span>
+                <kbd className="ml-auto flex shrink-0 items-center gap-0.5 rounded-md border border-border bg-surface-elevated px-1.5 py-0.5 font-mono text-[10px] tracking-wider text-muted-foreground">
                   <Command className="h-3 w-3" />K
                 </kbd>
               </button>
             </div>
 
-            <div className="ml-auto flex items-center gap-1">
+            <div className="ml-auto flex items-center gap-1.5">
               <ThemeToggle />
+
 
               <Button
                 variant="ghost"
