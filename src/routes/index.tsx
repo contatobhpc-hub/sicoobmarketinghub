@@ -160,7 +160,7 @@ function CommandCenterPage() {
               </p>
             </div>
 
-            <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 lg:w-auto">
+            <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
               {[
                 { icon: Flame, label: "Críticas", value: kpis.critical, tone: "critical" as const },
                 { icon: Zap, label: "Hoje", value: kpis.today, tone: "warning" as const },
